@@ -1,2 +1,18 @@
-shards/
+# Compiled source #
+###################
+*.pyc
+__pycache__/
+
+# Data files: databases and generated shards are published as release assets,
+# never committed to the repository #
+######################################################################
 *.db
+shards/
+*.gz
+*.tar
+*.zip
+*.7z
+
+# Local Claude Code working notes (do not commit upstream)
+CLAUDE.md
+.claude/
