@@ -43,9 +43,11 @@ def sha256(path):
 def shard(library, source, out_dir):
 	os.makedirs(out_dir, exist_ok=True)
 	# stale shards from a previous run would be uploaded as assets the
-	# registry never references
+	# registry never references; match the full shard-name shape so that
+	# e.g. 'tendl' cleanup cannot eat 'tendl_n_rp' shards in a shared out dir
+	stale = re.compile(r'^{}_([A-Z][A-Za-z0-9_]*|all_reactions)\.db$'.format(re.escape(library)))
 	for old in os.listdir(out_dir):
-		if old.startswith(library + '_') and old.endswith('.db'):
+		if stale.match(old):
 			os.remove(os.path.join(out_dir, old))
 	src = sqlite3.connect(source)
 	# SQLite-internal tables (sqlite_sequence etc.) and schemaless rows are
