@@ -24,7 +24,7 @@ from pathlib import Path
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).parent))
-from common import (ARCHIVE_ROOT, ELEMENTS, open_fresh,
+from common import (ARCHIVE_ROOT, ELEMENTS, dedupe_grid, open_fresh,
                     parse_yandf, write_version)
 
 DB_NAME = {'neutron': 'tendl_n_rp.db', 'proton': 'tendl_p_rp.db',
@@ -73,7 +73,7 @@ def collect_target(tdir):
             if not rows:
                 continue
             name = f'{a}{ELEMENTS[z].upper()}{state}'
-            products[name] = rows
+            products[name] = dedupe_grid(rows, str(p))
             tok = header.get('nuclide', '')
             if tok and state.startswith('m') and not tok.endswith(('m', 'n')):
                 print(f'  note: {p.name} stored as {name} but header '

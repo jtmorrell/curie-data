@@ -26,8 +26,8 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from common import (ARCHIVE_ROOT, ELEMENTS, open_fresh, parse_yandf,
-                    write_version)
+from common import (ARCHIVE_ROOT, ELEMENTS, dedupe_grid, open_fresh,
+                    parse_yandf, write_version)
 
 PARTICLE_AZ = {'n': (1, 0), 'p': (1, 1), 'd': (2, 1), 't': (3, 1),
                'h': (3, 2), 'a': (4, 2)}
@@ -86,13 +86,8 @@ def main():
             _, rows = parse_yandf(p.read_text())
             if not rows:
                 continue
-            seen = {}
-            for e, x in rows:
-                if e in seen and seen[e] != x:
-                    raise SystemExit(f'conflicting duplicate abscissa {e} in '
-                                     f'{tdir.name}/{p.name}')
-                seen[e] = x
-            cols.append((label, out, prod, sorted(seen.items())))
+            cols.append((label, out, prod,
+                         dedupe_grid(rows, f'{tdir.name}/{p.name}')))
         if not cols:
             print(f'  {curie_tgt}: no xs data, skipped')
             continue

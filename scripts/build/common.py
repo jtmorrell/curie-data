@@ -117,6 +117,23 @@ def parse_yandf(text):
     return header, rows
 
 
+def dedupe_grid(rows, where, rel_tol=1e-5):
+    """Collapse duplicate abscissae whose values agree to `rel_tol`
+    (round-off-level duplicated print rows are endemic in the TALYS
+    tables); a duplicate disagreeing beyond tolerance is a data conflict
+    and fails the build. Returns sorted (x, y) pairs."""
+    seen = {}
+    for e, x in rows:
+        if e in seen:
+            ref = seen[e]
+            if abs(x - ref) > rel_tol * max(abs(ref), abs(x), 1e-300):
+                raise SystemExit(f'conflicting duplicate abscissa {e} in '
+                                 f'{where}: {ref} vs {x}')
+            continue  # keep-first among round-off twins
+        seen[e] = x
+    return sorted(seen.items())
+
+
 def curie_target(token):
     """'natTi' -> 'natTI', '27Al' -> '27AL', '60Ni' -> '60NI'."""
     token = token.strip()
