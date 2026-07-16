@@ -54,6 +54,44 @@ def residual(a, z, digits):
     return f'{pa}{ELEMENTS[pz].upper()}' if 0 < pz < len(ELEMENTS) else ''
 
 
+def assemble(tdir, unknown=None):
+    """(curie_target, table_name, cols, grid, data) for one target dir —
+    the exact content the build writes, reusable by the validator."""
+    m = re.fullmatch(r'([A-Z][a-z]?)(\d{3})(m?)', tdir.name)
+    el, a, iso = m.group(1), int(m.group(2)), m.group(3)
+    curie_tgt = f'{a}{el.upper()}{iso}'
+    z = ELEMENTS.index(el)
+    cols = []
+    for p in sorted((tdir / 'tables' / 'xs').iterdir()):
+        if p.name in SKIP:
+            continue
+        xm = re.fullmatch(r'xs(\d{6})\.tot', p.name)
+        if p.name in SPECIALS:
+            label, out = SPECIALS[p.name]
+            prod = label[-1] if out == 'x' else ''
+        elif xm:
+            digits = xm.group(1)
+            out = channel_string(digits) or 'g'
+            label = f'_{out}_'
+            prod = residual(a, z, digits)
+        else:
+            if unknown is not None:
+                unknown.add(p.name)
+            continue
+        _, rows = parse_yandf(p.read_text())
+        if not rows:
+            continue
+        cols.append((label, out, prod,
+                     dedupe_grid(rows, f'{tdir.name}/{p.name}')))
+    if not cols:
+        return curie_tgt, None, [], None, None
+    grid = np.unique(np.concatenate([[e for e, _ in r] for *_, r in cols]))
+    data = np.column_stack(
+        [grid] + [np.interp(grid, [e for e, _ in r], [x for _, x in r],
+                            left=0.0, right=0.0) for *_, r in cols])
+    return curie_tgt, f'{el.upper()}_{a}{iso}', cols, grid, data
+
+
 def main():
     src = ARCHIVE_ROOT / 'tendl-2025' / 'neutron_files'
     con = open_fresh('tendl.db')
@@ -63,42 +101,12 @@ def main():
                      for t in el.iterdir() if (t / 'tables' / 'xs').is_dir())
     unknown = set()
     for tdir in targets:
-        m = re.fullmatch(r'([A-Z][a-z]?)(\d{3})(m?)', tdir.name)
-        el, a, iso = m.group(1), int(m.group(2)), m.group(3)
-        curie_tgt = f'{a}{el.upper()}{iso}'
-        z = ELEMENTS.index(el)
-        cols, grid = [], None
-        for p in sorted((tdir / 'tables' / 'xs').iterdir()):
-            if p.name in SKIP:
-                continue
-            xm = re.fullmatch(r'xs(\d{6})\.tot', p.name)
-            if p.name in SPECIALS:
-                label, out = SPECIALS[p.name]
-                prod = label[-1] if out == 'x' else ''
-            elif xm:
-                digits = xm.group(1)
-                out = channel_string(digits) or 'g'
-                label = f'_{out}_'
-                prod = residual(a, z, digits)
-            else:
-                unknown.add(p.name)
-                continue
-            _, rows = parse_yandf(p.read_text())
-            if not rows:
-                continue
-            cols.append((label, out, prod,
-                         dedupe_grid(rows, f'{tdir.name}/{p.name}')))
-        if not cols:
+        curie_tgt, table, cols, grid, data = assemble(tdir, unknown)
+        if table is None:
             print(f'  {curie_tgt}: no xs data, skipped')
             continue
-        grid = np.unique(np.concatenate([[e for e, _ in r]
-                                         for *_, r in cols]))
-        table = f'{el.upper()}_{a}{iso}'
         con.execute(f'CREATE TABLE {table} (energy REAL, ' +
                     ', '.join(f'"{lab}" REAL' for lab, *_ in cols) + ')')
-        data = np.column_stack(
-            [grid] + [np.interp(grid, [e for e, _ in r], [x for _, x in r],
-                                left=0.0, right=0.0) for *_, r in cols])
         con.executemany(
             f'INSERT INTO {table} VALUES ({",".join("?" * (len(cols) + 1))})',
             data.tolist())

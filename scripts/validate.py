@@ -389,11 +389,156 @@ def coverage_diff_endf(con):
         print(f'    {t}(n,{o}): {a:.3g} -> {b:.3g} MeV')
 
 
+# --- tendl (exclusive + residual-production) ---
+
+def _wide_table_checks(con, idx, index_cols, has_product_col):
+    """Shared structural checks for the wide-table libraries."""
+    cols = [c[1] for c in q(con, 'PRAGMA table_info(all_reactions)')]
+    check('all_reactions column order (label last)', cols == index_cols, str(cols))
+    key = ','.join(index_cols[:-1])
+    dup = q(con, f'SELECT {key},COUNT(*) c FROM all_reactions '
+                 f'GROUP BY {key} HAVING c>1')
+    check('no ambiguous index rows', not dup, str(dup[:3]))
+    targets = sorted({r[0] for r in idx})
+    from collections import defaultdict
+    labels_by_target = defaultdict(set)
+    for r in idx:
+        labels_by_target[r[0]].add(r[-1])
+    bad_join, bad_sort, bad_val = [], [], []
+    for tgt in targets:
+        tab = _endf_table(tgt)
+        have = {c[1] for c in q(con, f'PRAGMA table_info({tab})')} - {'energy'}
+        if labels_by_target[tgt] != have:
+            bad_join.append((tab, sorted(labels_by_target[tgt] ^ have)[:4]))
+        e = [r[0] for r in q(con, f'SELECT energy FROM {tab} ORDER BY rowid')]
+        if not e or any(b <= a for a, b in zip(e, e[1:])):
+            bad_sort.append(tab)
+        r = q(con, f'SELECT MIN(energy) FROM {tab}')
+        neg = q(con, f'SELECT COUNT(*) FROM {tab} WHERE energy IS NULL')[0][0]
+        if neg:
+            bad_val.append((tab, 'NULL energy'))
+    check('index labels == table columns (bidirectional)', not bad_join, str(bad_join[:3]))
+    check('grids strictly increasing and non-empty', not bad_sort, str(bad_sort[:3]))
+    check('no NULL energies', not bad_val, str(bad_val[:3]))
+    return targets
+
+
+def validate_tendl(con):
+    idx = q(con, 'SELECT target,outgoing,product,label FROM all_reactions')
+    targets = _wide_table_checks(con, idx, ['target', 'outgoing', 'product', 'label'], True)
+    check('target count (curated cut, neutron)', 600 < len(targets) < 660, str(len(targets)))
+
+    # source-identity gate: stored content equals a fresh table re-parse
+    sys.path.insert(0, str(Path(__file__).parent / 'build'))
+    import tendl_neutron as builder
+    src = builder.ARCHIVE_ROOT / 'tendl-2025' / 'neutron_files'
+    mismatch = []
+    for tdir in sorted(t for el in src.iterdir() if el.is_dir()
+                       for t in el.iterdir() if (t / 'tables' / 'xs').is_dir()):
+        tgt, tab, cols, grid, data = builder.assemble(tdir)
+        if tab is None:
+            continue
+        got = q(con, f'SELECT * FROM {tab} ORDER BY rowid')
+        if len(got) != len(data) or [tuple(r) for r in got] != [tuple(r) for r in data.tolist()]:
+            mismatch.append(tab)
+    check('stored tables identical to source re-parse', not mismatch, str(mismatch[:3]))
+
+    r = q(con, 'SELECT energy,"_g_" FROM IN_115 ORDER BY ABS(energy-2.53e-8) LIMIT 1')
+    check('IN_115 (n,g) thermal anchor ~2.02e5 mb', bool(r) and 1.2e5 < r[0][1] < 3e5, str(r))
+    resolvable_products(con, blocking=False)
+    ver = q(con, 'SELECT library,generation FROM _version')
+    check('_version stamp', ver == [('tendl', 'v2')], str(ver))
+
+
+def coverage_diff_tendl(con):
+    v1p = V1_DIR / 'tendl.db'
+    if not v1p.exists():
+        print('  (no v1 file for coverage diff)')
+        return
+    v1 = sqlite3.connect(v1p)
+    old = {(t, o) for t, o in q(v1, 'SELECT target,outgoing FROM all_reactions')}
+    new = {(t, o) for t, o in q(con, 'SELECT target,outgoing FROM all_reactions')}
+    old_t, new_t = {t for t, _ in old}, {t for t, _ in new}
+    print(f'\n  targets: {len(old_t)} -> {len(new_t)} (+{len(new_t - old_t)}, '
+          f'-{len(old_t - new_t)}); dropped: {sorted(old_t - new_t) or "none"}')
+    both = old_t & new_t
+    lost = [(t, o) for t, o in old if t in both and (t, o) not in new]
+    lvl = [x for x in lost if x[1] and x[1][-1].isdigit()]
+    print(f'  channels on common targets: +{len([x for x in new if x[0] in both and x not in old])} '
+          f'added, -{len(lost)} dropped ({len(lvl)} discrete-level entries no '
+          f'longer published; {len(lost) - len(lvl)} other)')
+    other = [x for x in lost if x not in lvl]
+    for t, o in other[:10]:
+        print(f'    - {t}(n,{o})')
+
+
+def _validate_tendl_rp(con, beam, letter):
+    idx = q(con, 'SELECT target,product,label FROM all_reactions')
+    targets = _wide_table_checks(con, idx, ['target', 'product', 'label'], False)
+    check(f'target count (curated cut, {beam})', 600 < len(targets) < 660, str(len(targets)))
+    suffixed = all(p.endswith(('g',)) or 'm' in p[-3:] for _, p, _ in idx)
+    check('every product carries an explicit state suffix', suffixed)
+
+    sys.path.insert(0, str(Path(__file__).parent / 'build'))
+    import numpy as np
+    import tendl_rp as builder
+    src = builder.ARCHIVE_ROOT / 'tendl-2025' / f'{beam}_files'
+    mismatch = []
+    for tdir in sorted(t for el in src.iterdir() if el.is_dir()
+                       for t in el.iterdir()
+                       if (t / 'tables' / 'residual').is_dir()):
+        products = builder.collect_target(tdir / 'tables' / 'residual')
+        if not products:
+            continue
+        import re as _re
+        m = _re.fullmatch(r'([A-Z][a-z]?)(\d{3})(m?)', tdir.name)
+        tab = f'{m.group(1).upper()}_{int(m.group(2))}{m.group(3)}'
+        grid = np.unique(np.concatenate([[e for e, _ in r] for r in products.values()]))
+        want = np.column_stack(
+            [grid] + [np.interp(grid, [e for e, _ in products[c]],
+                                [x for _, x in products[c]], left=0.0, right=0.0)
+                      for c in sorted(products)])
+        got = q(con, f'SELECT * FROM {tab} ORDER BY rowid')
+        if [tuple(r) for r in got] != [tuple(r) for r in want.tolist()]:
+            mismatch.append(tab)
+    check('stored tables identical to source re-parse', not mismatch, str(mismatch[:3]))
+    resolvable_products(con, blocking=False)
+    ver = q(con, 'SELECT library,generation FROM _version')
+    check('_version stamp', ver == [(f'tendl_{letter}_rp', 'v2')], str(ver))
+
+
+def _coverage_diff_rp(con, beam, letter):
+    v1p = V1_DIR / f'tendl_{letter}_rp.db'
+    if not v1p.exists():
+        print(f'  (no v1 tendl_{letter}_rp.db — new library, no diff)')
+        return
+    v1 = sqlite3.connect(v1p)
+    old = {(t, p) for t, p in q(v1, 'SELECT target,product FROM all_reactions')}
+    new = {(t, p) for t, p in q(con, 'SELECT target,product FROM all_reactions')}
+    old_t, new_t = {t for t, _ in old}, {t for t, _ in new}
+    print(f'\n  targets: {len(old_t)} -> {len(new_t)} (+{len(new_t - old_t)}, '
+          f'-{len(old_t - new_t)}); dropped: {sorted(old_t - new_t) or "none"}')
+    both = old_t & new_t
+    lost = [(t, p) for t, p in old if t in both and (t, p) not in new]
+    print(f'  products on common targets: '
+          f'+{len([x for x in new if x[0] in both and x not in old])} added, '
+          f'-{len(lost)} dropped')
+    for t, p in lost[:10]:
+        print(f'    - {t} -> {p}')
+
+
+import functools
 VALIDATORS = {
     'iaea_monitors.db': (validate_iaea_monitors, coverage_diff_iaea),
     'IRDFF.db': (validate_irdff, coverage_diff_irdff),
     'endf.db': (validate_endf, coverage_diff_endf),
+    'tendl.db': (validate_tendl, coverage_diff_tendl),
 }
+for _beam, _l in [('neutron', 'n'), ('proton', 'p'), ('deuteron', 'd'),
+                  ('alpha', 'a')]:
+    VALIDATORS[f'tendl_{_l}_rp.db'] = (
+        functools.partial(_validate_tendl_rp, beam=_beam, letter=_l),
+        functools.partial(_coverage_diff_rp, beam=_beam, letter=_l))
 
 
 if __name__ == '__main__':
