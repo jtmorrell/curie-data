@@ -95,6 +95,28 @@ def curie_nuclide(token):
     return f'{a}{el.upper()}{iso1 or iso2 or ""}'
 
 
+def parse_yandf(text):
+    """(header_dict, rows[(E [MeV], sigma [mb])]) from a TALYS YANDF table.
+
+    Header lines are '#   key: value' pairs (nested sections flattened,
+    last occurrence wins); data rows take the first two columns.
+    """
+    header, rows = {}, []
+    for line in text.splitlines():
+        if line.startswith('#'):
+            if ':' in line:
+                k, _, v = line.lstrip('# ').partition(':')
+                header[k.strip()] = v.strip()
+            continue
+        parts = line.split()
+        if len(parts) >= 2:
+            try:
+                rows.append((float(parts[0]), float(parts[1])))
+            except ValueError:
+                continue
+    return header, rows
+
+
 def curie_target(token):
     """'natTi' -> 'natTI', '27Al' -> '27AL', '60Ni' -> '60NI'."""
     token = token.strip()
