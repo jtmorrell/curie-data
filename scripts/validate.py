@@ -443,9 +443,14 @@ def validate_tendl(con):
             mismatch.append(tab)
     check('stored tables identical to source re-parse', not mismatch, str(mismatch[:3]))
 
-    r = q(con, 'SELECT energy,"_g_" FROM IN_115 ORDER BY ABS(energy-2.53e-8) LIMIT 1')
-    check('IN_115 (n,g) thermal anchor ~2.02e5 mb', bool(r) and 1.2e5 < r[0][1] < 3e5, str(r))
-    resolvable_products(con, blocking=False)
+    # NOTE: no thermal anchor — the TALYS tables' ~500-point grid does not
+    # resolve the resonance region (the previous generation reads 40 b at
+    # the 115In thermal point against the true 202 b), and 'best' serves
+    # thermal neutrons from irdff/endf. Anchor on the fast region instead.
+    r = q(con, 'SELECT energy,"_2n_" FROM IN_115 ORDER BY ABS(energy-14.0) LIMIT 1')
+    check('IN_115 (n,2n) 14 MeV anchor in (1000, 1900) mb',
+          bool(r) and 1000 < r[0][1] < 1900, str(r))
+    resolvable_products(con, particle_letters=True, blocking=False)
     ver = q(con, 'SELECT library,generation FROM _version')
     check('_version stamp', ver == [('tendl', 'v2')], str(ver))
 

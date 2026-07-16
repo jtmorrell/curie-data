@@ -32,6 +32,11 @@ sys.path.insert(0, str(Path(__file__).parent))
 from core import ARCHIVE_ROOT, MANIFEST, _lock
 
 BASE = 'https://tendl.imperial.ac.uk/tendl_2025'
+# The Imperial tree is the only public host (the PSI host is gone and the
+# NEA Data Bank copy sits behind a GitLab login that answers every path
+# with a 200 sign-in page — a redirect this fetcher deliberately treats
+# as failure). Imperial's known gaps (its proton sublibrary lacks the Nb
+# isotopes) are reported as not-provided.
 UA = 'curie-data-pipeline/2.0 (github.com/jtmorrell/curie-data)'
 WORKERS = 12
 BEAMS = ['neutron', 'proton', 'deuteron', 'alpha']
