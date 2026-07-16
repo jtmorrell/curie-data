@@ -1,0 +1,17 @@
+# Pinned build environment for the data pipeline.
+# Create with: micromamba create -f environment.yml
+# The builders require Python >= 3.11 (independent of curie's runtime floor).
+name: curie-data
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12
+  - njoy2016=2016.78
+  - numpy
+  - pandas
+  - matplotlib
+  - pip
+  - pip:
+      - endf==0.1.12
+      - paceENSDF==0.6.3
+      - xlrd==2.0.2

@@ -1,0 +1,2736 @@
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "ala22na25t.zip"
+url = "https://www-nds.iaea.org/medical/ala22na25t.zip"
+sha256 = "c78842ba13e3f13301542965e1b4ff16f6953a8c95c865464cae89ff7f1a79b5"
+size = 114445
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "ala24na25t.zip"
+url = "https://www-nds.iaea.org/medical/ala24na25t.zip"
+sha256 = "90e9ddc9a5f47d8de554c9929b9fc0813b761a799a62f12f6b92c66eaddde8fc"
+size = 127059
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "ald22na25t.zip"
+url = "https://www-nds.iaea.org/medical/ald22na25t.zip"
+sha256 = "4cdaa4ee72b714bb0371061737fdf18ccf230dad9daabe3354e1a214860c8041"
+size = 121656
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "ald24na25t.zip"
+url = "https://www-nds.iaea.org/medical/ald24na25t.zip"
+sha256 = "15d6c6b36d38476681fb7e4a9b6504a86a4fd83930ff17034d7b49d32aa45bb7"
+size = 165940
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "alh22na25t.zip"
+url = "https://www-nds.iaea.org/medical/alh22na25t.zip"
+sha256 = "c82d5547a317507614b87a246cc55276a48b1e213ea1187ed83b2a0b08c12d05"
+size = 109693
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "alh24na25t.zip"
+url = "https://www-nds.iaea.org/medical/alh24na25t.zip"
+sha256 = "8df51a72e042632f56512367884f92bd161040349a8279b649b29a2cd916ccb7"
+size = 113138
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "alp22na25t.zip"
+url = "https://www-nds.iaea.org/medical/alp22na25t.zip"
+sha256 = "a08fcd35a6b1d6801156d3cc28ea73ae23c019acd0784b604fe698b8ecc1c88c"
+size = 770142
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "alp24na25t.zip"
+url = "https://www-nds.iaea.org/medical/alp24na25t.zip"
+sha256 = "0e4db3f1a2dec6cd00ab4e1f6a1d5cb7148ecfe4c062740b276925f6c473ac18"
+size = 662537
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "alp7be25t.zip"
+url = "https://www-nds.iaea.org/medical/alp7be25t.zip"
+sha256 = "e75b030f615bb122950fc6b8723eb95710d0f43b43a8ba6c3448ee7b66e41852"
+size = 638909
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "aud94au25t.zip"
+url = "https://www-nds.iaea.org/medical/aud94au25t.zip"
+sha256 = "2b74c1501d614ffc64039f448a0b924eb579ed41ed915cd4e8ea1ddc724d198e"
+size = 68976
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "aud96au25t.zip"
+url = "https://www-nds.iaea.org/medical/aud96au25t.zip"
+sha256 = "c68eba83ed35857f57c8b91dc43166d34e0bc9eb0a142c0d79573d7d2dd549e4"
+size = 76255
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "aud98au25t.zip"
+url = "https://www-nds.iaea.org/medical/aud98au25t.zip"
+sha256 = "e7b2260eb80851cab8babe27da999587545995313247791a04be7e3cbc08abcf"
+size = 77577
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "aup94au25t.zip"
+url = "https://www-nds.iaea.org/medical/aup94au25t.zip"
+sha256 = "6704a40b895293077e78d55386cc47663b23941f9ff3bd4d8b655c4e7825996d"
+size = 128977
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "aup96au25t.zip"
+url = "https://www-nds.iaea.org/medical/aup96au25t.zip"
+sha256 = "d5fb95af5963cd6b3964f9f81ff8b516f7057b772ad512eedb722cff4812d35b"
+size = 111864
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "c0p11c25t.zip"
+url = "https://www-nds.iaea.org/medical/c0p11c25t.zip"
+sha256 = "84ced8ad6f1618474abea7c2fc8646835c98141086be60ff909e38fe30dbcf5c"
+size = 142042
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "c0p7be25t.zip"
+url = "https://www-nds.iaea.org/medical/c0p7be25t.zip"
+sha256 = "9da2f13a45a1a8032e77304f8832687b1a900a884397f0eedce5c25110ba0681"
+size = 128984
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "cua65zn25t.zip"
+url = "https://www-nds.iaea.org/medical/cua65zn25t.zip"
+sha256 = "dedd20c4c241902ebcbfe82b34cb074c6c8c271b04a1fea0f3630782be872958"
+size = 45028
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "cua66ga25t.zip"
+url = "https://www-nds.iaea.org/medical/cua66ga25t.zip"
+sha256 = "8cca790a264bcfa4499a65e01e6effe93d851250c323faefbb1b23dd755245db"
+size = 72318
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "cua67ga25t.zip"
+url = "https://www-nds.iaea.org/medical/cua67ga25t.zip"
+sha256 = "35e7a5034c0c8d66434a2d2f8536640151fa1e1f0d9d8656b315fc951e708193"
+size = 54740
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "cud62zn25t.zip"
+url = "https://www-nds.iaea.org/medical/cud62zn25t.zip"
+sha256 = "f154702d2362cd0fd29b58df16ff80bd3ca73635bb495c2a82efad64cf279c14"
+size = 43948
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "cud63zn25t.zip"
+url = "https://www-nds.iaea.org/medical/cud63zn25t.zip"
+sha256 = "8bb24ea75672821c22f848d60d592b6700a51400517e98b066500d86e7b58d39"
+size = 49394
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "cud65zn25t.zip"
+url = "https://www-nds.iaea.org/medical/cud65zn25t.zip"
+sha256 = "8d14b5b7a9b781b901ae60310961dda2434430321ba11b59676404218912a8cd"
+size = 54071
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "cuh57co25t.zip"
+url = "https://www-nds.iaea.org/medical/cuh57co25t.zip"
+sha256 = "9ffe42c721ba57610c49b31aacbcc46be5b3346ddb1bc9d0a560ac687221ad7e"
+size = 83258
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "cuh58co25t.zip"
+url = "https://www-nds.iaea.org/medical/cuh58co25t.zip"
+sha256 = "f3184a5162d8e5e47fdfb90dc287e5f119770353a7fd7aa5a3fe85b3b2ed819e"
+size = 91740
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "cuh61cu25t.zip"
+url = "https://www-nds.iaea.org/medical/cuh61cu25t.zip"
+sha256 = "6c337cfee6f5af2b7a4e115aec4447a05d3627f7bacf1ded494a3320011b67e1"
+size = 55639
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "cuh63zn25t.zip"
+url = "https://www-nds.iaea.org/medical/cuh63zn25t.zip"
+sha256 = "248c476cd6177cf4e752d92bc97c38d1c3f16f3bbbb51c506116437559c59338"
+size = 45292
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "cuh65zn25t.zip"
+url = "https://www-nds.iaea.org/medical/cuh65zn25t.zip"
+sha256 = "38d0eefb09792574f0ccb04c689a6e1216dec1009b18b64af8a4d30807c1a13b"
+size = 91288
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "cuh66ga25t.zip"
+url = "https://www-nds.iaea.org/medical/cuh66ga25t.zip"
+sha256 = "39554411e83417374c7025c21e2264050e63e71b4066b19dbd310cbb3c558b99"
+size = 51724
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "cuh67ga25t.zip"
+url = "https://www-nds.iaea.org/medical/cuh67ga25t.zip"
+sha256 = "51e3ae811c9e86b1ad6f62775b706f992728031b56f7b7cf491ac137f1c5b398"
+size = 68328
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "cup56co25t.zip"
+url = "https://www-nds.iaea.org/medical/cup56co25t.zip"
+sha256 = "07d401055ecd14affa405bbbe9753505a2da9b5464425f9fad4bc6382fb1d88f"
+size = 144773
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "cup58co25t.zip"
+url = "https://www-nds.iaea.org/medical/cup58co25t.zip"
+sha256 = "3e579e256fe03339de2734b04ab044694ac1e37b6bd7d4834ff375cc34b81b31"
+size = 157427
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "cup61cu25t.zip"
+url = "https://www-nds.iaea.org/medical/cup61cu25t.zip"
+sha256 = "2c38ede9bb48674cd7e8bf1187bb18b1b1df2089d8acf3d03b57a34371792646"
+size = 125603
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "cup62zn25t.zip"
+url = "https://www-nds.iaea.org/medical/cup62zn25t.zip"
+sha256 = "1cd9d15a790a55823250ea043b114ea5aa693c8bbfee7e80a83d37c1e62f514a"
+size = 163794
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "cup63zn25t.zip"
+url = "https://www-nds.iaea.org/medical/cup63zn25t.zip"
+sha256 = "30575a23948c422ef84f25414a471cbde097ae2c22f266e0c00cf0b3d5deb6b3"
+size = 167571
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "cup65zn25t.zip"
+url = "https://www-nds.iaea.org/medical/cup65zn25t.zip"
+sha256 = "6ed6218003a288e918cd3f6b89cc97d81ff1e7bc78877d685cc4913bee6cd42f"
+size = 154291
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "fed55co25t.zip"
+url = "https://www-nds.iaea.org/medical/fed55co25t.zip"
+sha256 = "8b37999dee36d7711a6aef8da35907611a6cd1a363f613e9ad947cb0572dd808"
+size = 56771
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "fed56co25t.zip"
+url = "https://www-nds.iaea.org/medical/fed56co25t.zip"
+sha256 = "0a9344128bff524d5e0d9debf381ab896aa98054aa009339423eb3e4540312b8"
+size = 51375
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "fed57co25t.zip"
+url = "https://www-nds.iaea.org/medical/fed57co25t.zip"
+sha256 = "3f91774b71ae788814c0795906d33e247d954fabb9b326bd669d432076ec2675"
+size = 56001
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "fed58co25t.zip"
+url = "https://www-nds.iaea.org/medical/fed58co25t.zip"
+sha256 = "95e734900d989a02448df40aa26d5c0c6774ee071c43d209d831f8bda1f4d5ae"
+size = 34777
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "fep55co25t.zip"
+url = "https://www-nds.iaea.org/medical/fep55co25t.zip"
+sha256 = "685b26ce1bd9555f569386984b65b3a837c6f1eb78719e7dbfdcb64a620f71c3"
+size = 146200
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "fep56co25t.zip"
+url = "https://www-nds.iaea.org/medical/fep56co25t.zip"
+sha256 = "ed45c84f13b2b349aaf3813a19cb53055e368341e611339a99474c35d7b5206c"
+size = 154718
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "fep57co25t.zip"
+url = "https://www-nds.iaea.org/medical/fep57co25t.zip"
+sha256 = "43735d2da8565832133482576e21bcc59378d41f3d1cc3fa1e2de189f00c41c9"
+size = 169782
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "fep58co25t.zip"
+url = "https://www-nds.iaea.org/medical/fep58co25t.zip"
+sha256 = "162229d4c8abe437e7ea2aa8645da2d30244dcac9fd7163a6bf9dd811f4594b6"
+size = 80946
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "mod96tc25t.zip"
+url = "https://www-nds.iaea.org/medical/mod96tc25t.zip"
+sha256 = "40e5dfadc4c877f2fd18a25878c7a6333a9521d72a263b196dbae0c0e2667fd7"
+size = 56603
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "mop5mtc25t.zip"
+url = "https://www-nds.iaea.org/medical/mop5mtc25t.zip"
+sha256 = "a44db10aceb773efb66420eb325cd1d240e8e406eb0db62fce2277735837441c"
+size = 74308
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "mop96tc25t.zip"
+url = "https://www-nds.iaea.org/medical/mop96tc25t.zip"
+sha256 = "1fb3a6b55451ba0428acfdc8bf6507042b20593fc6aad3da9b43e3964bd874f6"
+size = 54819
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "nbd3mmo25t.zip"
+url = "https://www-nds.iaea.org/medical/nbd3mmo25t.zip"
+sha256 = "56f017a6a85eb4b8100a6428465b5cd575b8db31283ed1c639d0597cb635372d"
+size = 53065
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "nbp90mo25t.zip"
+url = "https://www-nds.iaea.org/medical/nbp90mo25t.zip"
+sha256 = "15ef85add1fa2f3e0baf18f2b3edba6fa847bd24f6f009ca9c9d3d2e4b6fcbe7"
+size = 70375
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "nia61cu25t.zip"
+url = "https://www-nds.iaea.org/medical/nia61cu25t.zip"
+sha256 = "a49210b15cb202d108d9f4d96ec4f3b72f0138ae2645b514af2379d0c80046a9"
+size = 82234
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "nid55co25t.zip"
+url = "https://www-nds.iaea.org/medical/nid55co25t.zip"
+sha256 = "a2350af5c3f481d8093f2d96e757a8414c6c1bbef14125c6822608dbe85cd23a"
+size = 50933
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "nid56co25t.zip"
+url = "https://www-nds.iaea.org/medical/nid56co25t.zip"
+sha256 = "cc067d3b80dd1fc083e4723aa4625860fb65a305b496f801af41052719a110e1"
+size = 55956
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "nid56ni25t.zip"
+url = "https://www-nds.iaea.org/medical/nid56ni25t.zip"
+sha256 = "465332c37ddf299782f064be71152aee991f7010b10a6a4fb6989c11e01d57e0"
+size = 39854
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "nid57co25t.zip"
+url = "https://www-nds.iaea.org/medical/nid57co25t.zip"
+sha256 = "4dd63fa50019273482dd42112e7c9086f998e4dd8dd3468dca154b75b07f0136"
+size = 51434
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "nid57ni25t.zip"
+url = "https://www-nds.iaea.org/medical/nid57ni25t.zip"
+sha256 = "62016a7f3bf338f351b4a36f76bcd7d044f3a31571070d8aa578adaf377e1f95"
+size = 51122
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "nid58co25t.zip"
+url = "https://www-nds.iaea.org/medical/nid58co25t.zip"
+sha256 = "2028415413d7805a5df451ce7a74e6172d8d6d0ba3a419fba75b76c8e52f07d9"
+size = 56150
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "nid61cu25t.zip"
+url = "https://www-nds.iaea.org/medical/nid61cu25t.zip"
+sha256 = "f5a29b7b2d5e6b63b4de563787883ba51c85457d49c59aa97d8051be3ba45e20"
+size = 55671
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "nip55co25t.zip"
+url = "https://www-nds.iaea.org/medical/nip55co25t.zip"
+sha256 = "0c30d6dbdd780fa98dad0b705cd753624f547643afb9f07f4facc22540e55857"
+size = 171305
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "nip56co25t.zip"
+url = "https://www-nds.iaea.org/medical/nip56co25t.zip"
+sha256 = "98227ada47aea5d25aa57c35abab4124bd46d7cb79361eab85786dfe4c5e5637"
+size = 107231
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "nip56ni25t.zip"
+url = "https://www-nds.iaea.org/medical/nip56ni25t.zip"
+sha256 = "372ab24e0254788a25a259d4fff73b28bfd1ce4602a7ecb2afe7a1e5005f645c"
+size = 116207
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "nip57co25t.zip"
+url = "https://www-nds.iaea.org/medical/nip57co25t.zip"
+sha256 = "ad2240bb2419b0374a6c8783078b6c6e78c3e321d48b7ad6c80e193b220d833c"
+size = 129610
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "nip57ni25t.zip"
+url = "https://www-nds.iaea.org/medical/nip57ni25t.zip"
+sha256 = "572e9229e0ee96c98bff73f0bba6525b8f4f5c4a1d068345748b22a3fd2be2f9"
+size = 165209
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "nip58co25t.zip"
+url = "https://www-nds.iaea.org/medical/nip58co25t.zip"
+sha256 = "261155465992e58b0d775855021c79de198c525ebbf95d36db843071f02a4988"
+size = 154653
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "tia51cr25t.zip"
+url = "https://www-nds.iaea.org/medical/tia51cr25t.zip"
+sha256 = "529b8926c232f92906d1e87bc4a4c7b1245a471d330fac6cf4142fb0e0fdb2af"
+size = 53528
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "tid43sc25t.zip"
+url = "https://www-nds.iaea.org/medical/tid43sc25t.zip"
+sha256 = "e4cbbf6e9c5eafc8416af63f4c8a4c2b4a7afb3f8943cc015af6ff2af6c109de"
+size = 26951
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "tid46sc25t.zip"
+url = "https://www-nds.iaea.org/medical/tid46sc25t.zip"
+sha256 = "94b406caa3e60c9e22fb0bcebe43cd17d88a0bd2af918442dfbdd06612b4d011"
+size = 67514
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "tid47sc25t.zip"
+url = "https://www-nds.iaea.org/medical/tid47sc25t.zip"
+sha256 = "4db5bc7d23830d08d543d3386c3f6d65627e08ca9b6c51cfbc8029075374cedc"
+size = 56772
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "tid48v25t.zip"
+url = "https://www-nds.iaea.org/medical/tid48v25t.zip"
+sha256 = "9e99fd1fcc093b63a1aaff43d504b913424ce9c5589c4fe06e148af14f7e7ddb"
+size = 56439
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "tih48v25t.zip"
+url = "https://www-nds.iaea.org/medical/tih48v25t.zip"
+sha256 = "809ce98431041d4be7bdf38f537814dcbfdc5faff45b98e31b1f84a6ab4f668b"
+size = 132138
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "tip43sc25t.zip"
+url = "https://www-nds.iaea.org/medical/tip43sc25t.zip"
+sha256 = "8f6885fcd2bc2539f50d9759b6993c32b9e2ec6ab1224bb1b39840845cc6fb3b"
+size = 170396
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "tip46sc25t.zip"
+url = "https://www-nds.iaea.org/medical/tip46sc25t.zip"
+sha256 = "44ccbc6001c17728fd34406e2aae2a4b556816fd48710e94f0e16e780b3bfa44"
+size = 151060
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/monitors"
+name = "tip48v25t.zip"
+url = "https://www-nds.iaea.org/medical/tip48v25t.zip"
+sha256 = "3533c10b1f04c2f4ee1438a30b3db058b06d164d3185df8a91b345f0c5b437d8"
+size = 165280
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/gamma"
+name = "ca0p4sct.zip"
+url = "https://www-nds.iaea.org/medical/ca0p4sct.zip"
+sha256 = "0eae15f7f76ab0be8a1c0e62835cc9e21f57b75d6957b987e2527e47245e2471"
+size = 39109
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/gamma"
+name = "cd1p1int.zip"
+url = "https://www-nds.iaea.org/medical/cd1p1int.zip"
+sha256 = "be1431027eb9848ca011c502afa928d09a74e3579332b6d2dbd2322a176c155c"
+size = 45300
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/gamma"
+name = "cd2p1int.zip"
+url = "https://www-nds.iaea.org/medical/cd2p1int.zip"
+sha256 = "dac169dfd1e455950222a02eacfc97d51574dfa435f22054131984245bdaeec4"
+size = 49335
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/gamma"
+name = "er0d7tmt.zip"
+url = "https://www-nds.iaea.org/medical/er0d7tmt.zip"
+sha256 = "79c1d558845728a89d0748c27cb3aeda4826469510109ba7ab69c522fa90c856"
+size = 54121
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/gamma"
+name = "er0p7tmt.zip"
+url = "https://www-nds.iaea.org/medical/er0p7tmt.zip"
+sha256 = "8897374e41d7b3ab54e4f33eae669c65dfc96aebdcee7a9fd437dfb5a6e1abb7"
+size = 41008
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/gamma"
+name = "er7p7tmt.zip"
+url = "https://www-nds.iaea.org/medical/er7p7tmt.zip"
+sha256 = "4708628d7fa8c9f21f49f41800315fdf1435c113acbc1513b21c41729f8e08f5"
+size = 33074
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/gamma"
+name = "fep51crt.zip"
+url = "https://www-nds.iaea.org/medical/fep51crt.zip"
+sha256 = "76a6a6fdc5c3c6eda85137f8398fc1662d5107e077683dc5b7ba2883ef7fecef"
+size = 157299
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/gamma"
+name = "gd0d5tbt.zip"
+url = "https://www-nds.iaea.org/medical/gd0d5tbt.zip"
+sha256 = "f8ff452098a29d5aac1a2f2b0bcd0e9aae1bda6320a2aaba81fe24cd8ac2ce43"
+size = 51448
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/gamma"
+name = "gd0d9gdt.zip"
+url = "https://www-nds.iaea.org/medical/gd0d9gdt.zip"
+sha256 = "20e5e7ec5aaa3b11e7bb068c1f6d6af5ae36e5a2f017944f208d32193e8be6ae"
+size = 54234
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/gamma"
+name = "gd5p5tbt.zip"
+url = "https://www-nds.iaea.org/medical/gd5p5tbt.zip"
+sha256 = "a902e0828949fb705c141086b806ecad636b4d9a431b01b5d5da1e226e30331c"
+size = 29215
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/gamma"
+name = "gd6p5tbt.zip"
+url = "https://www-nds.iaea.org/medical/gd6p5tbt.zip"
+sha256 = "824370c643d5439c9fe34cd48831b37b9d54a4aec3594a48688424899362a4e3"
+size = 25471
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/gamma"
+name = "hfag78wt.zip"
+url = "https://www-nds.iaea.org/medical/hfag78wt.zip"
+sha256 = "011d4e3e681e78e8c550fd2475c75cbcc4716b40ae3f05652512d68940a2db28"
+size = 28735
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/gamma"
+name = "ho5a7tmt.zip"
+url = "https://www-nds.iaea.org/medical/ho5a7tmt.zip"
+sha256 = "7c54410e94d49fb340736865ab1701643c7817fdead2f5c48c70891ccdb8382f"
+size = 63283
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/gamma"
+name = "i7p23xet.zip"
+url = "https://www-nds.iaea.org/medical/i7p23xet.zip"
+sha256 = "def1780f80b2915c5e665ce7fee08eefa77ac12403c77cfeea770db3e039fc71"
+size = 87208
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/gamma"
+name = "i7p25xet.zip"
+url = "https://www-nds.iaea.org/medical/i7p25xet.zip"
+sha256 = "dc01bd6031e26a8d9143b6a0fce2777be9714ca4faff9589969223864ab4f6a9"
+size = 81101
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/gamma"
+name = "kr2p1rbt.zip"
+url = "https://www-nds.iaea.org/medical/kr2p1rbt.zip"
+sha256 = "04db886631cdb8f8a0de72a0cfaa2901c796877500d9af60b006a5ae24e2f36a"
+size = 28725
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/gamma"
+name = "krp81rbt.zip"
+url = "https://www-nds.iaea.org/medical/krp81rbt.zip"
+sha256 = "1ab55563b83281c5a83e61c9e51d7468608502973c4ff6a4ba7c2f8a6bb79489"
+size = 98627
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/gamma"
+name = "mnd51crt.zip"
+url = "https://www-nds.iaea.org/medical/mnd51crt.zip"
+sha256 = "6fec7f0a7fdd9976ab67b2726af654d44ffc2d741d3e1293dccb80edd473c6fe"
+size = 39210
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/gamma"
+name = "mnp51crt.zip"
+url = "https://www-nds.iaea.org/medical/mnp51crt.zip"
+sha256 = "02c4f4bf061bbb65953354681e49ebf1f880e83eb3a3b2422303ef2977be65aa"
+size = 121125
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/gamma"
+name = "mo0a7rut.zip"
+url = "https://www-nds.iaea.org/medical/mo0a7rut.zip"
+sha256 = "a40860a67ef7b797ce1f83ce98470806859e84d6ad5d2207f041a9ec02d98c78"
+size = 70601
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/gamma"
+name = "mod99mot.zip"
+url = "https://www-nds.iaea.org/medical/mod99mot.zip"
+sha256 = "7301486bd851eb37fda81cdbbaef0862d52c41873fef2ee7e8f737275baa5123"
+size = 58108
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/gamma"
+name = "mod99tct.zip"
+url = "https://www-nds.iaea.org/medical/mod99tct.zip"
+sha256 = "a888c38c7c8486f7f50a5deadfddd2994703fc32981222d116ae606a3c940812"
+size = 47278
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/gamma"
+name = "mog99mot.zip"
+url = "https://www-nds.iaea.org/medical/mog99mot.zip"
+sha256 = "0a2cbdd7ef374f07d6da05369561c6423f0a0f9b7ce4ce59409f548cc427b908"
+size = 24884
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/gamma"
+name = "mon2nmot.zip"
+url = "https://www-nds.iaea.org/medical/mon2nmot.zip"
+sha256 = "bb32ff41858d96108591f5cb611ee1cbe1c0148f265ac4bed8c7882fc22e2ec4"
+size = 20985
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/gamma"
+name = "mon99mot.zip"
+url = "https://www-nds.iaea.org/medical/mon99mot.zip"
+sha256 = "9f1a5a31671e7e88151a3880c2b9486cfcdf20b2a88e641bf49e768a37219e70"
+size = 18792
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/gamma"
+name = "mop99mot.zip"
+url = "https://www-nds.iaea.org/medical/mop99mot.zip"
+sha256 = "ae69056ba783be250fa3658b2461c796194e09b5a1526e3d993a6cc6ba36819a"
+size = 50873
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/gamma"
+name = "mop99tct.zip"
+url = "https://www-nds.iaea.org/medical/mop99tct.zip"
+sha256 = "3d17fee36bed456f15cc9144b5099ad2e459836ffd5c4203496a636a6fd4731f"
+size = 51790
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/gamma"
+name = "rb5a7gyt.zip"
+url = "https://www-nds.iaea.org/medical/rb5a7gyt.zip"
+sha256 = "8de66571174be46872cb3130d5c5c0d68e38755551685bcfd8d7395a9aa0cfd9"
+size = 47028
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/gamma"
+name = "rb5a7myt.zip"
+url = "https://www-nds.iaea.org/medical/rb5a7myt.zip"
+sha256 = "4af9574452036dfb14d8704c029dfaa57a988c4180c6a8c3d191b337e6833716"
+size = 45977
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/gamma"
+name = "rhp97rut.zip"
+url = "https://www-nds.iaea.org/medical/rhp97rut.zip"
+sha256 = "39935248784cbcc3d622c16f192719114dbfd7478352ac5bdf28ede08a317be6"
+size = 47149
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/gamma"
+name = "sr0p7mgyt.zip"
+url = "https://www-nds.iaea.org/medical/sr0p7mgyt.zip"
+sha256 = "9e48c11b678284e6ff087043cc5c6f9430b591972de3b6125edc256c63679604"
+size = 71717
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/gamma"
+name = "sr0p7myt.zip"
+url = "https://www-nds.iaea.org/medical/sr0p7myt.zip"
+sha256 = "48351e33909fa390538afe42e292ecf817e3944518d9421a9605546cc639adad"
+size = 69624
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/gamma"
+name = "sr0p88yt.zip"
+url = "https://www-nds.iaea.org/medical/sr0p88yt.zip"
+sha256 = "f41d456db716d7047dc681943d6842f90381b7d5ed54254f5b22b809031a729f"
+size = 68990
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/gamma"
+name = "sr7p7gyt.zip"
+url = "https://www-nds.iaea.org/medical/sr7p7gyt.zip"
+sha256 = "8c470fd35de8ebc21669bc9ab58ae7f22da5b98791890fc3103c7c96487758d4"
+size = 32985
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/gamma"
+name = "sr7p7myt.zip"
+url = "https://www-nds.iaea.org/medical/sr7p7myt.zip"
+sha256 = "87055a50f9d15de5c01ac793e4f6a85d15f028ac957cbf82b1029d541f962d46"
+size = 37801
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/gamma"
+name = "sr8p7gyt.zip"
+url = "https://www-nds.iaea.org/medical/sr8p7gyt.zip"
+sha256 = "004876d0b9fa17dc7b0b6676a07102ee031664bcee09f297a8de6c009a0e53e0"
+size = 43163
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/gamma"
+name = "sr8p7myt.zip"
+url = "https://www-nds.iaea.org/medical/sr8p7myt.zip"
+sha256 = "05ef3b8bd4229c06b67146fb1e46e92f840e4759fa3b12387acf15ad3b091165"
+size = 44458
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/gamma"
+name = "tadg78wt.zip"
+url = "https://www-nds.iaea.org/medical/tadg78wt.zip"
+sha256 = "b5dad8c2f1d59fbc81e0834ec6568238cfe37a071627f69e6e40fbec021f5f46"
+size = 51577
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/gamma"
+name = "tapg78wt.zip"
+url = "https://www-nds.iaea.org/medical/tapg78wt.zip"
+sha256 = "3db49add304b0532cd50f11b18a5fe9c6b252e393a74e76535ca05032d330750"
+size = 70058
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/gamma"
+name = "te30d1it.zip"
+url = "https://www-nds.iaea.org/medical/te30d1it.zip"
+sha256 = "2e177245bd6e982a9cd87dea626aaabf655ccd31ca5cc3aeb8d6fb3ff31120c8"
+size = 36745
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/gamma"
+name = "te3p23it.zip"
+url = "https://www-nds.iaea.org/medical/te3p23it.zip"
+sha256 = "adafbfbfc371826e53de7b3f815c6dec7a4e1899e78776a23caee1dcb8899e70"
+size = 37183
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/gamma"
+name = "te4p23it.zip"
+url = "https://www-nds.iaea.org/medical/te4p23it.zip"
+sha256 = "1b00f5ef15a91ddc7f3b0002b8264c894c73a928fb2e798af0539bc4ba31e3be"
+size = 34131
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/gamma"
+name = "ti0d4sct.zip"
+url = "https://www-nds.iaea.org/medical/ti0d4sct.zip"
+sha256 = "6ed67ce81de145603001af5475962bcd2673e351d01d2807b3544e3d78ac9171"
+size = 54684
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/gamma"
+name = "ti0p4sct.zip"
+url = "https://www-nds.iaea.org/medical/ti0p4sct.zip"
+sha256 = "2bbf120c5bc81b7e09cc48fe112a1754a2a1729e2c514ffb46644432a33ce9f7"
+size = 155506
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/gamma"
+name = "tiag1crt.zip"
+url = "https://www-nds.iaea.org/medical/tiag1crt.zip"
+sha256 = "31d2409254683bfa9bafd05eef33c31c7934c7030dfbdb26751f63468fec6c49"
+size = 62856
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/gamma"
+name = "tl0d3pbt.zip"
+url = "https://www-nds.iaea.org/medical/tl0d3pbt.zip"
+sha256 = "b3dc80eebce20195dfda94bc483c266a4a650748d8f888f90b1d124af229195c"
+size = 51132
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/gamma"
+name = "tl0p3pbt.zip"
+url = "https://www-nds.iaea.org/medical/tl0p3pbt.zip"
+sha256 = "fef38e09f6adab089db8a1001d6eb459fef4d9e873911f706a250583810afcae"
+size = 57428
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/gamma"
+name = "tlp00pbt.zip"
+url = "https://www-nds.iaea.org/medical/tlp00pbt.zip"
+sha256 = "077d7353be908faf32c6f2ee39c9bed2f0ce0ab332cfddd426dc3bbdf7a5741d"
+size = 25851
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/gamma"
+name = "tlp01pbt.zip"
+url = "https://www-nds.iaea.org/medical/tlp01pbt.zip"
+sha256 = "c87474cfb2c19a076df2fe91706d8d3dff776b01cd4ff61db25ac13f7e5bfd39"
+size = 42583
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/gamma"
+name = "tlp02pbt.zip"
+url = "https://www-nds.iaea.org/medical/tlp02pbt.zip"
+sha256 = "0cdeb7f6db79352aad47bef19857283ea5d58c7cb497707bbb1403e14af9496a"
+size = 31169
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/gamma"
+name = "tm9d7tmt.zip"
+url = "https://www-nds.iaea.org/medical/tm9d7tmt.zip"
+sha256 = "69de3daaffc4dccd0695326497766bddc9c22b387418b68b29d6cee7e1c2811a"
+size = 42861
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/gamma"
+name = "tm9p7ybt.zip"
+url = "https://www-nds.iaea.org/medical/tm9p7ybt.zip"
+sha256 = "a09e88a8930ace4a5949099240aa29fea896d1e6114c7b11790fd18cb6003c45"
+size = 39413
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/gamma"
+name = "u8g99mot.zip"
+url = "https://www-nds.iaea.org/medical/u8g99mot.zip"
+sha256 = "c07c9710237908ffce8738f1f65caa7b6c231a5914408750012d0001f53489a7"
+size = 25294
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/gamma"
+name = "v1d51crt.zip"
+url = "https://www-nds.iaea.org/medical/v1d51crt.zip"
+sha256 = "eed45d8b2c34bcff2796c27a28f09f53e2dd6e6ee42f700f5b2583b34b0eb6a9"
+size = 91184
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/gamma"
+name = "v1p51crt.zip"
+url = "https://www-nds.iaea.org/medical/v1p51crt.zip"
+sha256 = "7a16e5a186bc6a927aa2fb0624cea131e25b1c9272f12e6ec76193bb7bdeba61"
+size = 55985
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/gamma"
+name = "xe4p21it.zip"
+url = "https://www-nds.iaea.org/medical/xe4p21it.zip"
+sha256 = "82ddab3b30d9bd2d4d3799d81304a78ee531952f7306468320a2f50914a61334"
+size = 46560
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/gamma"
+name = "xep23cst.zip"
+url = "https://www-nds.iaea.org/medical/xep23cst.zip"
+sha256 = "984c2ca98e183bc5551e372d6510301bc626c65caa26ec87714153e72a07a5ec"
+size = 38656
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/gamma"
+name = "xep23xet.zip"
+url = "https://www-nds.iaea.org/medical/xep23xet.zip"
+sha256 = "566deaa47fedabaceb40aae4d1e7cd799ad35c06cc020c77827a27da1a8df228"
+size = 40017
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/gamma"
+name = "xepx3xet.zip"
+url = "https://www-nds.iaea.org/medical/xepx3xet.zip"
+sha256 = "7bb6e5ee70afe19978c721bab35cdc98f6073c1712dad69f3c537761c1c8e78b"
+size = 40250
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/gamma"
+name = "yb0d7tmt.zip"
+url = "https://www-nds.iaea.org/medical/yb0d7tmt.zip"
+sha256 = "43991bac7a6c08c76d1f33259dd06662ad899f907620c0ce3717eee105466f01"
+size = 44517
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/gamma"
+name = "zn7p7gat.zip"
+url = "https://www-nds.iaea.org/medical/zn7p7gat.zip"
+sha256 = "b01af908f8d663f463bb38e8abcd73008228178af2a6d686765a614734bc5a07"
+size = 33521
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/gamma"
+name = "zn8p7gat.zip"
+url = "https://www-nds.iaea.org/medical/zn8p7gat.zip"
+sha256 = "510b23e8b8584f50b04b3fe0b7fa7c41cb5a5e49cc881d869df9e36b2478cda4"
+size = 39890
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "aga10int.zip"
+url = "https://www-nds.iaea.org/medical/aga10int.zip"
+sha256 = "1e63fbf09abf1cfb81ed2b8e1f259bf6e631363fe63a6ba74f5b30659a178ed0"
+size = 29136
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "as5d2set.zip"
+url = "https://www-nds.iaea.org/medical/as5d2set.zip"
+sha256 = "d81fcb3c3e166141e984fb98121e8debece7fa29e3b6dab983088be1b6806257"
+size = 33198
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "asa76brt.zip"
+url = "https://www-nds.iaea.org/medical/asa76brt.zip"
+sha256 = "65f17dfe25cad34db0f6f7ab1da41aaed0a83bbeb65be9a49bfc3df69c410990"
+size = 55373
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "asp72set.zip"
+url = "https://www-nds.iaea.org/medical/asp72set.zip"
+sha256 = "8ae5865ce8d9732395a4385af17d1e17fc94f634f841623390c4393798f5ef59"
+size = 85355
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "asp73set.zip"
+url = "https://www-nds.iaea.org/medical/asp73set.zip"
+sha256 = "b437e6e56adff60c669346ccc309738328c96b276eac7a37c12f5cdb8b85636c"
+size = 70831
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "br0p6krt.zip"
+url = "https://www-nds.iaea.org/medical/br0p6krt.zip"
+sha256 = "0fda66f99ea32c064ab015ac594d373a4651fd25cc9a341ca51ba738a93ce0b0"
+size = 173892
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "br9p6krt.zip"
+url = "https://www-nds.iaea.org/medical/br9p6krt.zip"
+sha256 = "54e18481847c48b4944911fbed36d009a37ab5a6b7e4bb71513d601f2837028b"
+size = 60703
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "brp72set.zip"
+url = "https://www-nds.iaea.org/medical/brp72set.zip"
+sha256 = "386c8923b385d5e1e85696a5a3846f794d79dcec583efd2cb10c1aacca5b23cd"
+size = 47072
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "ca0a3sct.zip"
+url = "https://www-nds.iaea.org/medical/ca0a3sct.zip"
+sha256 = "ba096dd85d7588bf9c567e238e252ce08d0dc9d0afb0fefbd76942d423de81d8"
+size = 42152
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "ca3d4sct.zip"
+url = "https://www-nds.iaea.org/medical/ca3d4sct.zip"
+sha256 = "790976160701b99e5615de70096463b15f0080479eac218e8a9550bd27584fb3"
+size = 15737
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "ca3p3sct.zip"
+url = "https://www-nds.iaea.org/medical/ca3p3sct.zip"
+sha256 = "e2723b7877bd61aa030ad9b13bba567fdb307d572c69652ebfafc869f7492a3d"
+size = 29052
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "cad44sct.zip"
+url = "https://www-nds.iaea.org/medical/cad44sct.zip"
+sha256 = "45be2031d62d143a59d267c46a84dbca8e9f37c28e6bf0fd2900f1f8b5743d6a"
+size = 31507
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "cap44sct.zip"
+url = "https://www-nds.iaea.org/medical/cap44sct.zip"
+sha256 = "981927eb16c647a723e37fe3e760708b6b6616233de3d86a3ced15ea42d2a615"
+size = 26554
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "cda10snt.zip"
+url = "https://www-nds.iaea.org/medical/cda10snt.zip"
+sha256 = "9d8f0aeffe14098c368cc355886d217331929154c4780b2702df578651b29a2c"
+size = 38285
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "cdd10int.zip"
+url = "https://www-nds.iaea.org/medical/cdd10int.zip"
+sha256 = "3e188747fd3030b32bfc716e0ec4d931eddff6be100db50ce76b81f278f940dc"
+size = 28694
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "cdp10int.zip"
+url = "https://www-nds.iaea.org/medical/cdp10int.zip"
+sha256 = "e0c835a104540af3fcc7067b6a62313e7870b3098680c1cb3b986a657e61e1b7"
+size = 25105
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "ceh40ndt.zip"
+url = "https://www-nds.iaea.org/medical/ceh40ndt.zip"
+sha256 = "f40beba254bc10bfa4f317f6371c6ab37e25fa804640d2bf2a9d25ebf1b8df04"
+size = 49015
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "cl0p4clt.zip"
+url = "https://www-nds.iaea.org/medical/cl0p4clt.zip"
+sha256 = "e945acd0e5d9d3ddce959a490f16ad3156a71b4adb7d9af79dc073cf994be545"
+size = 47636
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "cl5a38kt.zip"
+url = "https://www-nds.iaea.org/medical/cl5a38kt.zip"
+sha256 = "c31a5d405beed7d9915e5c2d3177c014e926c85591ce85ef152a11c573057367"
+size = 34504
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "co9a1cut.zip"
+url = "https://www-nds.iaea.org/medical/co9a1cut.zip"
+sha256 = "c8af10a5a74e9f7fe94c2ecf586d012db70726c08030e9cd3e3bf7bfadfa3596"
+size = 84694
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "cr0d1mnt.zip"
+url = "https://www-nds.iaea.org/medical/cr0d1mnt.zip"
+sha256 = "91101dce5d43364424b652e04866b8aee76dbfefa6e09e3158e2d3960252e3df"
+size = 30403
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "cra52fet.zip"
+url = "https://www-nds.iaea.org/medical/cra52fet.zip"
+sha256 = "01014302334f947751fd345eac7d13b88ea7498fe5305c6d22d888ea0f4bbd2e"
+size = 36444
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "crdg2mnt.zip"
+url = "https://www-nds.iaea.org/medical/crdg2mnt.zip"
+sha256 = "46dda2fab71de603d1f2078d2f570c6a50a97b7662c17ef74db5e528a1cb804f"
+size = 18943
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "crdm2mnt.zip"
+url = "https://www-nds.iaea.org/medical/crdm2mnt.zip"
+sha256 = "27ada33af976ce6a958e70792e81e89812193a7c5fd5616abb48dab69c9d0734"
+size = 18959
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "crpg2mnt.zip"
+url = "https://www-nds.iaea.org/medical/crpg2mnt.zip"
+sha256 = "62c33abfaa5497f1b52de0c6ba06cb10d89d29f4005d8c406328b9a113cb9bbf"
+size = 25014
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "crpm2mnt.zip"
+url = "https://www-nds.iaea.org/medical/crpm2mnt.zip"
+sha256 = "1b83609c7ff8e0e3def08521821958c7f94ffd122bf460b50fa9d7136745337a"
+size = 24743
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "csp28bat.zip"
+url = "https://www-nds.iaea.org/medical/csp28bat.zip"
+sha256 = "361368c8b8771dd6a16092e66a16c71834e50ab1db97b96f22fb5b2abde84f20"
+size = 51971
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "cu3a6gat.zip"
+url = "https://www-nds.iaea.org/medical/cu3a6gat.zip"
+sha256 = "5988a7432d2c671f61e254c5179355f14583087433ee89734088b1eca4da8400"
+size = 46904
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "cu3d2znt.zip"
+url = "https://www-nds.iaea.org/medical/cu3d2znt.zip"
+sha256 = "aa9eb82f0a584cb126aef4064a421cf84c2097c18ac236863f9949c796f5738d"
+size = 20866
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "cu3p2znt.zip"
+url = "https://www-nds.iaea.org/medical/cu3p2znt.zip"
+sha256 = "89ee29201fd6a378403a9b05f0627b5efceb30e2f0a98a3156d870d749023857"
+size = 20973
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "cua68gat.zip"
+url = "https://www-nds.iaea.org/medical/cua68gat.zip"
+sha256 = "669b777d9c47597fb008dee541034f04495b0feb28f750c3a7cafd7ca70c30a3"
+size = 31626
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "fe4p1mnt.zip"
+url = "https://www-nds.iaea.org/medical/fe4p1mnt.zip"
+sha256 = "7ca1baa725fd8de95342711ff25725ecc64c9f9de75d11c408e47054b1e0dd51"
+size = 32829
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "fed55cot.zip"
+url = "https://www-nds.iaea.org/medical/fed55cot.zip"
+sha256 = "9242d06fbec4b62e176acbde71eafc21ccc8b01ef1d58f14858d4dbf91397eba"
+size = 27725
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "fep55cot.zip"
+url = "https://www-nds.iaea.org/medical/fep55cot.zip"
+sha256 = "b8608a47745b8733c386905e4f896080b3319944c0e07a8b0d0d558be50690a0"
+size = 40877
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "ga0d9get.zip"
+url = "https://www-nds.iaea.org/medical/ga0d9get.zip"
+sha256 = "abf17e57df2afa4bdea8ce87f09af6ab2543b26e8cd5f69dff63774eed63bf3e"
+size = 54538
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "ga0p9get.zip"
+url = "https://www-nds.iaea.org/medical/ga0p9get.zip"
+sha256 = "3ef691c1e8dc05a4a57d9ead59c338ee6b29595a8edadc8e7c42593b972dcb98"
+size = 69994
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "ga9p8get.zip"
+url = "https://www-nds.iaea.org/medical/ga9p8get.zip"
+sha256 = "64a517eee7fd8f1a2af9ec86e7b0641cdbbe369575e006d7b845ed5861f44adb"
+size = 57477
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "ga9p9get.zip"
+url = "https://www-nds.iaea.org/medical/ga9p9get.zip"
+sha256 = "093a7f5518e18313402a79da782fa8649d9eae3550a4394226274ad7a9f7f2eb"
+size = 37932
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "gap68get.zip"
+url = "https://www-nds.iaea.org/medical/gap68get.zip"
+sha256 = "5e2356310b925843aef8d18ce92c813283b397bf5b4be4ac7314ce43cc3ee86b"
+size = 57934
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "gd0d2tbt.zip"
+url = "https://www-nds.iaea.org/medical/gd0d2tbt.zip"
+sha256 = "25ac847df6435a1def6919beb96aa620ee6c32f041d13d4f340c2f0a36a519b0"
+size = 51327
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "gd0p2tbt.zip"
+url = "https://www-nds.iaea.org/medical/gd0p2tbt.zip"
+sha256 = "c3150895ced90866a5fd6c1453d25214d08ebd67ddb64727c9885e97404e566c"
+size = 70914
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "gd2d2tbt.zip"
+url = "https://www-nds.iaea.org/medical/gd2d2tbt.zip"
+sha256 = "a971077f577cc789f6a3e142bfbc88df8a958d404ca07814a49a18ee63fa323c"
+size = 34147
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "gd5p2tbt.zip"
+url = "https://www-nds.iaea.org/medical/gd5p2tbt.zip"
+sha256 = "527757a0b11b66c90d849cbd8ca2e48e53ad11d2bc48e1a88251986f709e6243"
+size = 54652
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "ge0a2set.zip"
+url = "https://www-nds.iaea.org/medical/ge0a2set.zip"
+sha256 = "5a5a84c62ca2a9daf78f2e072a1a9f30ff59d472075f98349960ae6d9ea5fc82"
+size = 44536
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "ge2p2ast.zip"
+url = "https://www-nds.iaea.org/medical/ge2p2ast.zip"
+sha256 = "067c6ce0cbd87dd1c1297ecb5faa46d792e120e440ab263db73a77314a1fcac3"
+size = 36324
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "gea73set.zip"
+url = "https://www-nds.iaea.org/medical/gea73set.zip"
+sha256 = "30b1974c87d0b1dee895a62b31127fba6daa93ecac0706aa01c153e3fc3226af"
+size = 26891
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "ged72ast.zip"
+url = "https://www-nds.iaea.org/medical/ged72ast.zip"
+sha256 = "ba97841a90bb90fdfde013e46ef067648be7a1de4d54caf3ac5bfa066f74367b"
+size = 52413
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "gep72ast.zip"
+url = "https://www-nds.iaea.org/medical/gep72ast.zip"
+sha256 = "fc9aa041a87aec71f47f55de684560572612320099467652408eff3e81f47d0c"
+size = 88827
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "i7d22xet.zip"
+url = "https://www-nds.iaea.org/medical/i7d22xet.zip"
+sha256 = "e3d11d427160aec697cfbe22901a3ed2e2bebfc5903b3de1b8e56be8fa03bd3b"
+size = 51696
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "i7p22xet.zip"
+url = "https://www-nds.iaea.org/medical/i7p22xet.zip"
+sha256 = "abcfd0c527c0f86d80e2ae797ae5c13d3bf02ae570ff875e6d79c5436502e495"
+size = 50608
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "inp10snt.zip"
+url = "https://www-nds.iaea.org/medical/inp10snt.zip"
+sha256 = "b8fe06dbdb1fd77136651791e09809cd964873fa53a7c765d7ab4f9328ce0095"
+size = 66620
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "krd82rbt.zip"
+url = "https://www-nds.iaea.org/medical/krd82rbt.zip"
+sha256 = "a7a3c887bc02dbf3e21e1e8054595f541bcaeb43fe4fe0b7c4b9d0ee6a690e77"
+size = 23846
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "krp82rbt.zip"
+url = "https://www-nds.iaea.org/medical/krp82rbt.zip"
+sha256 = "3aa230c8ae9837347fb7d3a0e0bf7cf3a145363d2e672f25c23175bfcf4253db"
+size = 32076
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "mnp52fet.zip"
+url = "https://www-nds.iaea.org/medical/mnp52fet.zip"
+sha256 = "885ca9a12fd25cf5918f187a4691a82c4ce2e54099bf8732ac8bfd3808af5e39"
+size = 94592
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "moa94tct.zip"
+url = "https://www-nds.iaea.org/medical/moa94tct.zip"
+sha256 = "6145f9369aa34a730f81a4ae5c11f73da5cd51b4dac853b179f29e59f242ff1d"
+size = 44856
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "mop94tct.zip"
+url = "https://www-nds.iaea.org/medical/mop94tct.zip"
+sha256 = "18321276b6a80f8bba9c7b137a3a6e8dc8bc14c46df0e384926990e1884056d0"
+size = 22193
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "n4d15ot.zip"
+url = "https://www-nds.iaea.org/medical/n4d15ot.zip"
+sha256 = "38da39544ef21feba1f0d4775e7a78324b81c27961aa7bef293a6ad1e18225dc"
+size = 31370
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "n4p11ct.zip"
+url = "https://www-nds.iaea.org/medical/n4p11ct.zip"
+sha256 = "be94d7547c4c86ae6870d10fa4bd606e076ca2582ecacac10dc219c0061ffb00"
+size = 46727
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "n5p15ot.zip"
+url = "https://www-nds.iaea.org/medical/n5p15ot.zip"
+sha256 = "7bec9f58e6fe80525082754390c4a63f9db300799c4088a7314562d1062566e5"
+size = 38963
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "nbp90nbt.zip"
+url = "https://www-nds.iaea.org/medical/nbp90nbt.zip"
+sha256 = "5d5f820811a16f42aab10dd98236497aacd48f4fb02febd362710567f25b744f"
+size = 72137
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "ned18ft.zip"
+url = "https://www-nds.iaea.org/medical/ned18ft.zip"
+sha256 = "c6bc69101098fd8006091b06061b7ef3707da78c9144849b185c5178de1c5cde"
+size = 38916
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "ni0d1cut.zip"
+url = "https://www-nds.iaea.org/medical/ni0d1cut.zip"
+sha256 = "b672057317e2bc01a4fe4a85b4b43cabb06c356ce0c8dc3f0b40c7f30d669aa4"
+size = 30500
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "nia62znt.zip"
+url = "https://www-nds.iaea.org/medical/nia62znt.zip"
+sha256 = "11bd31cc4fc173f6877fca09ceb4347c0bb4631c8723992ed9b8c24a2a8f967f"
+size = 82360
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "nid62cut.zip"
+url = "https://www-nds.iaea.org/medical/nid62cut.zip"
+sha256 = "bba882ee358173d4e3635893c19e7c8a8f56313b9cbb8adf05a29ef570575134"
+size = 12778
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "nid64cut.zip"
+url = "https://www-nds.iaea.org/medical/nid64cut.zip"
+sha256 = "d062752bf290560fd6767d7bdcc14946f155fd92b63dafa7ebf7b30f45ac8d43"
+size = 32514
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "nip52fet.zip"
+url = "https://www-nds.iaea.org/medical/nip52fet.zip"
+sha256 = "e5a3784b54ce21407100017f510e17fda718551929c85a4353a55c24c3e8e425"
+size = 59683
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "nip55cot.zip"
+url = "https://www-nds.iaea.org/medical/nip55cot.zip"
+sha256 = "225278f0656f0ebd53fa01ecdb8fdd210a42c1d429ce6960dfe859a46d80f5d1"
+size = 25822
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "nip61cut.zip"
+url = "https://www-nds.iaea.org/medical/nip61cut.zip"
+sha256 = "eb06514724235d3f2a9cdd3d0b63106cb019fa57074c271da709a621388b6298"
+size = 29203
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "nip62cut.zip"
+url = "https://www-nds.iaea.org/medical/nip62cut.zip"
+sha256 = "bcab7353c1bdb9afdeb514e37ac121b5711d2b1333126590f421a9196a3734f8"
+size = 22086
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "nip64cut.zip"
+url = "https://www-nds.iaea.org/medical/nip64cut.zip"
+sha256 = "d44663fc495f2496d87beea7124bbd538de121f4481ef13ca9d8e58a4d741452"
+size = 34341
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "o6p13nt.zip"
+url = "https://www-nds.iaea.org/medical/o6p13nt.zip"
+sha256 = "f4e041059521934411abc34b4d215f61808453e6532fd75c3cda79d73536e934"
+size = 24811
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "o8p18ft.zip"
+url = "https://www-nds.iaea.org/medical/o8p18ft.zip"
+sha256 = "f77c34755fca6cb2510fff881f87f4e212c7d3640b8e635cfd3d8194f52d129a"
+size = 59086
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "prd40ndt.zip"
+url = "https://www-nds.iaea.org/medical/prd40ndt.zip"
+sha256 = "825c458462d8c2701adbb9f2a8a638bdcc304025867e50ac5ed5e36e06fa4901"
+size = 51186
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "prp40ndt.zip"
+url = "https://www-nds.iaea.org/medical/prp40ndt.zip"
+sha256 = "65b4eabcdd693ea7010b27803012549a6e2a27c7288be1e3e50018832b7c2044"
+size = 43085
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "rb0p3srt.zip"
+url = "https://www-nds.iaea.org/medical/rb0p3srt.zip"
+sha256 = "50e1c357600f84d506e562e3e5100ab17429cdecfc49b4b15af93956f0cc9040"
+size = 108736
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "rb5a86yt.zip"
+url = "https://www-nds.iaea.org/medical/rb5a86yt.zip"
+sha256 = "d38b5718385c45e11f18f30b466e302002edb500c9ddd417d9297170a3c856b3"
+size = 40178
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "rb5p2srt.zip"
+url = "https://www-nds.iaea.org/medical/rb5p2srt.zip"
+sha256 = "6069263958dc5af5f22f860cfed3216ae10b5f45a2ca90cd90a5548fda2b671d"
+size = 61489
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "rb5p3srt.zip"
+url = "https://www-nds.iaea.org/medical/rb5p3srt.zip"
+sha256 = "d26962cc3cb004a63f75feb5d0988b8c43e1f8f13865ee3e6d2dd074f3fd7ad6"
+size = 76244
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "rbp82srt.zip"
+url = "https://www-nds.iaea.org/medical/rbp82srt.zip"
+sha256 = "0029f9e9969aeb57f014c440eabbe811f21639fea1058e6168778483bc2acbfd"
+size = 69287
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "sbd18tet.zip"
+url = "https://www-nds.iaea.org/medical/sbd18tet.zip"
+sha256 = "0f89448faa443e10200760abd2b748634f2e2470f9da054e1c371fd8956f8a6b"
+size = 34779
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "sbp18tet.zip"
+url = "https://www-nds.iaea.org/medical/sbp18tet.zip"
+sha256 = "dba5f19461a4b0a8177c3d80551632f611f0e97465ff6c19a5ebbb1af66e2b8f"
+size = 44635
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "scd44tit.zip"
+url = "https://www-nds.iaea.org/medical/scd44tit.zip"
+sha256 = "f1d1df886d469756ba3e3d5f4052ac8a2f05c3b3a9af931dbac87903147c8022"
+size = 29719
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "scd45tit.zip"
+url = "https://www-nds.iaea.org/medical/scd45tit.zip"
+sha256 = "bb9c940945893ceb45872acca1f27c4cb917b71ee5c637fd368828c416571286"
+size = 37347
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "scp44tit.zip"
+url = "https://www-nds.iaea.org/medical/scp44tit.zip"
+sha256 = "8c0d1587f324deefab19fcedc90d25cdd36e9d0b3a810b0028b155ec2214b9e1"
+size = 27051
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "scp45tit.zip"
+url = "https://www-nds.iaea.org/medical/scp45tit.zip"
+sha256 = "47de177728adffda542d1b3aa9511990a3a00f1ac2d4ff5dfd53e2979d4e3166"
+size = 77867
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "se6p6brt.zip"
+url = "https://www-nds.iaea.org/medical/se6p6brt.zip"
+sha256 = "1bdd242a06a458d5d882e58ec2402543b24ef34b2650ec4a8c4a359d30319547"
+size = 45512
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "se7p6brt.zip"
+url = "https://www-nds.iaea.org/medical/se7p6brt.zip"
+sha256 = "b179ad473132e4c84b308e191b79898ac5b20bcf50c944a3ab70d0b6463584fc"
+size = 48838
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "sn5a8tet.zip"
+url = "https://www-nds.iaea.org/medical/sn5a8tet.zip"
+sha256 = "bf698b00be2e883ed4c48c341c7b14659c5ff96811a188a0a41ad38caf9b92c2"
+size = 26666
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "sn6a8tet.zip"
+url = "https://www-nds.iaea.org/medical/sn6a8tet.zip"
+sha256 = "ce25f2e689d2a67ed1284d3f0b35a8f348f6ff9682ed876c9c93946cfdfef8be"
+size = 23883
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "sr6p86yt.zip"
+url = "https://www-nds.iaea.org/medical/sr6p86yt.zip"
+sha256 = "ec20fbc4d43be22a5bd5e69a9d6ad0d1e3379fa67d4807fbf381daf5819fbbbe"
+size = 44962
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "sr8p86yt.zip"
+url = "https://www-nds.iaea.org/medical/sr8p86yt.zip"
+sha256 = "0172aff5cb6870c3740f0e2717f9107c967ab002386d3dc13e0e5a21b35d32d9"
+size = 58171
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "te0p20it.zip"
+url = "https://www-nds.iaea.org/medical/te0p20it.zip"
+sha256 = "7d3e80905a6a9dc637029e89c7d817515af299d009b7b58445f23ba5d0583dd7"
+size = 37754
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "te24d4it.zip"
+url = "https://www-nds.iaea.org/medical/te24d4it.zip"
+sha256 = "17d82ff921ecb8d781e46a6313e1207c5a1db7ed181d5bf5fefb0e747a2d59f5"
+size = 31305
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "te24p4it.zip"
+url = "https://www-nds.iaea.org/medical/te24p4it.zip"
+sha256 = "45f5019810f3a27265dc86133d93270e457f3edf6adfd9bfdcb61f2311a96d43"
+size = 37991
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "te25p4it.zip"
+url = "https://www-nds.iaea.org/medical/te25p4it.zip"
+sha256 = "ccd6f6d13de53520852d1db620d9a24de33ab335cfd748c18fe888a9b28d9e66"
+size = 92988
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "te2p20it.zip"
+url = "https://www-nds.iaea.org/medical/te2p20it.zip"
+sha256 = "a256b6734ce896b631f0032581aade9eaedf2256c2a80b878e8d9c81a6b9ec83"
+size = 35981
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "xep22xet.zip"
+url = "https://www-nds.iaea.org/medical/xep22xet.zip"
+sha256 = "fe825d38959f1aaf80fd3b1c663424ade1a63ac7f88e4d342a0880134d1bcbe0"
+size = 26882
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "y89p6zrt.zip"
+url = "https://www-nds.iaea.org/medical/y89p6zrt.zip"
+sha256 = "b15e6fc0c2e5b2b34e56756582289656f07da5c97c487b4e7f7441106bb051d1"
+size = 120331
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "y9a90nbt.zip"
+url = "https://www-nds.iaea.org/medical/y9a90nbt.zip"
+sha256 = "d236646e16c8edc55976982b7089f84932a09c05545a4a337c7d49b9afeeeb70"
+size = 36967
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "y9d89zrt.zip"
+url = "https://www-nds.iaea.org/medical/y9d89zrt.zip"
+sha256 = "c95aeee3c35a468ada0b5ebe39f1aba955a259c553750d63d5ddf6843aa0a48f"
+size = 55966
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "y9p89zrt.zip"
+url = "https://www-nds.iaea.org/medical/y9p89zrt.zip"
+sha256 = "9bd5b1f59c055be74fb09983fae2cf3372e53550c3e4b54917e23a801decb27b"
+size = 69329
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "zn0a9get.zip"
+url = "https://www-nds.iaea.org/medical/zn0a9get.zip"
+sha256 = "bcac1dce497b092d8128bbe7a65d5d88675ca84aaec37058c65dab613a3bc227"
+size = 54151
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "zn6a9get.zip"
+url = "https://www-nds.iaea.org/medical/zn6a9get.zip"
+sha256 = "f99b20a9ced06a8eb455a4494d8a9f1021c53d13344983be7c3776bf2641b4ca"
+size = 42386
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "zn864cut.zip"
+url = "https://www-nds.iaea.org/medical/zn864cut.zip"
+sha256 = "e1e126b47e727851d6ca3431920147d963ab5ae0aecaaca2e044a40ae472d9ff"
+size = 84752
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "znd64cut.zip"
+url = "https://www-nds.iaea.org/medical/znd64cut.zip"
+sha256 = "df90a1e1a7ef70dfdb35f211abfc917d1f411414370d23d382578301a02e7d16"
+size = 55892
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "znp61cut.zip"
+url = "https://www-nds.iaea.org/medical/znp61cut.zip"
+sha256 = "66e22dc81789c217f8354d67da436449491b1b00c67acc1f3bf3d472e7b920fe"
+size = 37990
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "znp66gat.zip"
+url = "https://www-nds.iaea.org/medical/znp66gat.zip"
+sha256 = "7fa7275facacb845e4070f94979670e2f6dd6e5a97378f62e7ec3aa1dd6a0b98"
+size = 32341
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/positron"
+name = "znp68gat.zip"
+url = "https://www-nds.iaea.org/medical/znp68gat.zip"
+sha256 = "cb1675b2deb74debe6e3b820f73921a4f8e228c8269a271585066182981a2f13"
+size = 28536
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "agp03pdt.zip"
+url = "https://www-nds.iaea.org/medical/agp03pdt.zip"
+sha256 = "decc7e1569120a84de5c5772b03bd86212f5be1ff18f9d2a667a1171eb8231f2"
+size = 84269
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "as577brt.zip"
+url = "https://www-nds.iaea.org/medical/as577brt.zip"
+sha256 = "e782f0ae5cf73b974a65f6945c19d856e98b1038a3be3b8654833bcfd8042ba0"
+size = 107692
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "aud7ghgt.zip"
+url = "https://www-nds.iaea.org/medical/aud7ghgt.zip"
+sha256 = "ba7c1277f4342bf1d4101ae97277bf6276e4e342861ec38d3b811eb69789e14d"
+size = 52526
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "aud7mhgt.zip"
+url = "https://www-nds.iaea.org/medical/aud7mhgt.zip"
+sha256 = "04cdf4220285d3497c9eff1ac7657d33d082bc27edffd685a6c83c63be12eeac"
+size = 51686
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "aup7ghgt.zip"
+url = "https://www-nds.iaea.org/medical/aup7ghgt.zip"
+sha256 = "42b5f00d5343dc9b363c2b3c8825cdb3055bc6840fa40044cec742421a23c7c1"
+size = 36793
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "aup7mhgt.zip"
+url = "https://www-nds.iaea.org/medical/aup7mhgt.zip"
+sha256 = "3d4c1aaf96dabf96506dd853b46fae5ead09205b9286a66c5728e77fd900a410"
+size = 66205
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "bap35lat.zip"
+url = "https://www-nds.iaea.org/medical/bap35lat.zip"
+sha256 = "5d747909db125df87a590ee2e14a64ce03e6119c757c6a25e92b4f788e910410"
+size = 71373
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "bi9a0att.zip"
+url = "https://www-nds.iaea.org/medical/bi9a0att.zip"
+sha256 = "ce41383b9e8c73ca4b802026da8ed865141cf44a2df8e2f0cf11be12e49f7326"
+size = 50362
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "bi9a1att.zip"
+url = "https://www-nds.iaea.org/medical/bi9a1att.zip"
+sha256 = "ac17a1f2b8afdb5b9f69388295df3dbdf9163ff457ea32ebd680670dd04456c6"
+size = 41954
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "br977krt.zip"
+url = "https://www-nds.iaea.org/medical/br977krt.zip"
+sha256 = "8c5d35bdc9f38b1fc9d7ecae9d4879a69cc4078f51cfc9a4800b2aafcd3f923c"
+size = 67124
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "cap47sct.zip"
+url = "https://www-nds.iaea.org/medical/cap47sct.zip"
+sha256 = "07645c1cbd89617cfac03b501d12d0774c41c512502dbcaaa05a2706ee83fb35"
+size = 33022
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "cd4d4int.zip"
+url = "https://www-nds.iaea.org/medical/cd4d4int.zip"
+sha256 = "62887969bb81af6c8a8eeaf5a342f5d0b8c69cc92af3d09184ef1dca11dd3a7c"
+size = 32624
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "cd4p4int.zip"
+url = "https://www-nds.iaea.org/medical/cd4p4int.zip"
+sha256 = "3d1ed123b206b836c333d5d430f4d823393c422bbdaf3f0c63e3a12d17b6e469"
+size = 45432
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "cd6p4int.zip"
+url = "https://www-nds.iaea.org/medical/cd6p4int.zip"
+sha256 = "3bc83f34afad67d4802ce621e2a4df7e3e53ed27ffba7f557afe3d69ea42e94e"
+size = 76002
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "cda37snt.zip"
+url = "https://www-nds.iaea.org/medical/cda37snt.zip"
+sha256 = "daa30631c17ab1624ab32474284cf2e77162ec87037b5f9da0da03f4a3d9a937"
+size = 56538
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "cda7msnt.zip"
+url = "https://www-nds.iaea.org/medical/cda7msnt.zip"
+sha256 = "8c2765fe054477e32e8bcc4ec1736ef87a1f9a58aa6035b20fdcaba93efe6768"
+size = 44395
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "cdax7snt.zip"
+url = "https://www-nds.iaea.org/medical/cdax7snt.zip"
+sha256 = "50dd0763060ccf25e7c935889988fec5dbc3a8f1429d244eb39e30504d8a3fbd"
+size = 69111
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "cdp11int.zip"
+url = "https://www-nds.iaea.org/medical/cdp11int.zip"
+sha256 = "e36d455e6e6914eaa3478cf0532887524b8a48cc1882b45d5c5bb7cdffbd7a99"
+size = 32564
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "cdp21int.zip"
+url = "https://www-nds.iaea.org/medical/cdp21int.zip"
+sha256 = "7b81ef92f2e76fc889a2dfa967b85a0306b8c83d1dfe3731ea1b613960036de1"
+size = 21863
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "csp31bat.zip"
+url = "https://www-nds.iaea.org/medical/csp31bat.zip"
+sha256 = "93a2f5a90a4bdcb115d02a3fc9253e9bde2b468cec938dfaa3d1191df12c77f5"
+size = 64815
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "er767tmt.zip"
+url = "https://www-nds.iaea.org/medical/er767tmt.zip"
+sha256 = "017dedcfe7a7fe32f722a23b1eea272646104a0903425b5534e473346027999a"
+size = 25651
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "erd65tmt.zip"
+url = "https://www-nds.iaea.org/medical/erd65tmt.zip"
+sha256 = "e9761672e0db2b0eaba5489da3b3f68c518a524153b9bcb4fa6f1de60eb7a03a"
+size = 35809
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "erd67tmt.zip"
+url = "https://www-nds.iaea.org/medical/erd67tmt.zip"
+sha256 = "cdb651b82962cea81ae9276a2df58a72a3c8d69f801743234aa28c67c3336eef"
+size = 51238
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "erdx5tmt.zip"
+url = "https://www-nds.iaea.org/medical/erdx5tmt.zip"
+sha256 = "14382ec3968f55f417e8cab9367244904ebed20abf402f733d962d1f5f1ba3d8"
+size = 52752
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "erp65tmt.zip"
+url = "https://www-nds.iaea.org/medical/erp65tmt.zip"
+sha256 = "1987aa298a4b982fcbee95d817e29fae0ed16e7c6998b8d45424f0a8bb4a9c7f"
+size = 27654
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "erp67tmt.zip"
+url = "https://www-nds.iaea.org/medical/erp67tmt.zip"
+sha256 = "422cfd64970af7a6e0f9e20b8caadb83aac8d8d85aac5c8725b3053332ed8cd1"
+size = 83345
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "erpx5tmt.zip"
+url = "https://www-nds.iaea.org/medical/erpx5tmt.zip"
+sha256 = "2dce2b22480709add860ad6a3c2823daa65f178c6d2c16980b7a03bd7f8115a3"
+size = 45469
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "fe8mcot.zip"
+url = "https://www-nds.iaea.org/medical/fe8mcot.zip"
+sha256 = "f0492ac00fdf8f37860800fcb415c9a2abf302d36da245f4e653eeb8588ee31b"
+size = 26715
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "gaa71ast.zip"
+url = "https://www-nds.iaea.org/medical/gaa71ast.zip"
+sha256 = "c66f243682de1b6dc5153bcfb812a22001ace83c36d4603dce3ea9ef4a2044aa"
+size = 35478
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "gdd61tbt.zip"
+url = "https://www-nds.iaea.org/medical/gdd61tbt.zip"
+sha256 = "321bfb89a4141a6a1f7fe8725e19577f5c16f19fe80a211be007bde3cfd30887"
+size = 54892
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "gdp9gtbt.zip"
+url = "https://www-nds.iaea.org/medical/gdp9gtbt.zip"
+sha256 = "1aa0b95eb35bc9ea34d79cc7fa6b0ffda20c5285c83eb72d443ff2796d25aaa5"
+size = 101743
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "ge701ast.zip"
+url = "https://www-nds.iaea.org/medical/ge701ast.zip"
+sha256 = "b853daca4b9418114e4e12cfe0136619067b6b6805637235335516494fe6b4c2"
+size = 26764
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "ge721ast.zip"
+url = "https://www-nds.iaea.org/medical/ge721ast.zip"
+sha256 = "23a0c1dcdb41efd9675293d0e08fa56b7a853336b1b4cd76fbb4615463c1135f"
+size = 31623
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "ged71ast.zip"
+url = "https://www-nds.iaea.org/medical/ged71ast.zip"
+sha256 = "e82535e8333887033d33b92b80bb8cd402328b9aa2da743e86b46204d02e0960"
+size = 53268
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "gep71ast.zip"
+url = "https://www-nds.iaea.org/medical/gep71ast.zip"
+sha256 = "17a7e25d8a356319889942310e8ad8454cf0fd7e03ee7cb4c144e39e67932719"
+size = 84420
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "hoa67tmt.zip"
+url = "https://www-nds.iaea.org/medical/hoa67tmt.zip"
+sha256 = "5718b637c1fc452e1782c95b30a9444933edccf581358d81e5f9e3f8c3e8a531"
+size = 51051
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "hod65ert.zip"
+url = "https://www-nds.iaea.org/medical/hod65ert.zip"
+sha256 = "54c341a6b8650922cbfc392868964c2b4485473f8fd4f138a5771b76116f104f"
+size = 49420
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "hop65ert.zip"
+url = "https://www-nds.iaea.org/medical/hop65ert.zip"
+sha256 = "9f163346587dac85035f9c1edf8020a248bcb575a9221e2b80b13f1a6554f403"
+size = 44455
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "ina7msnt.zip"
+url = "https://www-nds.iaea.org/medical/ina7msnt.zip"
+sha256 = "283e6c251ca01ae4c58be5431b7d8da9b4996bbb906813bd93675b78a1e66e18"
+size = 116901
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "krp77brt.zip"
+url = "https://www-nds.iaea.org/medical/krp77brt.zip"
+sha256 = "1c725d983e31ff5e502d6f69ae8916ca846911ad990e43b528359b07887fa88d"
+size = 85467
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "lap34cet.zip"
+url = "https://www-nds.iaea.org/medical/lap34cet.zip"
+sha256 = "31b6425c94ed8fb0f464d5b32787ecccfd609a5aa421e427cb886dd144b97f5a"
+size = 50741
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "mna8mcot.zip"
+url = "https://www-nds.iaea.org/medical/mna8mcot.zip"
+sha256 = "53fdf3cdde86637a2c9f7e19b38a49008f1af72d37ea31d6a1bf22e95ef199fe"
+size = 36823
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "moa03rut.zip"
+url = "https://www-nds.iaea.org/medical/moa03rut.zip"
+sha256 = "ed71e508292b454701a5f554c7d89fae006b151caa008643635a8e672c479d61"
+size = 41965
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "os2d2irt.zip"
+url = "https://www-nds.iaea.org/medical/os2d2irt.zip"
+sha256 = "227e1e502cdeabfe7c9130727c4c80e5ed2a2058e7f9edfde630e36bd6e3dc50"
+size = 53851
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "os2p2irt.zip"
+url = "https://www-nds.iaea.org/medical/os2p2irt.zip"
+sha256 = "c19f2c22fc1d9bc117255c7471314bd6ecf476197d68dacc0f202f169664e125"
+size = 68076
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "pad230ut.zip"
+url = "https://www-nds.iaea.org/medical/pad230ut.zip"
+sha256 = "559c1b95ee3e72c84440f2995e997c224ebf8b289304312914bcf90a4951ed87"
+size = 24759
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "pap230ut.zip"
+url = "https://www-nds.iaea.org/medical/pap230ut.zip"
+sha256 = "a74702f546ffef8c8f9b23cc51c36c7184c6e9270cffef87f086ae845fd5896f"
+size = 26682
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "ptd8gaut.zip"
+url = "https://www-nds.iaea.org/medical/ptd8gaut.zip"
+sha256 = "d3707e082516c48c4653c6fa31384e24844991f72a132d8254c382b278ad2818"
+size = 53065
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "ptp8gaut.zip"
+url = "https://www-nds.iaea.org/medical/ptp8gaut.zip"
+sha256 = "4e7ceb563c7aaf11d2812370def3fc561eda503c4ebd9b647b7ce2e776491ea6"
+size = 44720
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "rap25act.zip"
+url = "https://www-nds.iaea.org/medical/rap25act.zip"
+sha256 = "3928a18011e590846cac25e35a27a7087052be1035eb99ac56fe778a7dde4140"
+size = 40423
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "rh3d2rht.zip"
+url = "https://www-nds.iaea.org/medical/rh3d2rht.zip"
+sha256 = "cdc21bd244f242c2e610a1e5054d6cc502f5fe024f79b565f1ab5a591c758198"
+size = 47440
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "rh3d3pdt.zip"
+url = "https://www-nds.iaea.org/medical/rh3d3pdt.zip"
+sha256 = "2def0dc249a75a6bb5e313d41d4748fda07f0197fc5fb40ba3d83fdd6ccfe3d9"
+size = 46368
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "rh3p2rht.zip"
+url = "https://www-nds.iaea.org/medical/rh3p2rht.zip"
+sha256 = "505482f732b2b590b4ef6f10f9cb5f24cb73c3f449a19e196eed3781d82ec282"
+size = 63452
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "rh3p3pdt.zip"
+url = "https://www-nds.iaea.org/medical/rh3p3pdt.zip"
+sha256 = "0bc61c248650d148a30d8830fe32d78a52cc52aad0699c66b5be818d10ef3c1c"
+size = 43971
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "rhgd2rht.zip"
+url = "https://www-nds.iaea.org/medical/rhgd2rht.zip"
+sha256 = "6e5f17c28cba2453a2177006bd901ae22375bfa7b794341ad3b090f08f0c08a5"
+size = 51651
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "rhgp2rht.zip"
+url = "https://www-nds.iaea.org/medical/rhgp2rht.zip"
+sha256 = "429bb321e9862b7a5bddd5e35cedb563ba1292e5302029a37d6f52779c1f9594"
+size = 53404
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "rud03rut.zip"
+url = "https://www-nds.iaea.org/medical/rud03rut.zip"
+sha256 = "c02e6888a361049fa9294002429729bbb373deb1996aa44d11239943df0c67d5"
+size = 52378
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "rud05rht.zip"
+url = "https://www-nds.iaea.org/medical/rud05rht.zip"
+sha256 = "d72c5dbbdf0cbed892c357eda7b966e3888ac517fa05b03728133f22e874b9a9"
+size = 55391
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "rup03rut.zip"
+url = "https://www-nds.iaea.org/medical/rup03rut.zip"
+sha256 = "e606dee80456cfb79801bd402bc96c5e8cebbeb9a1bbd48e2537d89c6cea0f2a"
+size = 35527
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "sbp7msnt.zip"
+url = "https://www-nds.iaea.org/medical/sbp7msnt.zip"
+sha256 = "0a848ef44c370698e5deabe15063a18b704d7d93106f27daeb1119de216613dc"
+size = 105833
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "sbp9mtet.zip"
+url = "https://www-nds.iaea.org/medical/sbp9mtet.zip"
+sha256 = "e34a2436fc8213580dfdbab0ba07d9a72d6de1d519691782d2bb7aaf7800ba70"
+size = 56241
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "se80mbrt.zip"
+url = "https://www-nds.iaea.org/medical/se80mbrt.zip"
+sha256 = "3ac927199cbf0676a13eb42dad4a73fdcfd44e05c4dfda31314953cf112bda70"
+size = 37925
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "se877brt.zip"
+url = "https://www-nds.iaea.org/medical/se877brt.zip"
+sha256 = "c7fa3a0c08c8e43f42f1606bf6c009c5e9eb0f451c9df3cf55d9b917f793988f"
+size = 57188
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "sea80brt.zip"
+url = "https://www-nds.iaea.org/medical/sea80brt.zip"
+sha256 = "0de5d689deb8169761dfd2ef24684763baf190b55aa501b25f8309f9baf6f65a"
+size = 48804
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "sed80brt.zip"
+url = "https://www-nds.iaea.org/medical/sed80brt.zip"
+sha256 = "5c62f82ff6ef94c00067b528cd0ed732315db1e1e50636053b1e551520cc8128"
+size = 51020
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "sed8mbrt.zip"
+url = "https://www-nds.iaea.org/medical/sed8mbrt.zip"
+sha256 = "4ad20351b77d7c27952592c74d0b7f61aede6fcfdb01750f728141bd42199437"
+size = 31828
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "sep77brt.zip"
+url = "https://www-nds.iaea.org/medical/sep77brt.zip"
+sha256 = "f31b11bc8662178a79e67665f1374e744c68e4c59140b4b90ba62f5314057746"
+size = 56918
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "sep80brt.zip"
+url = "https://www-nds.iaea.org/medical/sep80brt.zip"
+sha256 = "27832878c166c7c4dff5babe24c4fb0a11894caab24d463f277c058aa9c6bf96"
+size = 55355
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "snp19sbt.zip"
+url = "https://www-nds.iaea.org/medical/snp19sbt.zip"
+sha256 = "87e4745c39e68d05d69e9aa834d7ea76c7ee45550b6634a4fe45e5f7e4f08cdc"
+size = 28351
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "te24d5it.zip"
+url = "https://www-nds.iaea.org/medical/te24d5it.zip"
+sha256 = "d48e5b6f43ef14c0a5ab30a6ec0cd0f76af31406e017890bc8f4a040b1b936a0"
+size = 28480
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "te25p5it.zip"
+url = "https://www-nds.iaea.org/medical/te25p5it.zip"
+sha256 = "0260fb8411fc8c1d3bb88d087e4f05938530e2dd9ac3d57fd46a8a1bc8542633"
+size = 37989
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "th230pat.zip"
+url = "https://www-nds.iaea.org/medical/th230pat.zip"
+sha256 = "3bbd0f2fa2b4c44ab51cb5b94aef7f58dad57888868bb856e6efd78c0ec967f3"
+size = 147504
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "thd30pat.zip"
+url = "https://www-nds.iaea.org/medical/thd30pat.zip"
+sha256 = "e3fff89f0f2bb307fb20b91cd306e27765f4ff7244114fa0140007512110e87a"
+size = 64671
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "thp25act.zip"
+url = "https://www-nds.iaea.org/medical/thp25act.zip"
+sha256 = "af664980b6e320f582c87a671df2ff422d8cb0b480338a2728ec73bc21746120"
+size = 135081
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "thp25rat.zip"
+url = "https://www-nds.iaea.org/medical/thp25rat.zip"
+sha256 = "a2928229e05a1a5297f6ecdffe187d64da24225e9d7c74db4bf172d9dcc7440d"
+size = 119713
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "thp27act.zip"
+url = "https://www-nds.iaea.org/medical/thp27act.zip"
+sha256 = "dfaf5d050d21cf1a08fca31356f6bb1336518a8cedbdcd88137abd6ed359c1aa"
+size = 145552
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "thp27tht.zip"
+url = "https://www-nds.iaea.org/medical/thp27tht.zip"
+sha256 = "871d0cb1f1a4bed39653d3674c568571d25168f442ba801353f5b4d71d3449c3"
+size = 128418
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "ti2p7sct.zip"
+url = "https://www-nds.iaea.org/medical/ti2p7sct.zip"
+sha256 = "2db4fdddb29d12e94766822c358065fba7b98d019a4e1b936a25df21c613f146"
+size = 70207
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "tid47sct.zip"
+url = "https://www-nds.iaea.org/medical/tid47sct.zip"
+sha256 = "f64e4270a3f8dad2e05b8b77db08aaeb2ee8c4df4772535504ab8167612fc5c4"
+size = 56546
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "tip47cat.zip"
+url = "https://www-nds.iaea.org/medical/tip47cat.zip"
+sha256 = "2a211b189a1f6acf5f71e5247369c63e90d88ae8c08d40d522f5e6977ee8fac8"
+size = 139039
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "tip47sct.zip"
+url = "https://www-nds.iaea.org/medical/tip47sct.zip"
+sha256 = "39dc0934d08e20c170a7021eb76f7c3f0a4cc7b0abe65606977a835f6aad0a4a"
+size = 69666
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "tm9d9ybt.zip"
+url = "https://www-nds.iaea.org/medical/tm9d9ybt.zip"
+sha256 = "ffa34bd3d4f97e8a708880a4f0b68686ec981a96fd5a0d2a282c81240e0dd1cf"
+size = 52297
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "tm9p9ybt.zip"
+url = "https://www-nds.iaea.org/medical/tm9p9ybt.zip"
+sha256 = "10280295a5aaba601c2fad6608e1c9d5af276397453724d9611e4c56c8c5f307"
+size = 51852
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "tmd67tmt.zip"
+url = "https://www-nds.iaea.org/medical/tmd67tmt.zip"
+sha256 = "0357167f4eb7132994a3a9e50a51cf17fa5ccfb95de517d2b802005a28882932"
+size = 41864
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "tmp67tmt.zip"
+url = "https://www-nds.iaea.org/medical/tmp67tmt.zip"
+sha256 = "876cc2bdb1f0f91e2eebf803c41e36ab8ca68871989f87377537a8524075efbb"
+size = 41197
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "vdx47cat.zip"
+url = "https://www-nds.iaea.org/medical/vdx47cat.zip"
+sha256 = "68a90658adaeb4dafeae7f018579342300ccb36e0de76424b89580adee214a60"
+size = 67375
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "vdx47sct.zip"
+url = "https://www-nds.iaea.org/medical/vdx47sct.zip"
+sha256 = "a09beb74748ae47f7927eaa2b8e323fefe2803b04ada5d2f196bc4d1b8810354"
+size = 72403
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "vpx47cat.zip"
+url = "https://www-nds.iaea.org/medical/vpx47cat.zip"
+sha256 = "539560a86bd152d89942c0078849a0917d0544a51b567874e10a23523004163e"
+size = 124784
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "vpx47sct.zip"
+url = "https://www-nds.iaea.org/medical/vpx47sct.zip"
+sha256 = "e2f71b44711c02c50325e431cdbaa34309418a37b477374196590837a744f1f2"
+size = 160469
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "w86d6ret.zip"
+url = "https://www-nds.iaea.org/medical/w86d6ret.zip"
+sha256 = "211ac9b29462258896bbd808fb5fc0fcd3780f4e65e15bec7bc5f823fbb2bf02"
+size = 52063
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "w86p6ret.zip"
+url = "https://www-nds.iaea.org/medical/w86p6ret.zip"
+sha256 = "7de987d82e2b73c67ac8f4d79e2c5970707f277c60a557435304a0a5513e4623"
+size = 66915
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "xep31cst.zip"
+url = "https://www-nds.iaea.org/medical/xep31cst.zip"
+sha256 = "8c704886beab2d6c4f3681fcad5f47f923896b42548e98c4d8e0db546df43d84"
+size = 31294
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "yb6d7ybt.zip"
+url = "https://www-nds.iaea.org/medical/yb6d7ybt.zip"
+sha256 = "18ee4227b3ffda0d4b1a669718cd13ab48b5a0f4e73c1356a560b35f1bccafcf"
+size = 53499
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "yb6x7lut.zip"
+url = "https://www-nds.iaea.org/medical/yb6x7lut.zip"
+sha256 = "4db3cc18d0e426afb91c4bc858f39ff8b90bf9e9a6edd3baa8de753379e6b5f5"
+size = 32321
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "zn067cut.zip"
+url = "https://www-nds.iaea.org/medical/zn067cut.zip"
+sha256 = "0f9043cf9a7fadd58392018eeccc46c5a2ce35e3173c67e23b1dac3fef22ee49"
+size = 38244
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "zn767gat.zip"
+url = "https://www-nds.iaea.org/medical/zn767gat.zip"
+sha256 = "32b0dea4cc614f4ca379dbf72eb3bf6168955e0d32ce881a3ca49a0252968ee6"
+size = 20302
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "zn867cut.zip"
+url = "https://www-nds.iaea.org/medical/zn867cut.zip"
+sha256 = "b9ae5265798d22f358c011ac9f2b0ad615a8c2baf97d0afac589c89668ac1109"
+size = 83863
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "zn867gat.zip"
+url = "https://www-nds.iaea.org/medical/zn867gat.zip"
+sha256 = "aefcc9ab2c3957d35fecfbcec4f953cfb5ea82260cc2103b17229a91f223775f"
+size = 27882
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "zna71get.zip"
+url = "https://www-nds.iaea.org/medical/zna71get.zip"
+sha256 = "877e0a5917ee0372117dde2089a15346661a195bfa7ae14559a028847baaeab0"
+size = 33311
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "znd67cut.zip"
+url = "https://www-nds.iaea.org/medical/znd67cut.zip"
+sha256 = "27b141ef98744b7a4743a124966206de9e8dd82ca4166d46b2f187d734958433"
+size = 44301
+fetched = "2026-07-16"
+
+[[file]]
+source = "iaea-medical/therapeutic"
+name = "znp67cut.zip"
+url = "https://www-nds.iaea.org/medical/znp67cut.zip"
+sha256 = "7b21c5dbda556f87249fe092bd983e3272689d2e589a8d5097c81f64be604319"
+size = 91369
+fetched = "2026-07-16"
