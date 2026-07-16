@@ -10,8 +10,11 @@ Output schema (identical to what curie's Library class reads):
                                cross_section, unc_cross_section)
   all_reactions(target, incident, outgoing, product)   -- product is the
       retrieval label and must stay the LAST column
-  _sources(target, incident, outgoing, product, family, stem)  -- provenance,
-      not read by curie
+  _sources(target, incident, outgoing, product, family, stem,
+           cumulative, mixed_isomer)  -- provenance, not read by curie;
+      the two INTEGER flags are 0/1: `cumulative` marks a "(cum)"-labeled
+      excitation function, `mixed_isomer` an m+g summed product stored
+      under the unsuffixed name
   _version                                              -- provenance stamp
 
 Neutron- and photon-induced entries in the source pages are skipped: the
@@ -19,14 +22,16 @@ recommended monitor set covers p/d/3He/alpha, and neutron monitor lookups
 resolve through the other libraries.
 
 Rules:
-  - reaction identity parsed from the first line of the .txt, never the name
-  - duplicate reactions across families: the monitor evaluation wins
+  - reaction identity parsed from the data file's header line, never the
+    file name
+  - duplicate reactions across families: the monitor evaluation wins; a
+    direct evaluation beats its cumulative twin
   - energy grids sorted; exact-duplicate rows collapsed; conflicting
-    duplicate abscissae are a build failure
+    duplicate abscissae are a build failure unless hand-verified in
+    SOURCE_DEFECTS
 
 Usage: python3 iaea_monitors.py
 """
-import io
 import re
 import sys
 import zipfile
@@ -58,25 +63,35 @@ _REACTION = re.compile(
 # or the cumulative marker "(cum)"; both are stripped, the latter recorded.
 _TRAILING_NOTE = re.compile(r'\s*\(([^()]*)\)\s*$')
 # Mixed-isomer products ("87m+gY", "192m1+gIr") are the m+g summed
-# excitation function; they map to the UNSUFFIXED product name (the
-# convention the database has always used for these reactions), with the
-# mixed-state origin recorded in _sources.
+# excitation function; they map to the UNSUFFIXED product name (matching
+# how earlier generations stored the 52Mn/192Ir sums), with the mixed-state
+# origin recorded in _sources.
 _MIXED_STATE = re.compile(r'(?<=\d)\s*[mg]\d*\+[mg]\d*\s*(?=[A-Za-z])')
 
 
 def parse_txt(text):
-    """(reaction_string, rows[E, sigma, unc]) from a recommended-data txt."""
+    """(reaction_string, rows[E, sigma, unc]) from a recommended-data txt.
+
+    Energy and cross section are required; the uncertainty column is
+    OPTIONAL — several source files leave it blank on the high-energy tail
+    (e.g. 125Te(p,n)125I above 25.4 MeV) and the cross section is the
+    primary datum. Missing/invalid uncertainties are stored as 0.
+    """
     lines = text.splitlines()
     reaction = lines[0].lstrip('﻿').strip()
     rows = []
     for line in lines[1:]:
         parts = line.split()
-        if len(parts) < 3:
+        if len(parts) < 2:
             continue
         try:
-            e, xs, unc = float(parts[0]), float(parts[1]), float(parts[2])
+            e, xs = float(parts[0]), float(parts[1])
         except ValueError:
             continue
+        try:
+            unc = float(parts[2]) if len(parts) > 2 else 0.0
+        except ValueError:
+            unc = 0.0
         rows.append((e, xs, unc))
     return reaction, rows
 
@@ -98,9 +113,12 @@ def parse_zip(zf):
     reaction = str(sheet.cell_value(0, 0)).lstrip('﻿').strip()
     rows = []
     for r in range(sheet.nrows):
-        vals = [sheet.cell_value(r, c) for c in range(3)]
-        if all(isinstance(v, float) for v in vals):
-            rows.append(tuple(vals))
+        e, xs, unc = (sheet.cell_value(r, c) for c in range(3))
+        if not (isinstance(e, float) and isinstance(xs, float)):
+            continue  # header/blank rows, or no cross section
+        if not isinstance(unc, float):
+            unc = 0.0  # blank or error cell: sigma is the primary datum
+        rows.append((e, xs, unc))
     return reaction, rows
 
 
@@ -120,9 +138,8 @@ def parse_reaction(s):
         if 'cum' in m.group(1).lower():
             cumulative = True
         s = s[:m.start()].strip()
-    mixed = bool(_MIXED_STATE.search(s))
-    if mixed:
-        s = _MIXED_STATE.sub('', s)
+    s, n_mixed = _MIXED_STATE.subn('', s)
+    mixed = bool(n_mixed)
     m = _REACTION.match(s)
     if not m:
         raise ValueError(f'unparseable reaction string: {s!r}')
@@ -134,9 +151,16 @@ def parse_reaction(s):
              curie_nuclide(product.replace(' ', ''))), cumulative, mixed)
 
 
-def main():
-    src = ARCHIVE_ROOT / 'iaea-medical'
-    reactions = {}   # key -> dict(family, stem, rows)
+def collect(src=None):
+    """Parse every mirrored zip into (reactions, conflicts, skipped).
+
+    `reactions` maps (target, incident, outgoing, product) -> dict(family,
+    stem, rows, cumulative, mixed) after family-priority and cumulative-twin
+    resolution — the exact content the build writes, reusable by the
+    validator for a source-vs-database comparison.
+    """
+    src = src or (ARCHIVE_ROOT / 'iaea-medical')
+    reactions = {}
     skipped, conflicts = [], []
 
     for family in FAMILIES:
@@ -176,6 +200,30 @@ def main():
                 continue
             reactions[key] = {'family': family, 'stem': stem, 'rows': rows,
                               'cumulative': cumulative, 'mixed': mixed}
+    return reactions, conflicts, skipped
+
+
+def build_grid(key, info, announce=print):
+    """Sorted [(E, xs, unc)] for one reaction, applying the exact-duplicate
+    collapse and the hand-verified SOURCE_DEFECTS policies; raises on any
+    unlisted conflicting duplicate abscissa."""
+    target, inc, outgoing, product = key
+    grid = {}
+    for e, xs, unc in info['rows']:
+        if e in grid and grid[e] != (xs, unc):
+            if SOURCE_DEFECTS.get(info['stem']) == 'keep-first':
+                if announce:
+                    announce(f'  known source defect ({info["stem"]}): kept '
+                             f'first of conflicting rows at {e} MeV')
+                continue
+            raise SystemExit(f'conflicting duplicate abscissa {e} MeV in '
+                             f'{info["stem"]} ({target}({inc},{outgoing}){product})')
+        grid[e] = (xs, unc)
+    return [(e, xs, unc) for e, (xs, unc) in sorted(grid.items())]
+
+
+def main():
+    reactions, conflicts, skipped = collect()
 
     con = open_fresh('iaea_monitors.db')
     for t in TABLE.values():
@@ -191,16 +239,7 @@ def main():
     for key in sorted(reactions):
         target, inc, outgoing, product = key
         info = reactions[key]
-        grid = {}
-        for e, xs, unc in info['rows']:
-            if e in grid and grid[e] != (xs, unc):
-                if SOURCE_DEFECTS.get(info['stem']) == 'keep-first':
-                    print(f'  known source defect ({info["stem"]}): kept first '
-                          f'of conflicting rows at {e} MeV')
-                    continue
-                raise SystemExit(f'conflicting duplicate abscissa {e} MeV in '
-                                 f'{info["stem"]} ({target}({inc},{outgoing}){product})')
-            grid[e] = (xs, unc)
+        grid = build_grid(key, info)
         con.execute('INSERT INTO all_reactions VALUES (?,?,?,?)',
                     (target, inc, outgoing, product))
         con.execute('INSERT INTO _sources VALUES (?,?,?,?,?,?,?,?)',
@@ -208,8 +247,7 @@ def main():
                      info['stem'], int(info['cumulative']), int(info['mixed'])))
         con.executemany(
             f'INSERT INTO {TABLE[inc]} VALUES (?,?,?,?,?,?)',
-            [(target, outgoing, product, e, xs, unc)
-             for e, (xs, unc) in sorted(grid.items())])
+            [(target, outgoing, product, e, xs, unc) for e, xs, unc in grid])
 
     write_version(con, 'iaea_monitors',
                   'IAEA recommended cross sections (www-nds.iaea.org/medical): '
@@ -222,7 +260,13 @@ def main():
     for info in reactions.values():
         by_family[info['family']] = by_family.get(info['family'], 0) + 1
     print('by family:', by_family)
-    print(f'{len(conflicts)} cross-family duplicates (higher-priority family kept):')
+    mixed = [k for k, i in reactions.items() if i['mixed']]
+    cum = [k for k, i in reactions.items() if i['cumulative']]
+    print(f'{len(mixed)} m+g summed products stored unsuffixed:',
+          ' '.join('%s(%s,%s)%s' % k for k in sorted(mixed)))
+    print(f'{len(cum)} cumulative excitation functions:',
+          ' '.join('%s(%s,%s)%s' % k for k in sorted(cum)))
+    print(f'{len(conflicts)} duplicate/twin resolutions:')
     for key, kept, dropped in conflicts:
         print(f'  {key[0]}({key[1]},{key[2]}){key[3]}: kept {kept}, dropped {dropped}')
     print(f'{len(skipped)} skipped:')

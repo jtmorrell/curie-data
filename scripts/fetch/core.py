@@ -1,9 +1,13 @@
 """Shared fetch layer for the data-source mirror.
 
 All network access in this repository goes through `fetch()`: throttled,
-resumable (skip when the destination exists and is non-empty), with a
-per-host User-Agent policy and a SHA256 provenance record appended to
-`sources_manifest.toml` at the repository root.
+with a per-host User-Agent policy and a SHA256 provenance record appended
+to `sources_manifest.toml` at the repository root. Downloads are atomic
+(written to a .part file, recorded, then renamed into place), verified
+against the response's Content-Length, and the resume check re-verifies an
+existing file against its recorded SHA256 — a file that fails verification
+is re-fetched. The manifest is append-only; when a file is re-fetched the
+newest entry for a (source, name) pair is the current one.
 
 Builders never touch the network: they read exclusively from the local
 source archive (default `~/Documents/nucleardata/data_sources/v2/`,
@@ -13,6 +17,7 @@ from an existing archive.
 import hashlib
 import os
 import time
+import tomllib
 import urllib.request
 from datetime import date
 from pathlib import Path
@@ -43,41 +48,65 @@ def _throttle():
     _last_request[0] = time.monotonic()
 
 
-def _record(source, name, url, path):
-    sha = hashlib.sha256(path.read_bytes()).hexdigest()
+_recorded = None  # (source, name) -> sha256, newest entry wins; lazy-loaded
+
+
+def _recorded_sha(source, name):
+    global _recorded
+    if _recorded is None:
+        _recorded = {}
+        if MANIFEST.exists():
+            with open(MANIFEST, 'rb') as f:
+                for entry in tomllib.load(f).get('file', []):
+                    _recorded[(entry['source'], entry['name'])] = entry['sha256']
+    return _recorded.get((source, name))
+
+
+def _record(source, name, url, sha, size):
     entry = (
         f'\n[[file]]\n'
         f'source = "{source}"\n'
         f'name = "{name}"\n'
         f'url = "{url}"\n'
         f'sha256 = "{sha}"\n'
-        f'size = {path.stat().st_size}\n'
+        f'size = {size}\n'
         f'fetched = "{date.today().isoformat()}"\n'
     )
     with open(MANIFEST, 'a') as f:
         f.write(entry)
+    if _recorded is not None:
+        _recorded[(source, name)] = sha
 
 
 def fetch(url, source, name=None, timeout=120):
     """Fetch `url` into the archive under `source`/`name`; return the path.
 
-    Skips (and does not re-record) files already present and non-empty.
-    Raises urllib.error.HTTPError on failure; callers decide whether a
-    missing file is fatal.
+    An existing file is kept only if it matches its recorded SHA256 (an
+    unrecorded or mismatching file is re-fetched). Raises
+    urllib.error.HTTPError on failure and OSError on a short body; callers
+    decide whether a missing file is fatal.
     """
     name = name or url.rsplit('/', 1)[-1]
     dest = ARCHIVE_ROOT / source / name
     dest.parent.mkdir(parents=True, exist_ok=True)
     if dest.exists() and dest.stat().st_size > 0:
-        return dest
+        sha = _recorded_sha(source, name)
+        if sha and hashlib.sha256(dest.read_bytes()).hexdigest() == sha:
+            return dest
+        dest.unlink()  # unrecorded or corrupt: re-fetch
     _throttle()
     host = url.split('/')[2]
     req = urllib.request.Request(
         url, headers={'User-Agent': _UA_BY_HOST.get(host, _UA_DEFAULT)})
     with urllib.request.urlopen(req, timeout=timeout) as resp:
         data = resp.read()
-    dest.write_bytes(data)
-    _record(source, name, url, dest)
+        expected = resp.headers.get('Content-Length')
+    if expected is not None and len(data) != int(expected):
+        raise OSError(f'short body for {url}: {len(data)} of {expected} bytes')
+    part = dest.with_name(dest.name + '.part')
+    part.write_bytes(data)
+    _record(source, name, url, hashlib.sha256(data).hexdigest(), len(data))
+    os.replace(part, dest)
     return dest
 
 

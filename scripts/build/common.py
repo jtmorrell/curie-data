@@ -41,7 +41,12 @@ def pipeline_commit():
 
 
 def write_version(con, library, source, source_version, generation='v2'):
-    """One-row provenance table; curie reads it at connection open."""
+    """One-row provenance table recording what this file was built from.
+
+    Nothing reads it programmatically yet; it exists so the file itself
+    carries its generation and source (inspectable with any sqlite tool),
+    and so a future curie release can detect generation skew.
+    """
     con.execute('CREATE TABLE _version (library TEXT, generation TEXT, '
                 'source TEXT, source_version TEXT, build_date TEXT, '
                 'pipeline TEXT)')
@@ -53,15 +58,30 @@ def write_version(con, library, source, source_version, generation='v2'):
 # --- nuclide / reaction-string normalization (curie conventions) ---
 
 def curie_nuclide(token):
-    """IAEA/TALYS nuclide token -> curie name: '22Na' -> '22NA',
-    '94mTc' -> '94TCm', '102gRh' -> '102RHg', 'Mn52m' -> '52MNm'."""
+    """Nuclide token -> curie name, accepting both source spellings:
+
+    mass-first (IAEA):    '22Na' -> '22NA', '94mTc' -> '94TCm',
+                          '102gRh' -> '102RHg', '52Mnm' -> '52MNm'
+    element-first (TALYS residual headers): 'Mn52m' -> '52MNm',
+                          'Co57' -> '57CO'
+
+    Tokens with no isomer marker keep no suffix; two markers at once are
+    rejected.
+    """
     import re
-    m = re.fullmatch(r'(\d+)(m\d*|g)?([A-Za-z]{1,3})(m\d*|g)?', token.strip())
-    if not m:
-        raise ValueError(f'unparseable nuclide token: {token!r}')
-    a, iso1, el, iso2 = m.groups()
-    iso = iso1 or iso2 or ''
-    return f'{a}{el.upper()}{iso}'
+    t = token.strip()
+    m = re.fullmatch(r'(\d+)(m\d*|g)?([A-Za-z]{1,2})(m\d*|g)?', t)
+    if m:
+        a, iso1, el, iso2 = m.groups()
+    else:
+        m = re.fullmatch(r'([A-Za-z]{1,2})(\d+)(m\d*|g)?', t)
+        if not m:
+            raise ValueError(f'unparseable nuclide token: {token!r}')
+        el, a, iso1 = m.groups()
+        iso2 = None
+    if iso1 and iso2:
+        raise ValueError(f'two isomer markers in nuclide token: {token!r}')
+    return f'{a}{el.upper()}{iso1 or iso2 or ""}'
 
 
 def curie_target(token):

@@ -65,17 +65,35 @@ def validate_iaea_monitors(con):
     check('every data reaction is indexed', not missing_index, str(missing_index[:3]))
 
     # grids: strictly sorted, no duplicate abscissae per reaction
-    bad_sort, bad_dup, empty = [], [], []
+    bad_sort = []
     for inc, t in IAEA_PARTICLES.items():
         for tgt, out, prod in q(con, f'SELECT DISTINCT target,outgoing,product FROM {t}'):
             e = [r[0] for r in q(con, f"SELECT energy FROM {t} WHERE target='{tgt}' "
                                       f"AND outgoing='{out}' AND product='{prod}' ORDER BY rowid")]
-            if not e:
-                empty.append((t, tgt, out, prod))
             if any(b <= a for a, b in zip(e, e[1:])):
                 bad_sort.append((t, tgt, out, prod))
     check('grids strictly increasing (sorted, no duplicate abscissae)',
-          not bad_sort and not empty, str((bad_sort + empty)[:3]))
+          not bad_sort, str(bad_sort[:3]))
+
+    # grid coverage: the stored grids must equal a fresh re-parse of the
+    # mirrored sources exactly — catches any silent row loss or truncation
+    # (e.g. rows whose uncertainty cell is blank must still be present)
+    sys.path.insert(0, str(Path(__file__).parent / 'build'))
+    import iaea_monitors as builder
+    reactions, _, _ = builder.collect()
+    mismatch = []
+    for key, info in reactions.items():
+        tgt, inc, out, prod = key
+        want = builder.build_grid(key, info, announce=None)
+        got = q(con, f"SELECT energy,cross_section,unc_cross_section FROM "
+                     f"{IAEA_PARTICLES[inc]} WHERE target='{tgt}' AND "
+                     f"outgoing='{out}' AND product='{prod}' ORDER BY energy")
+        if [tuple(r) for r in got] != want:
+            detail = (f'{len(got)} rows to {got[-1][0] if got else 0} MeV vs '
+                      f'source {len(want)} rows to {want[-1][0]} MeV')
+            mismatch.append(('%s(%s,%s)%s' % key, detail))
+    check(f'stored grids identical to source re-parse ({len(reactions)} reactions)',
+          not mismatch, str(mismatch[:3]))
 
     # physical sanity
     neg = sum(q(con, f'SELECT COUNT(*) FROM {t} WHERE cross_section<0 OR unc_cross_section<0')[0][0]
@@ -110,6 +128,20 @@ def coverage_diff_iaea(con):
         print('    + %s(%s,%s)%s' % r)
     for r in dropped:
         print('    - %s(%s,%s)%s' % r)
+    # energy-range regressions on reactions present in both generations
+    # (report-only: a narrowed evaluation is legitimate but must be seen)
+    for tgt, inc, out, prod in sorted(old & new):
+        t = IAEA_PARTICLES.get(inc)
+        if t is None:
+            continue
+        args = (tgt, out, prod)
+        sql = (f"SELECT MAX(energy) FROM {t} WHERE target=? AND outgoing=? "
+               f"AND product=?")
+        e1 = v1.execute(sql, args).fetchone()[0]
+        e2 = con.execute(sql, args).fetchone()[0]
+        if e1 and e2 and e2 < e1 - 1e-9:
+            print(f'    range regression: {tgt}({inc},{out}){prod} '
+                  f'max E {e1} -> {e2} MeV')
 
 
 VALIDATORS = {
@@ -118,7 +150,13 @@ VALIDATORS = {
 
 
 if __name__ == '__main__':
+    if len(sys.argv) != 2:
+        sys.exit(f'usage: validate.py <db>  (one of: {", ".join(VALIDATORS)})')
     path = Path(sys.argv[1])
+    if not path.exists():
+        sys.exit(f'no such file: {path}')
+    if path.name not in VALIDATORS:
+        sys.exit(f'no validator for {path.name} (one of: {", ".join(VALIDATORS)})')
     con = sqlite3.connect(path)
     validate, diff = VALIDATORS[path.name]
     print(f'validating {path}')

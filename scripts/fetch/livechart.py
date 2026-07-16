@@ -30,6 +30,9 @@ def fetch_nuclide(nuc):
 
 if __name__ == '__main__':
     args = sys.argv[1:]
+    if not args or '-h' in args or '--help' in args or \
+            any(a.startswith('-') for a in args if a != '--ground-states'):
+        sys.exit(__doc__.strip())
     if '--ground-states' in args:
         fetch(f'{BASE}fields=ground_states&nuclides=all',
               'livechart', 'ground_states.csv')

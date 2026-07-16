@@ -29,10 +29,12 @@ INDEX_PAGES = {
 
 
 def reaction_stems(index_html):
-    """Per-reaction page stems referenced by an index page (`<stem>0.html`)."""
-    pages = set(re.findall(r'href="([a-z0-9]+)0\.html"', index_html))
-    # the archived-2007 monitor list lives under a subdirectory; skip it
-    return sorted(p for p in pages if '/' not in p)
+    """Per-reaction page stems referenced by an index page (`<stem>0.html`).
+
+    The stem pattern is strictly alphanumeric, which also excludes the
+    archived-2007 monitor list (it lives under a subdirectory path).
+    """
+    return sorted(set(re.findall(r'href="([a-z0-9]+)0\.html"', index_html)))
 
 
 def main():
@@ -46,12 +48,15 @@ def main():
             if stem in seen:
                 print(f'  {stem}: already mirrored (also in {seen[stem]})')
                 continue
-            seen[stem] = family
             try:
                 fetch(f'{BASE}{stem}t.zip', f'iaea-medical/{family}')
             except Exception as e:
+                # not added to `seen`: a stem that fails here is retried if
+                # another family's index also lists it
                 failures.append((family, stem, repr(e)))
                 print(f'  {stem}t.zip: FAILED {e}')
+                continue
+            seen[stem] = family
     print(f'\n{len(seen)} unique reactions mirrored, {len(failures)} failures')
     for f in failures:
         print('  MISSING:', *f)
