@@ -110,7 +110,9 @@ def build_material(con, endf_path, tol):
         mat, has_damage = njoy_pointwise(endf_path, tol, Path(wd))
     sections = {mt: s['sigma'] for (mf, mt), s in mat.section_data.items()
                 if mf == 3 and 'sigma' in s}
-    grid = sections[1].x
+    # RECONR occasionally emits duplicated grid points (identical rows, not
+    # step discontinuities); np.unique sorts and collapses them
+    grid = np.unique(sections[1].x)
     cols, unmapped = [], []
     for mt in sorted(sections):
         if mt in SKIP or mt == 444 and not has_damage:
