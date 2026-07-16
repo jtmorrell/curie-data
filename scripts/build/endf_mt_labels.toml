@@ -8,16 +8,18 @@
 # sums store the particle letter as the product.
 #
 # Notes:
-# - 'abs' is not an ENDF section: it is computed as MT18 + sum(MT102..117)
-#   (the standard MT27 absorption definition) on the union grid.
+# - 'abs' is not an ENDF section: it is computed as sum(MT102..117) (the
+#   MT101 disappearance definition, EXCLUDING fission, matching the
+#   previous generation; fission lives solely in _fis_).
 # - 'damage' is MT444, produced by a HEATR pass (not present in raw files).
 # - MT19 (first-chance fission) was indexed as outgoing 'f' by the previous
-#   generation, colliding with MT18 on the three targets carrying both and
-#   making the (n,f) lookup ambiguous there; it is now indexed as 'f1'
-#   (the column label _f_ is unchanged).
-# - Channels marked new="true" have no previous-generation label; they
-#   appear where ENDF/B-VIII.1 evaluations carry the section and show up
-#   as additions in the coverage diff.
+#   generation, colliding with MT18 on targets carrying both and making the
+#   (n,f) lookup ambiguous there; it is now indexed as 'f1' (the column
+#   label _f_ is unchanged).
+# - Labels with no previous-generation counterpart (the MT152-200
+#   multi-particle set and a few standard channels) surface as additions
+#   in the coverage diff; the diff derives them by comparison, they are
+#   not tracked by hand.
 
 [summary]                       # label = MT; product '' in the index
 tot = 1
@@ -32,196 +34,99 @@ nf = 20
 3nf = 38
 damage = 444
 
-[emission]                      # label = emitted particles (residual computed)
-g = ""                          # radiative capture: nothing emitted
-2n = "n n"
-3n = "n n n"
-4n = "n n n n"
-p = "p"
-d = "d"
-t = "t"
-h = "h"
-a = "a"
-np = "n p"
-na = "n a"
-nd = "n d"
-nt = "n t"
-nh = "n h"
-2np = "n n p"
-n2p = "n p p"
-npa = "n p a"
-2na = "n n a"
-3na = "n n n a"
-n2a = "n a a"
-n3a = "n a a a"
-2a = "a a"
-3a = "a a a"
-2p = "p p"
-pa = "p a"
-t2a = "t a a"
-d2a = "d a a"
-pd = "p d"
-pt = "p t"
-da = "d a"
-2nd = "n n d"
-2n2a = "n n a a"
-nd2a = "n d a a"
-nt2a = "n t a a"
-3np = "n n n p"
-# extended multi-particle channels (MT152-200), used by the VIII.1
-# high-energy evaluations; absent from the previous generation
-5n = "n n n n n"
-6n = "n n n n n n"
-2nt = "n n t"
-ta = "t a"
-4np = "n n n n p"
-3nd = "n n n d"
-nda = "n d a"
-2npa = "n n p a"
-7n = "n n n n n n n"
-8n = "n n n n n n n n"
-5np = "n n n n n p"
-6np = "n n n n n n p"
-7np = "n n n n n n n p"
-4na = "n n n n a"
-5na = "n n n n n a"
-6na = "n n n n n n a"
-7na = "n n n n n n n a"
-4nd = "n n n n d"
-5nd = "n n n n n d"
-6nd = "n n n n n n d"
-3nt = "n n n t"
-4nt = "n n n n t"
-5nt = "n n n n n t"
-6nt = "n n n n n n t"
-2nh = "n n h"
-3nh = "n n n h"
-4nh = "n n n n h"
-3n2p = "n n n p p"
-3n2a = "n n n a a"
-3npa = "n n n p a"
-dt = "d t"
-npd = "n p d"
-npt = "n p t"
-ndt = "n d t"
-nph = "n p h"
-ndh = "n d h"
-nth = "n t h"
-nta = "n t a"
-2n2p = "n n p p"
-ph = "p h"
-dh = "d h"
-ha = "h a"
-4n2p = "n n n n p p"
-4n2a = "n n n n a a"
-4npa = "n n n n p a"
-3p = "p p p"
-n3p = "n p p p"
-3n2pa = "n n n p p a"
-5n2p = "n n n n n p p"
-
-[emission_mt]                   # MT for each emission label
-g = 102
-2n = 16
-3n = 17
-4n = 37
-p = 103
-d = 104
-t = 105
-h = 106
-a = 107
-np = 28
-na = 22
-nd = 32
-nt = 33
-nh = 34
-2np = 41
-n2p = 44
-npa = 45
-2na = 24
-3na = 25
-n2a = 29
-n3a = 23
-2a = 108
-3a = 109
-2p = 111
-pa = 112
-t2a = 113
-d2a = 114
-pd = 115
-pt = 116
-da = 117
-2nd = 11
-2n2a = 30
-nd2a = 35
-nt2a = 36
-3np = 42
-5n = 152
-6n = 153
-2nt = 154
-ta = 155
-4np = 156
-3nd = 157
-nda = 158
-2npa = 159
-7n = 160
-8n = 161
-5np = 162
-6np = 163
-7np = 164
-4na = 165
-5na = 166
-6na = 167
-7na = 168
-4nd = 169
-5nd = 170
-6nd = 171
-3nt = 172
-4nt = 173
-5nt = 174
-6nt = 175
-2nh = 176
-3nh = 177
-4nh = 178
-3n2p = 179
-3n2a = 180
-3npa = 181
-dt = 182
-npd = 183
-npt = 184
-ndt = 185
-nph = 186
-ndh = 187
-nth = 188
-nta = 189
-2n2p = 190
-ph = 191
-dh = 192
-ha = 193
-4n2p = 194
-4n2a = 195
-4npa = 196
-3p = 197
-n3p = 198
-3n2pa = 199
-5n2p = 200
-
-[emission_new]                  # labels absent from the previous generation
-labels = ["3a", "d2a", "2nd", "2n2a", "nd2a", "nt2a", "3np",
-          "5n", "6n", "2nt", "ta", "4np", "3nd", "nda", "2npa", "7n", "8n",
-          "5np", "6np", "7np", "4na", "5na", "6na", "7na", "4nd", "5nd",
-          "6nd", "3nt", "4nt", "5nt", "6nt", "2nh", "3nh", "4nh", "3n2p",
-          "3n2a", "3npa", "dt", "npd", "npt", "ndt", "nph", "ndh", "nth",
-          "nta", "2n2p", "ph", "dh", "ha", "4n2p", "4n2a", "4npa", "3p",
-          "n3p", "3n2pa", "5n2p"]
+[emission]                      # mt + emitted particles (residual computed)
+g = { mt = 102, emit = "" }
+2n = { mt = 16, emit = "n n" }
+3n = { mt = 17, emit = "n n n" }
+4n = { mt = 37, emit = "n n n n" }
+p = { mt = 103, emit = "p" }
+d = { mt = 104, emit = "d" }
+t = { mt = 105, emit = "t" }
+h = { mt = 106, emit = "h" }
+a = { mt = 107, emit = "a" }
+np = { mt = 28, emit = "n p" }
+na = { mt = 22, emit = "n a" }
+nd = { mt = 32, emit = "n d" }
+nt = { mt = 33, emit = "n t" }
+nh = { mt = 34, emit = "n h" }
+2np = { mt = 41, emit = "n n p" }
+n2p = { mt = 44, emit = "n p p" }
+npa = { mt = 45, emit = "n p a" }
+2na = { mt = 24, emit = "n n a" }
+3na = { mt = 25, emit = "n n n a" }
+n2a = { mt = 29, emit = "n a a" }
+n3a = { mt = 23, emit = "n a a a" }
+2a = { mt = 108, emit = "a a" }
+3a = { mt = 109, emit = "a a a" }
+2p = { mt = 111, emit = "p p" }
+pa = { mt = 112, emit = "p a" }
+t2a = { mt = 113, emit = "t a a" }
+d2a = { mt = 114, emit = "d a a" }
+pd = { mt = 115, emit = "p d" }
+pt = { mt = 116, emit = "p t" }
+da = { mt = 117, emit = "d a" }
+2nd = { mt = 11, emit = "n n d" }
+2n2a = { mt = 30, emit = "n n a a" }
+nd2a = { mt = 35, emit = "n d a a" }
+nt2a = { mt = 36, emit = "n t a a" }
+3np = { mt = 42, emit = "n n n p" }
+5n = { mt = 152, emit = "n n n n n" }
+6n = { mt = 153, emit = "n n n n n n" }
+2nt = { mt = 154, emit = "n n t" }
+ta = { mt = 155, emit = "t a" }
+4np = { mt = 156, emit = "n n n n p" }
+3nd = { mt = 157, emit = "n n n d" }
+nda = { mt = 158, emit = "n d a" }
+2npa = { mt = 159, emit = "n n p a" }
+7n = { mt = 160, emit = "n n n n n n n" }
+8n = { mt = 161, emit = "n n n n n n n n" }
+5np = { mt = 162, emit = "n n n n n p" }
+6np = { mt = 163, emit = "n n n n n n p" }
+7np = { mt = 164, emit = "n n n n n n n p" }
+4na = { mt = 165, emit = "n n n n a" }
+5na = { mt = 166, emit = "n n n n n a" }
+6na = { mt = 167, emit = "n n n n n n a" }
+7na = { mt = 168, emit = "n n n n n n n a" }
+4nd = { mt = 169, emit = "n n n n d" }
+5nd = { mt = 170, emit = "n n n n n d" }
+6nd = { mt = 171, emit = "n n n n n n d" }
+3nt = { mt = 172, emit = "n n n t" }
+4nt = { mt = 173, emit = "n n n n t" }
+5nt = { mt = 174, emit = "n n n n n t" }
+6nt = { mt = 175, emit = "n n n n n n t" }
+2nh = { mt = 176, emit = "n n h" }
+3nh = { mt = 177, emit = "n n n h" }
+4nh = { mt = 178, emit = "n n n n h" }
+3n2p = { mt = 179, emit = "n n n p p" }
+3n2a = { mt = 180, emit = "n n n a a" }
+3npa = { mt = 181, emit = "n n n p a" }
+dt = { mt = 182, emit = "d t" }
+npd = { mt = 183, emit = "n p d" }
+npt = { mt = 184, emit = "n p t" }
+ndt = { mt = 185, emit = "n d t" }
+nph = { mt = 186, emit = "n p h" }
+ndh = { mt = 187, emit = "n d h" }
+nth = { mt = 188, emit = "n t h" }
+nta = { mt = 189, emit = "n t a" }
+2n2p = { mt = 190, emit = "n n p p" }
+ph = { mt = 191, emit = "p h" }
+dh = { mt = 192, emit = "d h" }
+ha = { mt = 193, emit = "h a" }
+4n2p = { mt = 194, emit = "n n n n p p" }
+4n2a = { mt = 195, emit = "n n n n a a" }
+4npa = { mt = 196, emit = "n n n n p a" }
+3p = { mt = 197, emit = "p p p" }
+n3p = { mt = 198, emit = "n p p p" }
+3n2pa = { mt = 199, emit = "n n n p p a" }
+5n2p = { mt = 200, emit = "n n n n n p p" }
 
 [levels]                        # discrete-level families: label <n>0..<n>N + continuum <n>c
-n = {first = 50, count = 41, continuum = 91}    # _n1_.._n40_ (MT50 = n0, elastic-like, unused)
-p = {first = 600, count = 49, continuum = 649}
-d = {first = 650, count = 49, continuum = 699}
-t = {first = 700, count = 49, continuum = 749}
-h = {first = 750, count = 49, continuum = 799}
-a = {first = 800, count = 49, continuum = 849}
+n = { first = 50, count = 41, continuum = 91 }    # _n1_.._n40_ (MT50 = n0, unused)
+p = { first = 600, count = 49, continuum = 649 }
+d = { first = 650, count = 49, continuum = 699 }
+t = { first = 700, count = 49, continuum = 749 }
+h = { first = 750, count = 49, continuum = 799 }
+a = { first = 800, count = 49, continuum = 849 }
 
 [production]                    # particle-production sums; product = particle letter
 x_p = 203

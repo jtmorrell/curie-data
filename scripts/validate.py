@@ -19,6 +19,48 @@ PASS, FAIL = 'pass', 'FAIL'
 _results = []
 
 
+def _chart_names():
+    """Isotope names from the decay database, for product-resolution checks."""
+    p = V1_DIR / 'decay.db'
+    if not p.exists():
+        return None
+    con = sqlite3.connect(p)
+    return {r[0] for r in con.execute('SELECT name FROM chart')}
+
+
+def resolvable_products(con, particle_letters=False, blocking=True):
+    """Every all_reactions.product must resolve to a decay-database isotope
+    (after curie's normalization: bare names are ground states, bare 'm' is
+    the first isomer). Empty products and — where allowed — particle
+    letters pass. This is the gate that catches corrupted or mis-numbered
+    product names at build time."""
+    chart = _chart_names()
+    if chart is None:
+        print('  (no decay.db for product-resolution check)')
+        return
+    import re as _re
+    bad = []
+    for (p,) in q(con, 'SELECT DISTINCT product FROM all_reactions'):
+        if not p or (particle_letters and p in ('p', 'd', 't', 'h', 'a')):
+            continue
+        # curie's normalization: bare 'm' means the first isomer; a name
+        # with no state suffix means the ground state
+        if p.endswith('m'):
+            name = p + '1'
+        elif _re.search(r'(m\d+|g)$', p):
+            name = p
+        else:
+            name = p + 'g'
+        if name not in chart:
+            bad.append(p)
+    label = 'products resolve in decay.db'
+    if blocking:
+        check(label, not bad, str(bad[:5]))
+    else:
+        print(f'  [{"info"}] {label}: {len(bad)} unresolved '
+              f'(report-only until the rebuilt decay database ships): {bad[:8]}')
+
+
 def check(name, ok, detail=''):
     _results.append((PASS if ok else FAIL, name, detail))
     print(f'  [{PASS if ok else FAIL}] {name}' + (f' — {detail}' if detail else ''))
@@ -179,6 +221,24 @@ def validate_irdff(con):
                 'WHERE energy BETWEEN 0.02529 AND 0.02531')
     check('115IN(n,g)116INm thermal anchor ~162 b',
           len(th) == 1 and 150 < th[0][0] < 175, str(th))
+
+    # blocking identity gate: stored data must equal a fresh source re-parse
+    sys.path.insert(0, str(Path(__file__).parent / 'build'))
+    import irdff as builder
+    blocks = builder.parse_tab(
+        __import__('zipfile').ZipFile(
+            builder.ARCHIVE_ROOT / 'irdff-ii' / 'IRDFF-II_TAB.zip')
+        .read('IRDFF-II.tab.txt').decode('utf-8', 'replace'))
+    mismatch = []
+    for t, o, p, n in idx:
+        src = blocks.get((t, o, p)) or blocks.get((t, o, ''))
+        got = [tuple(r) for r in q(con, f'SELECT * FROM {n} ORDER BY rowid')]
+        if src is None or got != src:
+            mismatch.append(n)
+    check('stored data identical to source re-parse (119 reactions)',
+          not mismatch, str(mismatch[:3]))
+
+    resolvable_products(con)
     ver = q(con, 'SELECT library,generation FROM _version')
     check('_version stamp', ver == [('IRDFF', 'v2')], str(ver))
 
@@ -237,31 +297,52 @@ def validate_endf(con):
     check('every target table derivable and present (shard round-trip)',
           not missing_tab, str(missing_tab[:3]))
 
-    # per-material: indexed labels == table columns; sorted grid; anchors
-    bad_join, bad_sort = [], []
+    # per-material: indexed labels == table columns; sorted non-empty grid;
+    # value sanity (no NULLs, no negatives)
+    from collections import defaultdict
+    labels_by_target = defaultdict(set)
+    for r in idx:
+        labels_by_target[r[0]].add(r[3])
+    bad_join, bad_sort, bad_val = [], [], []
     for tgt in targets:
         tab = _endf_table(tgt)
-        want = {r[3] for r in idx if r[0] == tgt}
         have = {c[1] for c in q(con, f'PRAGMA table_info({tab})')} - {'energy'}
-        if want != have:
-            bad_join.append((tab, sorted(want ^ have)[:4]))
+        if labels_by_target[tgt] != have:
+            bad_join.append((tab, sorted(labels_by_target[tgt] ^ have)[:4]))
         e = [r[0] for r in q(con, f'SELECT energy FROM {tab} ORDER BY rowid')]
-        if any(b <= a for a, b in zip(e, e[1:])):
+        if not e or any(b <= a for a, b in zip(e, e[1:])):
             bad_sort.append(tab)
+        for col in have:
+            r = q(con, f'SELECT MIN("{col}"), COUNT(*) - COUNT("{col}") FROM {tab}')[0]
+            if r[0] is None or r[0] < 0 or r[1] > 0:
+                bad_val.append((tab, col, r))
     check('index labels == table columns (bidirectional)', not bad_join,
           str(bad_join[:3]))
-    check('union grids strictly increasing', not bad_sort, str(bad_sort[:3]))
+    check('union grids strictly increasing and non-empty', not bad_sort,
+          str(bad_sort[:3]))
+    check('no NULL or negative values in any channel', not bad_val,
+          str(bad_val[:3]))
 
-    # spot anchors: values in barn at 0.0253 eV (nearest grid point)
+    # spot anchors at 0.0253 eV, incl. the computed-absorption column and
+    # residual-product identities (the two derived quantities)
     for tab, col, lo, hi in [('IN_115', '_g_', 195, 210),
                              ('FE_56', '_g_', 2.5, 2.65),
                              ('U_235', '_fis_', 570, 600),
-                             ('AU_197', '_g_', 96, 101)]:
+                             ('AU_197', '_g_', 96, 101),
+                             ('B_10', '_abs_', 3800, 3900),
+                             ('U_235', '_abs_', 95, 105)]:
         r = q(con, f'SELECT energy,"{col}" FROM {tab} WHERE '
                    f'energy BETWEEN 0.02 AND 0.03 ORDER BY ABS(energy-0.0253) LIMIT 1')
         ok = bool(r) and lo < r[0][1] < hi
         check(f'{tab} {col} thermal anchor in ({lo}, {hi}) b', ok, str(r))
+    prod_anchors = [('56FE', 'p', '56MN'), ('27AL', 'a', '24NA'),
+                    ('115IN', 'g', '116IN'), ('139LA', '5n', '135LA')]
+    bad_prod = [(t, o, want) for t, o, want in prod_anchors
+                if q(con, f"SELECT product FROM all_reactions WHERE "
+                          f"target='{t}' AND outgoing='{o}'") != [(want,)]]
+    check('residual-product identity anchors', not bad_prod, str(bad_prod))
 
+    resolvable_products(con, particle_letters=True, blocking=False)
     ver = q(con, 'SELECT library,generation FROM _version')
     check('_version stamp', ver == [('endf', 'v2')], str(ver))
 
@@ -272,14 +353,16 @@ def coverage_diff_endf(con):
         print('  (no v1 file for coverage diff)')
         return
     v1 = sqlite3.connect(v1p)
-    old = {(t, o) for t, o, *_ in q(v1, 'SELECT target,outgoing FROM all_reactions')}
-    new = {(t, o) for t, o, *_ in q(con, 'SELECT target,outgoing FROM all_reactions')}
+    old = {(t, o) for t, o in q(v1, 'SELECT target,outgoing FROM all_reactions')}
+    new = {(t, o) for t, o in q(con, 'SELECT target,outgoing FROM all_reactions')}
     old_t = {t for t, _ in old}
     new_t = {t for t, _ in new}
-    print(f'\n  materials: {len(old_t)} -> {len(new_t)}; '
-          f'new: {sorted(new_t - old_t)[:12]}{"..." if len(new_t - old_t) > 12 else ""}')
-    if old_t - new_t:
-        print(f'  DROPPED materials: {sorted(old_t - new_t)}')
+    added_t, dropped_t = sorted(new_t - old_t), sorted(old_t - new_t)
+    print(f'\n  materials: {len(old_t)} -> {len(new_t)} '
+          f'(+{len(added_t)} added, -{len(dropped_t)} dropped)')
+    print(f'  new materials: {added_t[:12]}{"..." if len(added_t) > 12 else ""}')
+    if dropped_t:
+        print(f'  DROPPED materials: {dropped_t}')
     both = old_t & new_t
     ch_lost = sorted((t, o) for t, o in old if t in both and (t, o) not in new)
     ch_new = [(t, o) for t, o in new if t in both and (t, o) not in old]
@@ -287,6 +370,23 @@ def coverage_diff_endf(con):
           f'-{len(ch_lost)} dropped')
     for t, o in ch_lost[:20]:
         print(f'    - {t}(n,{o})')
+    # per-channel energy-range regressions on common (target, outgoing)
+    # pairs (report-only: VIII.1 grids legitimately differ from VII.1, but
+    # a shortened range must be seen)
+    regress = []
+    for t, o in sorted(old & new):
+        lab = q(con, f"SELECT label FROM all_reactions WHERE target='{t}' AND outgoing='{o}'")
+        lab1 = q(v1, f"SELECT label FROM all_reactions WHERE target='{t}' AND outgoing='{o}'")
+        if len(lab) != 1 or len(lab1) != 1:
+            continue
+        tab = _endf_table(t)
+        e2 = q(con, f'SELECT MAX(energy) FROM {tab} WHERE "{lab[0][0]}" > 0')[0][0]
+        e1 = q(v1, f'SELECT MAX(energy) FROM {tab} WHERE "{lab1[0][0]}" > 0')[0][0]
+        if e1 and e2 and e2 < 0.5 * e1:
+            regress.append((t, o, e1 / 1e6, e2 / 1e6))
+    print(f'  channel range regressions >2x on common pairs: {len(regress)}')
+    for t, o, a, b in regress[:15]:
+        print(f'    {t}(n,{o}): {a:.3g} -> {b:.3g} MeV')
 
 
 VALIDATORS = {

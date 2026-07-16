@@ -6,16 +6,19 @@ section, and the MF3 sections are assembled into one wide table on the
 union energy grid (the MT1 grid): one `energy` column [eV] plus one column
 per stored channel [barn], zero-filled outside a channel's range. Channel
 selection, column labels, outgoing strings, and residual products come
-from endf_mt_labels.toml; MF3 sections neither mapped nor skip-listed are
-reported per material and at the end.
+from endf_mt_labels.toml; the union of MF3 sections neither mapped nor
+skip-listed is reported at the end of the run.
 
-The 'abs' column is computed (MT18 + sum of MT102..117); a HEATR failure
-drops only that material's 'damage' column (counted in the report).
+The 'abs' column is computed as sum(MT102..117) — the MT101 disappearance
+definition, excluding fission, matching the previous generation. A HEATR
+failure drops only that material's 'damage' column (counted in the report).
 
-The build is resumable: a material whose table already exists is skipped,
-so an interrupted run continues where it left off. Table names derive
-from the source file names ('n-048_Cd_113.endf' -> CD_113,
-'n-095_Am_242m1.endf' -> AM_242m).
+The build is resumable: each material commits atomically (table + rows +
+index entries), and a material whose table exists is skipped, so an
+interrupted run continues where it left off; the end-of-run accounting
+covers the current invocation only. Resuming with a different --tolerance
+is refused. Table names derive from the source file names
+('n-048_Cd_113.endf' -> CD_113, 'n-095_Am_242m1.endf' -> AM_242m).
 
 Usage: python3 endf_neutrons.py [--tolerance 0.005] [--limit N]
 """
@@ -40,7 +43,9 @@ MAPPING = tomllib.load(open(Path(__file__).parent / 'endf_mt_labels.toml', 'rb')
 
 PARTICLE_AZ = {'n': (1, 0), 'p': (1, 1), 'd': (2, 1), 't': (3, 1),
                'h': (3, 2), 'a': (4, 2)}
-ABS_MTS = [18] + list(range(102, 118))
+# absorption = MT101 disappearance (sum of MT102..117), matching the
+# previous generation; fission is NOT included (it lives in _fis_)
+ABS_MTS = list(range(102, 118))
 
 
 def mt_plan():
@@ -49,8 +54,8 @@ def mt_plan():
     for lab, mt in MAPPING['summary'].items():
         out = {'fis': 'f', 'f': 'f1'}.get(lab, lab)
         plan[mt] = (f'_{lab}_', out, 'summary')
-    for lab, mt in MAPPING['emission_mt'].items():
-        plan[mt] = (f'_{lab}_', lab, 'emission')
+    for lab, spec in MAPPING['emission'].items():
+        plan[spec['mt']] = (f'_{lab}_', lab, 'emission')
     for fam, spec in MAPPING['levels'].items():
         # the n-family level 0 (MT50) does not occur; the charged-particle
         # families' level 0 (MT600/650/700/750/800 -> _p0_ etc.) is real
@@ -124,7 +129,7 @@ def build_material(con, endf_path, tol):
         sig = sections[mt]
         y = np.interp(grid, sig.x, sig.y, left=0.0, right=0.0)
         if kind == 'emission':
-            prod = residual(a, z, MAPPING['emission'][out])
+            prod = residual(a, z, MAPPING['emission'][out]['emit'])
         elif kind == 'production':
             prod = label.rsplit('_', 1)[-1]
         else:
@@ -137,27 +142,44 @@ def build_material(con, endf_path, tol):
                           right=0.0) for m in present)
         cols.insert(1, ('_abs_', 'abs', '', y))
 
+    # one transaction per material: the table, its rows, and its index
+    # entries land together or not at all (a killed run leaves no hollow
+    # table for the resume check to mistake for done work)
     col_sql = ', '.join(f'"{lab}" REAL' for lab, *_ in cols)
-    con.execute(f'CREATE TABLE {table} (energy REAL, {col_sql})')
-    data = np.column_stack([grid] + [y for *_, y in cols])
-    con.executemany(
-        f'INSERT INTO {table} VALUES ({",".join("?" * (len(cols) + 1))})',
-        data.tolist())
-    tgt = f'{a}{ELEMENTS[z].upper()}' + ('m' if table.endswith('m') else '')
-    con.executemany('INSERT INTO all_reactions VALUES (?,?,?,?)',
-                    [(tgt, out, prod, lab) for lab, out, prod, _ in cols])
-    con.commit()
+    try:
+        con.execute(f'CREATE TABLE {table} (energy REAL, {col_sql})')
+        data = np.column_stack([grid] + [y for *_, y in cols])
+        con.executemany(
+            f'INSERT INTO {table} VALUES ({",".join("?" * (len(cols) + 1))})',
+            data.tolist())
+        tgt = f'{a}{ELEMENTS[z].upper()}' + ('m' if table.endswith('m') else '')
+        con.executemany('INSERT INTO all_reactions VALUES (?,?,?,?)',
+                        [(tgt, out, prod, lab) for lab, out, prod, _ in cols])
+        con.commit()
+    except BaseException:
+        con.rollback()
+        raise
     return table, len(grid), len(cols), unmapped, has_damage
 
 
+def parse_args(argv):
+    tol, limit = 0.005, None
+    it = iter(argv)
+    for a in it:
+        if a == '--tolerance':
+            tol = float(next(it, 'missing'))
+        elif a == '--limit':
+            limit = int(next(it, 'missing'))
+        else:
+            sys.exit(f'unknown argument {a!r}\n\n{__doc__.strip()}')
+    return tol, limit
+
+
 def main():
-    tol = 0.005
-    limit = None
-    args = sys.argv[1:]
-    if '--tolerance' in args:
-        tol = float(args[args.index('--tolerance') + 1])
-    if '--limit' in args:
-        limit = int(args[args.index('--limit') + 1])
+    try:
+        tol, limit = parse_args(sys.argv[1:])
+    except ValueError as e:
+        sys.exit(f'bad argument value: {e}')
 
     BUILD_DIR.mkdir(exist_ok=True)
     con = sqlite3.connect(BUILD_DIR / 'endf.db')
@@ -166,6 +188,14 @@ def main():
     if 'all_reactions' not in have:
         con.execute('CREATE TABLE all_reactions (target TEXT, outgoing TEXT, '
                     'product TEXT, label TEXT)')
+        con.execute('CREATE TABLE _build_meta (tolerance REAL)')
+        con.execute('INSERT INTO _build_meta VALUES (?)', (tol,))
+        con.commit()
+    else:
+        rec = con.execute('SELECT tolerance FROM _build_meta').fetchone()[0]
+        if rec != tol:
+            sys.exit(f'existing build used tolerance {rec}; resuming at {tol} '
+                     f'would mix grids — delete build/endf.db or match it')
     all_unmapped, no_damage, failures = {}, [], []
     n_done = 0
     with tarfile.open(TARBALL) as t:
@@ -199,7 +229,7 @@ def main():
     tables = {r[0] for r in con.execute(
         "SELECT name FROM sqlite_master WHERE type='table'")}
     complete = not failures and not limit and \
-        len(tables - {'all_reactions', '_version'}) == len(members)
+        len(tables - {'all_reactions', '_version', '_build_meta'}) == len(members)
     if complete and '_version' not in tables:
         write_version(con, 'endf',
                       'ENDF/B-VIII.1 neutron sublibrary (NNDC), RECONR '

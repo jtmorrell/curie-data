@@ -9,15 +9,17 @@ positionally, so column order is load-bearing).
 
 Header conventions: elemental targets ('Ti(n,x)Sc-46') are natural-
 composition targets ('natTI'); "(n,n')" is inelastic ('inl'); a trailing
-'n' isomer letter is the ENDF second-isomer label ('Ag-110n' = the
-117.6 keV, 249.8 d state = m2 in energy-ordered numbering); exclusive
+ENDF metastable letter is resolved to the decay database's isomer name
+('Ag-110n' = the 117.6 keV, 249.8 d metrology state = '110AGm1' — the
+ENDF letter positions m/n/o do NOT map one-to-one onto energy-ordered
+isomer numbers, so the resolution is explicit, not positional); exclusive
 channels may omit the product ('Tm-169(n,3n)'), which is then resolved
 against the pinned reaction set.
 
 The reaction set is pinned to the previous generation's 119 (the official
 metrology set), with two product names corrected — the old build mangled
 the source's isomer letters ('Ag-110n' -> '110NAG', 'Al-26g' -> '26GAL';
-now '110AGm2' and '26ALg') — and the build fails if the source no longer
+now '110AGm1' and '26ALg') — and the build fails if the source no longer
 provides any pinned reaction.
 
 Output schema (matching curie's reader):
@@ -44,8 +46,16 @@ _HEADER = re.compile(r"^([A-Za-z]{1,2}(?:-\d+)?)\(n,([^)]+)\)"
 _ENDF_FLOAT = re.compile(r'(?<=\d)([+-]\d+)$')
 
 # The previous generation corrupted two source isomer letters; the pinned
-# reaction list is corrected on read so v2 stores usable names.
-V1_NAME_FIXES = {'110NAG': '110AGm2', '26GAL': '26ALg'}
+# reaction list is corrected on read so v2 stores usable names. '110AGm1'
+# is the decay database's name for the 117.6 keV, 249.8 d state (the
+# 1.112 keV, 660 ns level is excluded from the chart under the
+# established-isomer-name preservation rule, so numbering is stable).
+V1_NAME_FIXES = {'110NAG': '110AGm1', '26GAL': '26ALg'}
+
+# ENDF metastable letters resolved explicitly against decay-database
+# names; the letter position (m/n/o = LISO 1/2/3) is NOT an energy-ordered
+# isomer number.
+ENDF_LETTER_STATES = {'Ag110n': '110AGm1'}
 
 
 def endf_float(tok):
@@ -54,12 +64,17 @@ def endf_float(tok):
 
 
 def nuclide(tok):
-    """'Tm-167' / 'In-116m' / 'Ag-110n' -> '167TM' / '116INm' / '110AGm2'."""
+    """'Tm-167' / 'In-116m' / 'Ag-110n' -> '167TM' / '116INm' / '110AGm1'."""
     if not tok:
         return ''
     tok = tok.replace('-', '')
-    if re.fullmatch(r'[A-Za-z]{1,2}\d+n', tok):
-        tok = tok[:-1] + 'm2'   # ENDF second-isomer letter
+    if re.fullmatch(r'[A-Za-z]{1,2}\d+[no]', tok):
+        try:
+            return ENDF_LETTER_STATES[tok]
+        except KeyError:
+            raise ValueError(f'unresolved ENDF metastable letter: {tok!r} — '
+                             'add it to ENDF_LETTER_STATES with the decay-'
+                             'database state name')
     return curie_nuclide(tok)
 
 
@@ -86,16 +101,19 @@ def parse_tab(text):
             key = (target_name(tgt), out, nuclide(prod or ''))
             blocks.setdefault(key, [])
             continue
-        if key is None:
-            continue
         parts = line.split()
-        if len(parts) < 3:
-            continue
         try:
-            blocks[key].append((endf_float(parts[0]), endf_float(parts[1]),
-                                endf_float(parts[2])))
+            row = (endf_float(parts[0]), endf_float(parts[1]),
+                   endf_float(parts[2])) if len(parts) >= 3 else None
         except ValueError:
-            continue
+            row = None
+        if row is None:
+            # neither a recognized header nor a data line: refusing beats
+            # silently appending orphan rows to the previous reaction
+            raise SystemExit(f'unrecognized line in tabulation: {line!r}')
+        if key is None:
+            raise SystemExit(f'data before any reaction header: {line!r}')
+        blocks[key].append(row)
     return {k: v for k, v in blocks.items() if v}
 
 
@@ -103,7 +121,12 @@ def main():
     zf = zipfile.ZipFile(ARCHIVE_ROOT / 'irdff-ii' / 'IRDFF-II_TAB.zip')
     blocks = parse_tab(zf.read('IRDFF-II.tab.txt').decode('utf-8', 'replace'))
 
-    v1 = sqlite3.connect(V1_DIR / 'IRDFF.db')
+    pin_file = V1_DIR / 'IRDFF.db'
+    if not pin_file.exists():
+        raise SystemExit(f'pinned-reaction source {pin_file} not found '
+                         '(set CURIE_V1_DIR to a directory holding the '
+                         'previous-generation IRDFF.db)')
+    v1 = sqlite3.connect(pin_file)
     pinned = sorted(
         (t, o, V1_NAME_FIXES.get(p, p)) for t, o, p in
         v1.execute('SELECT target,outgoing,product FROM all_reactions'))
@@ -113,16 +136,19 @@ def main():
     # only if it is unambiguous among the pinned reactions
     productless_claims = {}
     resolved, missing = {}, []
+    consumed = set()
     for key in pinned:
         target, outgoing, product = key
         if key in blocks:
             resolved[key] = blocks[key]
+            consumed.add(key)
         elif product and (target, outgoing, '') in blocks:
             claim = productless_claims.setdefault((target, outgoing), key)
             if claim != key:
                 raise SystemExit(f'ambiguous product-omitting source block '
                                  f'{target}(n,{outgoing}): {claim} vs {key}')
             resolved[key] = blocks[(target, outgoing, '')]
+            consumed.add((target, outgoing, ''))
         else:
             missing.append(key)
     if missing:
@@ -141,9 +167,10 @@ def main():
     write_version(con, 'IRDFF', 'IRDFF-II tabulated (www-nds.iaea.org/IRDFF)',
                   'IRDFF-II final (2020-12-09)')
     con.commit()
-    extra = len(blocks) - len(pinned)
-    print(f'{len(pinned)} reactions written; {extra} source blocks not in the '
-          f'metrology set (elemental/summed entries)')
+    unused = sorted(k for k in blocks if k not in consumed)
+    print(f'{len(pinned)} reactions written; {len(unused)} source blocks unused')
+    for k in unused:
+        print('  unused: %s(n,%s)%s' % k)
     con.close()
 
 
