@@ -144,8 +144,76 @@ def coverage_diff_iaea(con):
                   f'max E {e1} -> {e2} MeV')
 
 
+# --- IRDFF ---
+
+def validate_irdff(con):
+    idx = q(con, 'SELECT target,outgoing,product,table_name FROM all_reactions')
+    check('reaction count', len(idx) == 119, str(len(idx)))
+    cols = [c[1] for c in q(con, 'PRAGMA table_info(all_reactions)')]
+    check('all_reactions column order (table_name last = retrieval label)',
+          cols == ['target', 'outgoing', 'product', 'table_name'], str(cols))
+    bad_name = [(t, o, p, n) for t, o, p, n in idx if n != f'_{t}_n_{o}_{p}']
+    check('table names derive from reaction identity', not bad_name, str(bad_name[:3]))
+
+    tables = {r[0] for r in q(con, "SELECT name FROM sqlite_master WHERE type='table'")}
+    named = {n for *_, n in idx}
+    check('index <-> tables bidirectional',
+          named <= tables and tables - named == {'all_reactions', '_version'},
+          str(sorted(tables - named - {'all_reactions', '_version'})[:3]))
+
+    bad_cols, bad_sort, empty = [], [], []
+    for t in sorted(named):
+        cols = [c[1] for c in q(con, f'PRAGMA table_info({t})')]
+        if cols != ['energy', 'cross_section', 'unc_cross_section']:
+            bad_cols.append(t)  # positional SELECT * on read: order load-bearing
+        e = [r[0] for r in q(con, f'SELECT energy FROM {t} ORDER BY rowid')]
+        if not e:
+            empty.append(t)
+        if any(b < a for a, b in zip(e, e[1:])):
+            bad_sort.append(t)  # nondecreasing; duplicate-E step points are meaningful
+    check('data-table column order (positional read)', not bad_cols, str(bad_cols[:3]))
+    check('grids nondecreasing and non-empty', not bad_sort and not empty,
+          str((bad_sort + empty)[:3]))
+
+    th = q(con, 'SELECT cross_section FROM _115IN_n_g_116INm '
+                'WHERE energy BETWEEN 0.02529 AND 0.02531')
+    check('115IN(n,g)116INm thermal anchor ~162 b',
+          len(th) == 1 and 150 < th[0][0] < 175, str(th))
+    ver = q(con, 'SELECT library,generation FROM _version')
+    check('_version stamp', ver == [('IRDFF', 'v2')], str(ver))
+
+
+def coverage_diff_irdff(con):
+    v1p = V1_DIR / 'IRDFF.db'
+    if not v1p.exists():
+        print('  (no v1 file for coverage diff)')
+        return
+    v1 = sqlite3.connect(v1p)
+    sys.path.insert(0, str(Path(__file__).parent / 'build'))
+    from irdff import V1_NAME_FIXES
+    ident, renamed, differ = 0, [], []
+    v2names = {(t, o, p): n for t, o, p, n in
+               q(con, 'SELECT target,outgoing,product,table_name FROM all_reactions')}
+    for t, o, p, n in q(v1, 'SELECT target,outgoing,product,table_name FROM all_reactions'):
+        n2 = v2names.get((t, o, V1_NAME_FIXES.get(p, p)))
+        if n2 is None:
+            differ.append((n, 'MISSING'))
+            continue
+        r1 = q(v1, f'SELECT * FROM {n} ORDER BY energy')
+        r2 = q(con, f'SELECT * FROM {n2} ORDER BY energy')
+        if r1 == r2:
+            ident += 1
+            if n != n2:
+                renamed.append(f'{n} -> {n2}')
+        else:
+            differ.append((n, f'{len(r1)} vs {len(r2)} rows'))
+    print(f'\n  vs v1: {ident}/119 data-identical; renamed: {renamed}; '
+          f'differing: {differ[:5] if differ else "none"}')
+
+
 VALIDATORS = {
     'iaea_monitors.db': (validate_iaea_monitors, coverage_diff_iaea),
+    'IRDFF.db': (validate_irdff, coverage_diff_irdff),
 }
 
 
