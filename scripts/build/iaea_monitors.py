@@ -57,9 +57,11 @@ _REACTION = re.compile(
 # A trailing parenthetical is either a physical-state note ("(gas, 1bar 20C)")
 # or the cumulative marker "(cum)"; both are stripped, the latter recorded.
 _TRAILING_NOTE = re.compile(r'\s*\(([^()]*)\)\s*$')
-# Mixed-isomer products ("87m+gY", "87g+mY") have no representation in the
-# database's product naming; they are skipped and surfaced for review.
-_MIXED_STATE = re.compile(r'\d+\s*[mg]\d*\+[mg]\d*\s*[A-Za-z]')
+# Mixed-isomer products ("87m+gY", "192m1+gIr") are the m+g summed
+# excitation function; they map to the UNSUFFIXED product name (the
+# convention the database has always used for these reactions), with the
+# mixed-state origin recorded in _sources.
+_MIXED_STATE = re.compile(r'(?<=\d)\s*[mg]\d*\+[mg]\d*\s*(?=[A-Za-z])')
 
 
 def parse_txt(text):
@@ -103,11 +105,11 @@ def parse_zip(zf):
 
 
 def parse_reaction(s):
-    """'natTi(p,x)48V' -> (('natTI', 'p', 'x', '48V'), cumulative_flag).
+    """'natTi(p,x)48V' -> (('natTI', 'p', 'x', '48V'), cumulative, mixed).
 
-    Trailing notes are stripped; '(cum)' sets the cumulative flag. Raises
-    ValueError for shapes with no database representation (mixed-isomer
-    products) so the caller can collect them for review.
+    Trailing notes are stripped; '(cum)' sets the cumulative flag; a
+    mixed-isomer product ('52m+gMn') maps to the unsuffixed name and sets
+    the mixed flag.
     """
     s = s.replace('α', 'a').replace('γ', 'g')
     cumulative = False
@@ -118,8 +120,9 @@ def parse_reaction(s):
         if 'cum' in m.group(1).lower():
             cumulative = True
         s = s[:m.start()].strip()
-    if _MIXED_STATE.search(s):
-        raise ValueError(f'mixed-isomer product (no representation): {s!r}')
+    mixed = bool(_MIXED_STATE.search(s))
+    if mixed:
+        s = _MIXED_STATE.sub('', s)
     m = _REACTION.match(s)
     if not m:
         raise ValueError(f'unparseable reaction string: {s!r}')
@@ -128,7 +131,7 @@ def parse_reaction(s):
     if inc is None:
         raise ValueError(f'unknown incident particle in: {s!r}')
     return ((curie_target(target), inc, outgoing.lower().strip(),
-             curie_nuclide(product.replace(' ', ''))), cumulative)
+             curie_nuclide(product.replace(' ', ''))), cumulative, mixed)
 
 
 def main():
@@ -145,7 +148,7 @@ def main():
                 continue
             reaction, rows = parse_zip(zf)
             try:
-                key, cumulative = parse_reaction(reaction)
+                key, cumulative, mixed = parse_reaction(reaction)
             except ValueError as err:
                 skipped.append((family, stem, str(err)))
                 continue
@@ -164,14 +167,15 @@ def main():
                     conflicts.append((key, f'{family} (direct)',
                                       f"{prev['family']} (cumulative twin)"))
                     reactions[key] = {'family': family, 'stem': stem,
-                                      'rows': rows, 'cumulative': cumulative}
+                                      'rows': rows, 'cumulative': cumulative,
+                                      'mixed': mixed}
                 else:
                     why = 'cumulative twin' if cumulative and not prev['cumulative'] \
                         else 'cross-family duplicate'
                     conflicts.append((key, prev['family'], f'{family} ({why})'))
                 continue
             reactions[key] = {'family': family, 'stem': stem, 'rows': rows,
-                              'cumulative': cumulative}
+                              'cumulative': cumulative, 'mixed': mixed}
 
     con = open_fresh('iaea_monitors.db')
     for t in TABLE.values():
@@ -182,7 +186,7 @@ def main():
                 'outgoing TEXT, product TEXT)')
     con.execute('CREATE TABLE _sources (target TEXT, incident TEXT, '
                 'outgoing TEXT, product TEXT, family TEXT, stem TEXT, '
-                'cumulative INTEGER)')
+                'cumulative INTEGER, mixed_isomer INTEGER)')
 
     for key in sorted(reactions):
         target, inc, outgoing, product = key
@@ -199,9 +203,9 @@ def main():
             grid[e] = (xs, unc)
         con.execute('INSERT INTO all_reactions VALUES (?,?,?,?)',
                     (target, inc, outgoing, product))
-        con.execute('INSERT INTO _sources VALUES (?,?,?,?,?,?,?)',
+        con.execute('INSERT INTO _sources VALUES (?,?,?,?,?,?,?,?)',
                     (target, inc, outgoing, product, info['family'],
-                     info['stem'], int(info['cumulative'])))
+                     info['stem'], int(info['cumulative']), int(info['mixed'])))
         con.executemany(
             f'INSERT INTO {TABLE[inc]} VALUES (?,?,?,?,?,?)',
             [(target, outgoing, product, e, xs, unc)
