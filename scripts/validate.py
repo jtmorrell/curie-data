@@ -211,9 +211,88 @@ def coverage_diff_irdff(con):
           f'differing: {differ[:5] if differ else "none"}')
 
 
+# --- endf ---
+
+def _endf_table(target):
+    import re as _re
+    return (''.join(_re.findall('[A-Z]+', target)) + '_' +
+            ''.join(_re.findall('[0-9]+', target)) +
+            ('m' if 'm' in target else ''))
+
+
+def validate_endf(con):
+    idx = q(con, 'SELECT target,outgoing,product,label FROM all_reactions')
+    targets = sorted({r[0] for r in idx})
+    check('material count (VIII.1 = 558)', len(targets) == 558, str(len(targets)))
+    cols = [c[1] for c in q(con, 'PRAGMA table_info(all_reactions)')]
+    check('all_reactions column order (label last)',
+          cols == ['target', 'outgoing', 'product', 'label'], str(cols))
+    dup = q(con, 'SELECT target,outgoing,product,COUNT(*) c FROM all_reactions '
+                 'GROUP BY 1,2,3 HAVING c>1')
+    check('no ambiguous index rows (unique target+outgoing+product)', not dup,
+          str(dup[:3]))
+
+    tables = {r[0] for r in q(con, "SELECT name FROM sqlite_master WHERE type='table'")}
+    missing_tab = [t for t in targets if _endf_table(t) not in tables]
+    check('every target table derivable and present (shard round-trip)',
+          not missing_tab, str(missing_tab[:3]))
+
+    # per-material: indexed labels == table columns; sorted grid; anchors
+    bad_join, bad_sort = [], []
+    for tgt in targets:
+        tab = _endf_table(tgt)
+        want = {r[3] for r in idx if r[0] == tgt}
+        have = {c[1] for c in q(con, f'PRAGMA table_info({tab})')} - {'energy'}
+        if want != have:
+            bad_join.append((tab, sorted(want ^ have)[:4]))
+        e = [r[0] for r in q(con, f'SELECT energy FROM {tab} ORDER BY rowid')]
+        if any(b <= a for a, b in zip(e, e[1:])):
+            bad_sort.append(tab)
+    check('index labels == table columns (bidirectional)', not bad_join,
+          str(bad_join[:3]))
+    check('union grids strictly increasing', not bad_sort, str(bad_sort[:3]))
+
+    # spot anchors: values in barn at 0.0253 eV (nearest grid point)
+    for tab, col, lo, hi in [('IN_115', '_g_', 195, 210),
+                             ('FE_56', '_g_', 2.5, 2.65),
+                             ('U_235', '_fis_', 570, 600),
+                             ('AU_197', '_g_', 96, 101)]:
+        r = q(con, f'SELECT energy,"{col}" FROM {tab} WHERE '
+                   f'energy BETWEEN 0.02 AND 0.03 ORDER BY ABS(energy-0.0253) LIMIT 1')
+        ok = bool(r) and lo < r[0][1] < hi
+        check(f'{tab} {col} thermal anchor in ({lo}, {hi}) b', ok, str(r))
+
+    ver = q(con, 'SELECT library,generation FROM _version')
+    check('_version stamp', ver == [('endf', 'v2')], str(ver))
+
+
+def coverage_diff_endf(con):
+    v1p = V1_DIR / 'endf.db'
+    if not v1p.exists():
+        print('  (no v1 file for coverage diff)')
+        return
+    v1 = sqlite3.connect(v1p)
+    old = {(t, o) for t, o, *_ in q(v1, 'SELECT target,outgoing FROM all_reactions')}
+    new = {(t, o) for t, o, *_ in q(con, 'SELECT target,outgoing FROM all_reactions')}
+    old_t = {t for t, _ in old}
+    new_t = {t for t, _ in new}
+    print(f'\n  materials: {len(old_t)} -> {len(new_t)}; '
+          f'new: {sorted(new_t - old_t)[:12]}{"..." if len(new_t - old_t) > 12 else ""}')
+    if old_t - new_t:
+        print(f'  DROPPED materials: {sorted(old_t - new_t)}')
+    both = old_t & new_t
+    ch_lost = sorted((t, o) for t, o in old if t in both and (t, o) not in new)
+    ch_new = [(t, o) for t, o in new if t in both and (t, o) not in old]
+    print(f'  channels on common materials: +{len(ch_new)} added, '
+          f'-{len(ch_lost)} dropped')
+    for t, o in ch_lost[:20]:
+        print(f'    - {t}(n,{o})')
+
+
 VALIDATORS = {
     'iaea_monitors.db': (validate_iaea_monitors, coverage_diff_iaea),
     'IRDFF.db': (validate_irdff, coverage_diff_irdff),
+    'endf.db': (validate_endf, coverage_diff_endf),
 }
 
 
