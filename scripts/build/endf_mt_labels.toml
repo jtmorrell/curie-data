@@ -68,6 +68,57 @@ da = "d a"
 nd2a = "n d a a"
 nt2a = "n t a a"
 3np = "n n n p"
+# extended multi-particle channels (MT152-200), used by the VIII.1
+# high-energy evaluations; absent from the previous generation
+5n = "n n n n n"
+6n = "n n n n n n"
+2nt = "n n t"
+ta = "t a"
+4np = "n n n n p"
+3nd = "n n n d"
+nda = "n d a"
+2npa = "n n p a"
+7n = "n n n n n n n"
+8n = "n n n n n n n n"
+5np = "n n n n n p"
+6np = "n n n n n n p"
+7np = "n n n n n n n p"
+4na = "n n n n a"
+5na = "n n n n n a"
+6na = "n n n n n n a"
+7na = "n n n n n n n a"
+4nd = "n n n n d"
+5nd = "n n n n n d"
+6nd = "n n n n n n d"
+3nt = "n n n t"
+4nt = "n n n n t"
+5nt = "n n n n n t"
+6nt = "n n n n n n t"
+2nh = "n n h"
+3nh = "n n n h"
+4nh = "n n n n h"
+3n2p = "n n n p p"
+3n2a = "n n n a a"
+3npa = "n n n p a"
+dt = "d t"
+npd = "n p d"
+npt = "n p t"
+ndt = "n d t"
+nph = "n p h"
+ndh = "n d h"
+nth = "n t h"
+nta = "n t a"
+2n2p = "n n p p"
+ph = "p h"
+dh = "d h"
+ha = "h a"
+4n2p = "n n n n p p"
+4n2a = "n n n n a a"
+4npa = "n n n n p a"
+3p = "p p p"
+n3p = "n p p p"
+3n2pa = "n n n p p a"
+5n2p = "n n n n n p p"
 
 [emission_mt]                   # MT for each emission label
 g = 102
@@ -105,9 +156,64 @@ da = 117
 nd2a = 35
 nt2a = 36
 3np = 42
+5n = 152
+6n = 153
+2nt = 154
+ta = 155
+4np = 156
+3nd = 157
+nda = 158
+2npa = 159
+7n = 160
+8n = 161
+5np = 162
+6np = 163
+7np = 164
+4na = 165
+5na = 166
+6na = 167
+7na = 168
+4nd = 169
+5nd = 170
+6nd = 171
+3nt = 172
+4nt = 173
+5nt = 174
+6nt = 175
+2nh = 176
+3nh = 177
+4nh = 178
+3n2p = 179
+3n2a = 180
+3npa = 181
+dt = 182
+npd = 183
+npt = 184
+ndt = 185
+nph = 186
+ndh = 187
+nth = 188
+nta = 189
+2n2p = 190
+ph = 191
+dh = 192
+ha = 193
+4n2p = 194
+4n2a = 195
+4npa = 196
+3p = 197
+n3p = 198
+3n2pa = 199
+5n2p = 200
 
 [emission_new]                  # labels absent from the previous generation
-labels = ["3a", "d2a", "2nd", "2n2a", "nd2a", "nt2a", "3np"]
+labels = ["3a", "d2a", "2nd", "2n2a", "nd2a", "nt2a", "3np",
+          "5n", "6n", "2nt", "ta", "4np", "3nd", "nda", "2npa", "7n", "8n",
+          "5np", "6np", "7np", "4na", "5na", "6na", "7na", "4nd", "5nd",
+          "6nd", "3nt", "4nt", "5nt", "6nt", "2nh", "3nh", "4nh", "3n2p",
+          "3n2a", "3npa", "dt", "npd", "npt", "ndt", "nph", "ndh", "nth",
+          "nta", "2n2p", "ph", "dh", "ha", "4n2p", "4n2a", "4npa", "3p",
+          "n3p", "3n2pa", "5n2p"]
 
 [levels]                        # discrete-level families: label <n>0..<n>N + continuum <n>c
 n = {first = 50, count = 41, continuum = 91}    # _n1_.._n40_ (MT50 = n0, elastic-like, unused)
@@ -125,8 +231,9 @@ x_h = 206
 x_a = 207
 
 [skip]                          # MF3 sections deliberately not stored
-mts = [10, 27, 101, 151, 152, 153, 201, 202, 251, 252, 253, 301,
-       452, 455, 456, 458]     # 27/101 are recomputed; 201/202 neutron/gamma
-                               # production; 251-253 scattering parameters;
+mts = [10, 27, 101, 151, 201, 202, 251, 252, 253, 301,
+       452, 455, 456, 458]     # 27/101 are recomputed; 151 resonance info;
+                               # 201/202 neutron/gamma production;
+                               # 251-253 scattering parameters;
                                # 301 = HEATR total kerma (444 is kept);
                                # 452+ multiplicities live in MF1

@@ -52,7 +52,10 @@ def mt_plan():
     for lab, mt in MAPPING['emission_mt'].items():
         plan[mt] = (f'_{lab}_', lab, 'emission')
     for fam, spec in MAPPING['levels'].items():
-        for i in range(1, spec['count']):
+        # the n-family level 0 (MT50) does not occur; the charged-particle
+        # families' level 0 (MT600/650/700/750/800 -> _p0_ etc.) is real
+        start = 1 if fam == 'n' else 0
+        for i in range(start, spec['count']):
             plan[spec['first'] + i] = (f'_{fam}{i}_', f'{fam}{i}', 'level')
         plan[spec['continuum']] = (f'_{fam}c_', f'{fam}c', 'level')
     for lab, mt in MAPPING['production'].items():
