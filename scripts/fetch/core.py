@@ -16,11 +16,14 @@ from an existing archive.
 """
 import hashlib
 import os
+import threading
 import time
 import tomllib
 import urllib.request
 from datetime import date
 from pathlib import Path
+
+_lock = threading.Lock()  # manifest + cache writes are serialized
 
 ARCHIVE_ROOT = Path(os.environ.get(
     'CURIE_SOURCE_ARCHIVE',
@@ -72,10 +75,11 @@ def _record(source, name, url, sha, size):
         f'size = {size}\n'
         f'fetched = "{date.today().isoformat()}"\n'
     )
-    with open(MANIFEST, 'a') as f:
-        f.write(entry)
-    if _recorded is not None:
-        _recorded[(source, name)] = sha
+    with _lock:
+        with open(MANIFEST, 'a') as f:
+            f.write(entry)
+        if _recorded is not None:
+            _recorded[(source, name)] = sha
 
 
 def fetch(url, source, name=None, timeout=120):
