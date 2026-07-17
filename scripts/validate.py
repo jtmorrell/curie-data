@@ -11,6 +11,8 @@ Usage: python3 validate.py build/iaea_monitors.db
 import os
 import sqlite3
 import sys
+import zipfile
+from collections import defaultdict
 from pathlib import Path
 
 V1_DIR = Path(os.environ.get('CURIE_V1_DIR', Path.home() / '.local/share/curie'))
@@ -41,7 +43,9 @@ def resolvable_products(con, particle_letters=False, blocking=True):
     import re as _re
     bad = []
     for (p,) in q(con, 'SELECT DISTINCT product FROM all_reactions'):
-        if not p or (particle_letters and p in ('p', 'd', 't', 'h', 'a')):
+        # the particle letters include 'n' and 'g' (the nprod/gprod
+        # production-sum specials store their emitted particle as product)
+        if not p or (particle_letters and p in ('n', 'g', 'p', 'd', 't', 'h', 'a')):
             continue
         # curie's normalization: bare 'm' means the first isomer; a name
         # with no state suffix means the ground state
@@ -57,7 +61,7 @@ def resolvable_products(con, particle_letters=False, blocking=True):
     if blocking:
         check(label, not bad, str(bad[:5]))
     else:
-        print(f'  [{"info"}] {label}: {len(bad)} unresolved '
+        print(f'  [info] {label}: {len(bad)} unresolved '
               f'(report-only until the rebuilt decay database ships): {bad[:8]}')
 
 
@@ -123,6 +127,11 @@ def validate_iaea_monitors(con):
     sys.path.insert(0, str(Path(__file__).parent / 'build'))
     import iaea_monitors as builder
     reactions, _, _ = builder.collect()
+    # collect() discovers reactions by glob, which returns nothing on a
+    # missing or mispointed archive — an empty re-parse must fail loudly,
+    # not let the identity check below pass vacuously
+    check('source archive present (re-parse found reactions)',
+          len(reactions) > 0, str(builder.ARCHIVE_ROOT / 'iaea-medical'))
     mismatch = []
     for key, info in reactions.items():
         tgt, inc, out, prod = key
@@ -226,8 +235,7 @@ def validate_irdff(con):
     sys.path.insert(0, str(Path(__file__).parent / 'build'))
     import irdff as builder
     blocks = builder.parse_tab(
-        __import__('zipfile').ZipFile(
-            builder.ARCHIVE_ROOT / 'irdff-ii' / 'IRDFF-II_TAB.zip')
+        zipfile.ZipFile(builder.ARCHIVE_ROOT / 'irdff-ii' / 'IRDFF-II_TAB.zip')
         .read('IRDFF-II.tab.txt').decode('utf-8', 'replace'))
     mismatch = []
     for t, o, p, n in idx:
@@ -282,46 +290,14 @@ def _endf_table(target):
 
 def validate_endf(con):
     idx = q(con, 'SELECT target,outgoing,product,label FROM all_reactions')
-    targets = sorted({r[0] for r in idx})
-    check('material count (VIII.1 = 558)', len(targets) == 558, str(len(targets)))
-    cols = [c[1] for c in q(con, 'PRAGMA table_info(all_reactions)')]
-    check('all_reactions column order (label last)',
-          cols == ['target', 'outgoing', 'product', 'label'], str(cols))
-    dup = q(con, 'SELECT target,outgoing,product,COUNT(*) c FROM all_reactions '
-                 'GROUP BY 1,2,3 HAVING c>1')
-    check('no ambiguous index rows (unique target+outgoing+product)', not dup,
-          str(dup[:3]))
-
     tables = {r[0] for r in q(con, "SELECT name FROM sqlite_master WHERE type='table'")}
-    missing_tab = [t for t in targets if _endf_table(t) not in tables]
+    missing_tab = [t for t in sorted({r[0] for r in idx})
+                   if _endf_table(t) not in tables]
     check('every target table derivable and present (shard round-trip)',
           not missing_tab, str(missing_tab[:3]))
-
-    # per-material: indexed labels == table columns; sorted non-empty grid;
-    # value sanity (no NULLs, no negatives)
-    from collections import defaultdict
-    labels_by_target = defaultdict(set)
-    for r in idx:
-        labels_by_target[r[0]].add(r[3])
-    bad_join, bad_sort, bad_val = [], [], []
-    for tgt in targets:
-        tab = _endf_table(tgt)
-        have = {c[1] for c in q(con, f'PRAGMA table_info({tab})')} - {'energy'}
-        if labels_by_target[tgt] != have:
-            bad_join.append((tab, sorted(labels_by_target[tgt] ^ have)[:4]))
-        e = [r[0] for r in q(con, f'SELECT energy FROM {tab} ORDER BY rowid')]
-        if not e or any(b <= a for a, b in zip(e, e[1:])):
-            bad_sort.append(tab)
-        for col in have:
-            r = q(con, f'SELECT MIN("{col}"), COUNT(*) - COUNT("{col}") FROM {tab}')[0]
-            if r[0] is None or r[0] < 0 or r[1] > 0:
-                bad_val.append((tab, col, r))
-    check('index labels == table columns (bidirectional)', not bad_join,
-          str(bad_join[:3]))
-    check('union grids strictly increasing and non-empty', not bad_sort,
-          str(bad_sort[:3]))
-    check('no NULL or negative values in any channel', not bad_val,
-          str(bad_val[:3]))
+    targets = _wide_table_checks(con, idx,
+                                 ['target', 'outgoing', 'product', 'label'])
+    check('material count (VIII.1 = 558)', len(targets) == 558, str(len(targets)))
 
     # spot anchors at 0.0253 eV, incl. the computed-absorption column and
     # residual-product identities (the two derived quantities)
@@ -391,8 +367,11 @@ def coverage_diff_endf(con):
 
 # --- tendl (exclusive + residual-production) ---
 
-def _wide_table_checks(con, idx, index_cols, has_product_col):
-    """Shared structural checks for the wide-table libraries."""
+def _wide_table_checks(con, idx, index_cols):
+    """Shared structural and value checks for the wide-table libraries
+    (endf and the five tendl databases): index/table label joins, strictly
+    increasing non-empty grids, and a full value sweep — no NULL and no
+    negative entry in the energy column or any channel column."""
     cols = [c[1] for c in q(con, 'PRAGMA table_info(all_reactions)')]
     check('all_reactions column order (label last)', cols == index_cols, str(cols))
     key = ','.join(index_cols[:-1])
@@ -400,7 +379,6 @@ def _wide_table_checks(con, idx, index_cols, has_product_col):
                  f'GROUP BY {key} HAVING c>1')
     check('no ambiguous index rows', not dup, str(dup[:3]))
     targets = sorted({r[0] for r in idx})
-    from collections import defaultdict
     labels_by_target = defaultdict(set)
     for r in idx:
         labels_by_target[r[0]].add(r[-1])
@@ -413,20 +391,28 @@ def _wide_table_checks(con, idx, index_cols, has_product_col):
         e = [r[0] for r in q(con, f'SELECT energy FROM {tab} ORDER BY rowid')]
         if not e or any(b <= a for a, b in zip(e, e[1:])):
             bad_sort.append(tab)
-        r = q(con, f'SELECT MIN(energy) FROM {tab}')
-        neg = q(con, f'SELECT COUNT(*) FROM {tab} WHERE energy IS NULL')[0][0]
-        if neg:
-            bad_val.append((tab, 'NULL energy'))
+        # value sweep, one scan per <=400-column chunk: MIN and NULL count
+        # for the energy column and every channel column
+        sweep_cols = ['energy'] + sorted(have)
+        for i in range(0, len(sweep_cols), 400):
+            chunk = sweep_cols[i:i + 400]
+            expr = ', '.join(f'MIN("{c}"), COUNT(*)-COUNT("{c}")' for c in chunk)
+            row = q(con, f'SELECT {expr} FROM {tab}')[0]
+            for c, mn, n_null in zip(chunk, row[0::2], row[1::2]):
+                if mn is None or mn < 0 or n_null:
+                    bad_val.append((tab, c, (mn, n_null)))
     check('index labels == table columns (bidirectional)', not bad_join, str(bad_join[:3]))
     check('grids strictly increasing and non-empty', not bad_sort, str(bad_sort[:3]))
-    check('no NULL energies', not bad_val, str(bad_val[:3]))
+    check('no NULL or negative values in energy or any channel', not bad_val,
+          str(bad_val[:3]))
     return targets
 
 
 def validate_tendl(con):
     idx = q(con, 'SELECT target,outgoing,product,label FROM all_reactions')
-    targets = _wide_table_checks(con, idx, ['target', 'outgoing', 'product', 'label'], True)
-    check('target count (curated cut, neutron)', 600 < len(targets) < 660, str(len(targets)))
+    targets = _wide_table_checks(con, idx, ['target', 'outgoing', 'product', 'label'])
+    check('target count (curated cut incl. isomeric targets, neutron)',
+          700 < len(targets) < 850, str(len(targets)))
 
     # source-identity gate: stored content equals a fresh table re-parse
     sys.path.insert(0, str(Path(__file__).parent / 'build'))
@@ -479,57 +465,33 @@ def coverage_diff_tendl(con):
 
 def _validate_tendl_rp(con, beam, letter):
     idx = q(con, 'SELECT target,product,label FROM all_reactions')
-    targets = _wide_table_checks(con, idx, ['target', 'product', 'label'], False)
-    check(f'target count (curated cut, {beam})', 600 < len(targets) < 660, str(len(targets)))
-    suffixed = all(p.endswith(('g',)) or 'm' in p[-3:] for _, p, _ in idx)
-    check('every product carries an explicit state suffix', suffixed)
+    targets = _wide_table_checks(con, idx, ['target', 'product', 'label'])
+    check(f'target count (curated cut incl. isomeric targets, {beam})',
+          700 < len(targets) < 850, str(len(targets)))
+    bad_suffix = sorted({p for _, p, _ in idx
+                         if not (p.endswith('g') or 'm' in p[-3:])})
+    check('every product carries an explicit state suffix', not bad_suffix,
+          str(bad_suffix[:5]))
 
+    # source-identity gate: stored content equals the builder's own
+    # assembly of a fresh source re-parse (the same code path the build ran)
     sys.path.insert(0, str(Path(__file__).parent / 'build'))
-    import numpy as np
     import tendl_rp as builder
     src = builder.ARCHIVE_ROOT / 'tendl-2025' / f'{beam}_files'
     mismatch = []
     for tdir in sorted(t for el in src.iterdir() if el.is_dir()
                        for t in el.iterdir()
                        if (t / 'tables' / 'residual').is_dir()):
-        products = builder.collect_target(tdir / 'tables' / 'residual')
-        if not products:
+        tgt, tab, cols, grid, data = builder.assemble(tdir)
+        if tab is None:
             continue
-        import re as _re
-        m = _re.fullmatch(r'([A-Z][a-z]?)(\d{3})(m?)', tdir.name)
-        tab = f'{m.group(1).upper()}_{int(m.group(2))}{m.group(3)}'
-        grid = np.unique(np.concatenate([[e for e, _ in r] for r in products.values()]))
-        want = np.column_stack(
-            [grid] + [np.interp(grid, [e for e, _ in products[c]],
-                                [x for _, x in products[c]], left=0.0, right=0.0)
-                      for c in sorted(products)])
         got = q(con, f'SELECT * FROM {tab} ORDER BY rowid')
-        if [tuple(r) for r in got] != [tuple(r) for r in want.tolist()]:
+        if [tuple(r) for r in got] != [tuple(r) for r in data.tolist()]:
             mismatch.append(tab)
     check('stored tables identical to source re-parse', not mismatch, str(mismatch[:3]))
     resolvable_products(con, blocking=False)
     ver = q(con, 'SELECT library,generation FROM _version')
     check('_version stamp', ver == [(f'tendl_{letter}_rp', 'v2')], str(ver))
-
-
-def _coverage_diff_rp(con, beam, letter):
-    v1p = V1_DIR / f'tendl_{letter}_rp.db'
-    if not v1p.exists():
-        print(f'  (no v1 tendl_{letter}_rp.db — new library, no diff)')
-        return
-    v1 = sqlite3.connect(v1p)
-    old = {(t, p) for t, p in q(v1, 'SELECT target,product FROM all_reactions')}
-    new = {(t, p) for t, p in q(con, 'SELECT target,product FROM all_reactions')}
-    old_t, new_t = {t for t, _ in old}, {t for t, _ in new}
-    print(f'\n  targets: {len(old_t)} -> {len(new_t)} (+{len(new_t - old_t)}, '
-          f'-{len(old_t - new_t)}); dropped: {sorted(old_t - new_t) or "none"}')
-    both = old_t & new_t
-    lost = [(t, p) for t, p in old if t in both and (t, p) not in new]
-    print(f'  products on common targets: '
-          f'+{len([x for x in new if x[0] in both and x not in old])} added, '
-          f'-{len(lost)} dropped')
-    for t, p in lost[:10]:
-        print(f'    - {t} -> {p}')
 
 
 import functools

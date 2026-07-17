@@ -13,21 +13,21 @@ the particle balance, stored as ground-state names.
 Channels are stored on the union of their grids (the production files
 use threshold-truncated subsets of TALYS's master grid), zero-filled
 outside each channel's range; energy [MeV], cross sections [mb], the
-units curie reads without scaling. Value-identical duplicate rows (a
-round-off defect the source still carries) are collapsed; conflicting
-duplicate abscissae are a build failure (curie's reader would collapse
-them silently).
+units curie reads without scaling. Duplicate abscissae whose values agree
+to a relative tolerance (1e-5 — round-off-level duplicated print rows are
+endemic in the TALYS tables) are collapsed; a disagreement beyond the
+tolerance is a data conflict and fails the build (curie's reader would
+collapse it silently).
 
 Usage: python3 tendl_neutron.py
 """
 import re
-import numpy as np
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 from common import (ARCHIVE_ROOT, ELEMENTS, dedupe_grid, open_fresh,
-                    parse_yandf, write_version)
+                    parse_yandf, union_grid_stack, write_version)
 
 PARTICLE_AZ = {'n': (1, 0), 'p': (1, 1), 'd': (2, 1), 't': (3, 1),
                'h': (3, 2), 'a': (4, 2)}
@@ -85,10 +85,7 @@ def assemble(tdir, unknown=None):
                      dedupe_grid(rows, f'{tdir.name}/{p.name}')))
     if not cols:
         return curie_tgt, None, [], None, None
-    grid = np.unique(np.concatenate([[e for e, _ in r] for *_, r in cols]))
-    data = np.column_stack(
-        [grid] + [np.interp(grid, [e for e, _ in r], [x for _, x in r],
-                            left=0.0, right=0.0) for *_, r in cols])
+    grid, data = union_grid_stack([r for *_, r in cols])
     return curie_tgt, f'{el.upper()}_{a}{iso}', cols, grid, data
 
 

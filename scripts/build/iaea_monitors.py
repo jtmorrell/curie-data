@@ -151,7 +151,7 @@ def parse_reaction(s):
              curie_nuclide(product.replace(' ', ''))), cumulative, mixed)
 
 
-def collect(src=None):
+def collect():
     """Parse every mirrored zip into (reactions, conflicts, skipped).
 
     `reactions` maps (target, incident, outgoing, product) -> dict(family,
@@ -159,7 +159,8 @@ def collect(src=None):
     resolution — the exact content the build writes, reusable by the
     validator for a source-vs-database comparison.
     """
-    src = src or (ARCHIVE_ROOT / 'iaea-medical')
+    src = ARCHIVE_ROOT / 'iaea-medical'
+
     reactions = {}
     skipped, conflicts = [], []
 

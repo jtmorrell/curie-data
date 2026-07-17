@@ -57,6 +57,9 @@ def main():
                 print(f'  {stem}t.zip: FAILED {e}')
                 continue
             seen[stem] = family
+    # a stem that failed under one family but mirrored under a later one is
+    # not missing — report only the never-mirrored stems
+    failures = [f for f in failures if f[1] not in seen]
     print(f'\n{len(seen)} unique reactions mirrored, {len(failures)} failures')
     for f in failures:
         print('  MISSING:', *f)

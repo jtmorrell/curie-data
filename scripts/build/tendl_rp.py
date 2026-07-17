@@ -2,11 +2,12 @@
 
 Source: the mirrored TENDL-2025 residual tables. Per (target, product):
 `rpZZZAAA.tot` is the total production; when isomer-resolved files exist
-(`rpZZZAAA.L00`, `.L01`, ...) they are used instead — L00 is the ground
-state and L<i> the i-th isomer, giving products '<A><EL>g', '<A><EL>m1',
-... (state names cross-checked against the file header's nuclide token).
-A product with no L-files stores its total under the ground-state name,
-matching the previous generation.
+they are used instead. The `.L##` suffix carries a level INDEX, not an
+isomer ordinal: L00 is the ground state and the remaining L-files,
+ordered by level index, become m1, m2, ... (an advisory note is printed
+when an m-state's header token does not look metastable). A product with
+no L-files stores its total under the ground-state name, matching the
+previous generation.
 
 Output schema per curie's reader: one wide table per target (energy [MeV]
 plus one column per product [mb], zero-filled outside each product's
@@ -21,20 +22,12 @@ import re
 import sys
 from pathlib import Path
 
-import numpy as np
-
 sys.path.insert(0, str(Path(__file__).parent))
 from common import (ARCHIVE_ROOT, ELEMENTS, dedupe_grid, open_fresh,
-                    parse_yandf, write_version)
+                    parse_yandf, union_grid_stack, write_version)
 
 DB_NAME = {'neutron': 'tendl_n_rp.db', 'proton': 'tendl_p_rp.db',
            'deuteron': 'tendl_d_rp.db', 'alpha': 'tendl_a_rp.db'}
-
-
-def target_table(curie_target):
-    m = re.fullmatch(r'(\d+)([A-Z]{1,2})(m)?', curie_target)
-    a, el, iso = m.groups()
-    return f'{el}_{int(a)}{iso or ""}'
 
 
 def collect_target(tdir):
@@ -57,18 +50,25 @@ def collect_target(tdir):
     products = {}
     for (z, a), entries in files.items():
         lfiles = sorted((lv, p) for lv, p in entries if lv is not None)
+        if lfiles and lfiles[0][0] != 0:
+            # Never observed from TALYS (residuals populate the ground
+            # state, so an L00 accompanies any L-file) — but if it ever
+            # happens, silently dropping the .tot and promoting the lowest
+            # isomer to m1 would mislabel states, so stop the build.
+            raise SystemExit(f'{tdir}: rp{z:03d}{a:03d} has isomer L-files '
+                             f'but no L00 ground file')
         if lfiles:
-            named = [('g' if lv == 0 else None, lv, p) for lv, p in lfiles]
-            iso_n = 0
-            chosen = []
-            for state, lv, p in named:
-                if state is None:
+            chosen, iso_n = [], 0
+            for lv, p in lfiles:
+                if lv == 0:
+                    state = 'g'
+                else:
                     iso_n += 1
                     state = f'm{iso_n}'
-                chosen.append((state, lv, p))
+                chosen.append((state, p))
         else:
-            chosen = [('g', None, p) for lv, p in entries]
-        for state, level, p in chosen:
+            chosen = [('g', p) for _, p in entries]
+        for state, p in chosen:
             header, rows = parse_yandf(p.read_text())
             if not rows:
                 continue
@@ -79,6 +79,31 @@ def collect_target(tdir):
                 print(f'  note: {p.name} stored as {name} but header '
                       f'token is {tok!r}')
     return products
+
+
+def assemble(tdir):
+    """(curie_target, table_name, cols, grid, data) for one target dir —
+    the exact content the build writes, reusable by the validator."""
+    m = re.fullmatch(r'([A-Z][a-z]?)(\d{3})(m?)', tdir.name)
+    el, a, iso = m.group(1), int(m.group(2)), m.group(3)
+    curie_tgt = f'{a}{el.upper()}{iso}'
+    products = collect_target(tdir / 'tables' / 'residual')
+    if not products:
+        return curie_tgt, None, [], None, None
+    cols = sorted(products)
+    grid, data = union_grid_stack([products[c] for c in cols])
+    return curie_tgt, f'{el.upper()}_{a}{iso}', cols, grid, data
+
+
+def write_target(con, curie_tgt, table, cols, data):
+    con.execute(f'CREATE TABLE {table} (energy REAL, ' +
+                ', '.join(f'"_{c}" REAL' for c in cols) + ')')
+    con.executemany(
+        f'INSERT INTO {table} VALUES ({",".join("?" * (len(cols) + 1))})',
+        data.tolist())
+    con.executemany('INSERT INTO all_reactions VALUES (?,?,?)',
+                    [(curie_tgt, c, f'_{c}') for c in cols])
+    con.commit()
 
 
 def main():
@@ -95,30 +120,13 @@ def main():
                      if (t / 'tables' / 'residual').is_dir())
     n_products = 0
     for tdir in targets:
-        nuc = tdir.name  # e.g. Fe056 / Ag110m
-        m = re.fullmatch(r'([A-Z][a-z]?)(\d{3})(m?)', nuc)
-        curie_tgt = f'{int(m.group(2))}{m.group(1).upper()}{m.group(3)}'
-        products = collect_target(tdir / 'tables' / 'residual')
-        if not products:
+        curie_tgt, table, cols, grid, data = assemble(tdir)
+        if table is None:
             print(f'  {curie_tgt}: no residual data, skipped')
             continue
-        grid = np.unique(np.concatenate([[e for e, _ in r]
-                                         for r in products.values()]))
-        table = target_table(curie_tgt)
-        cols = sorted(products)
-        con.execute(f'CREATE TABLE {table} (energy REAL, ' +
-                    ', '.join(f'"_{c}" REAL' for c in cols) + ')')
-        data = np.column_stack(
-            [grid] + [np.interp(grid, [e for e, _ in products[c]],
-                                [x for _, x in products[c]], left=0.0,
-                                right=0.0) for c in cols])
-        con.executemany(
-            f'INSERT INTO {table} VALUES ({",".join("?" * (len(cols) + 1))})',
-            data.tolist())
-        con.executemany('INSERT INTO all_reactions VALUES (?,?,?)',
-                        [(curie_tgt, c, f'_{c}') for c in cols])
-        con.commit()
+        write_target(con, curie_tgt, table, cols, data)
         n_products += len(cols)
+
     write_version(con, DB_NAME[beam].replace('.db', ''),
                   'TENDL-2025 residual-production tables '
                   '(tendl.imperial.ac.uk), curated target set',

@@ -14,7 +14,6 @@ package, and the previous-generation endf.db (CURIE_V1_DIR) for the size
 projection.
 """
 import os
-import re
 import shutil
 import sqlite3
 import subprocess

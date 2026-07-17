@@ -11,6 +11,8 @@ import subprocess
 from datetime import date
 from pathlib import Path
 
+import numpy as np
+
 ARCHIVE_ROOT = Path(os.environ.get(
     'CURIE_SOURCE_ARCHIVE',
     Path.home() / 'Documents/nucleardata/data_sources/v2'))
@@ -132,6 +134,22 @@ def dedupe_grid(rows, where, rel_tol=1e-5):
             continue  # keep-first among round-off twins
         seen[e] = x
     return sorted(seen.items())
+
+
+def union_grid_stack(series):
+    """Assemble channel/product series onto their union energy grid.
+
+    `series` is a list of rows[(E, value)]; returns (grid, data) where data
+    is the column stack [grid, col0, col1, ...] with each column linearly
+    interpolated onto the union grid and zero-filled outside its own
+    tabulated range (the TALYS production files are threshold-truncated
+    subsets of the master grid).
+    """
+    grid = np.unique(np.concatenate([[e for e, _ in r] for r in series]))
+    data = np.column_stack(
+        [grid] + [np.interp(grid, [e for e, _ in r], [x for _, x in r],
+                            left=0.0, right=0.0) for r in series])
+    return grid, data
 
 
 def curie_target(token):

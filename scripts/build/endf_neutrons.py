@@ -143,10 +143,13 @@ def build_material(con, endf_path, tol):
         cols.insert(1, ('_abs_', 'abs', '', y))
 
     # one transaction per material: the table, its rows, and its index
-    # entries land together or not at all (a killed run leaves no hollow
-    # table for the resume check to mistake for done work)
+    # entries land together or not at all. The explicit BEGIN IMMEDIATE is
+    # load-bearing — CREATE TABLE is DDL, which sqlite3 autocommits outside
+    # an open transaction, so without it a killed run leaves a hollow table
+    # for the resume check to mistake for done work.
     col_sql = ', '.join(f'"{lab}" REAL' for lab, *_ in cols)
     try:
+        con.execute('BEGIN IMMEDIATE')
         con.execute(f'CREATE TABLE {table} (energy REAL, {col_sql})')
         data = np.column_stack([grid] + [y for *_, y in cols])
         con.executemany(
@@ -183,8 +186,18 @@ def main():
 
     BUILD_DIR.mkdir(exist_ok=True)
     con = sqlite3.connect(BUILD_DIR / 'endf.db')
-    have = {r[0] for r in con.execute(
-        "SELECT name FROM sqlite_master WHERE type='table'")}
+    # a rowless material table is a hollow remnant of an interrupted run
+    # (possible in files written before the BEGIN IMMEDIATE guard):
+    # rebuild it rather than skipping it as done
+    have = set()
+    for (name,) in con.execute(
+            "SELECT name FROM sqlite_master WHERE type='table'").fetchall():
+        if (name in ('all_reactions', '_build_meta', '_version')
+                or con.execute(f'SELECT 1 FROM {name} LIMIT 1').fetchone()):
+            have.add(name)
+        else:
+            con.execute(f'DROP TABLE {name}')
+    con.commit()
     if 'all_reactions' not in have:
         con.execute('CREATE TABLE all_reactions (target TEXT, outgoing TEXT, '
                     'product TEXT, label TEXT)')
