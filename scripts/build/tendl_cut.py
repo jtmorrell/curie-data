@@ -2,20 +2,31 @@
 
 Criteria: ground states that are naturally occurring OR have a half-life
 of at least one day, with Z <= 100, unioned with every target the previous
-generation shipped (including its isomeric targets). Half-lives and
-abundances come from the decay database.
+generation shipped (including its isomeric targets) and with the isomeric
+targets TENDL itself provides wherever the criteria admit the ground state
+or the isomer in its own right (180Ta's naturally occurring state IS the
+isomer, over an 8-hour ground state). The TENDL-provided enumeration is
+committed as tendl_isomer_targets.txt; regenerate it with --probe-isomers,
+which checks each admitted ground state's isomer index page across all
+four beams. Half-lives and abundances come from the decay database.
 
 Writes tendl_targets.txt beside this script; run after a decay-database
 rebuild to refresh the list.
 
-Usage: python3 tendl_cut.py
+Usage:
+    python3 tendl_cut.py                  # rewrite tendl_targets.txt
+    python3 tendl_cut.py --probe-isomers  # re-enumerate TENDL's isomer
+                                          # targets first (network)
 """
 import os
 import sqlite3
+import sys
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 V1_DIR = Path(os.environ.get('CURIE_V1_DIR', Path.home() / '.local/share/curie'))
 OUT = Path(__file__).parent / 'tendl_targets.txt'
+ISOMERS = Path(__file__).parent / 'tendl_isomer_targets.txt'
 
 
 def v1_targets():
@@ -30,16 +41,52 @@ def v1_targets():
     return out
 
 
-def main():
+def criteria_cut():
+    """-> (admitted ground states, bare names whose isomer itself passes)."""
     dd = sqlite3.connect(V1_DIR / 'decay.db')
-    cut = set()
+    grounds, isomer_ok = set(), set()
     for name, iso, z, stable, hl, ab in dd.execute(
             'SELECT isotope, isomer, Z, stable, half_life, abundance FROM chart'):
-        if z > 100 or iso != 'g':
+        if z > 100:
             continue
-        if stable or (ab or 0) > 0 or (hl or 0) >= 86400:
-            cut.add(name)
-    cut |= v1_targets()
+        admitted = stable or (ab or 0) > 0 or (hl or 0) >= 86400
+        if not admitted:
+            continue
+        (grounds if iso == 'g' else isomer_ok).add(name)
+    return grounds, isomer_ok
+
+
+def probe_isomers(grounds):
+    """Enumerate the isomeric targets TENDL provides for these ground
+    states (any beam's isomer index page answers 200) and rewrite the
+    committed enumeration file."""
+    sys.path.insert(0, str(Path(__file__).parents[1] / 'fetch'))
+    from tendl import BEAMS, http_get, index_pages
+
+    def provided(iso_target):
+        for beam in BEAMS:
+            try:
+                http_get(index_pages(beam, iso_target)[0])
+                return True
+            except Exception:
+                continue
+        return False
+
+    candidates = sorted(g + 'm' for g in grounds)
+    with ThreadPoolExecutor(12) as pool:
+        hits = [t for t, ok in zip(candidates, pool.map(provided, candidates)) if ok]
+    ISOMERS.write_text('\n'.join(hits) + '\n')
+    print(f'{len(hits)} TENDL-provided isomer targets -> {ISOMERS}')
+
+
+def main():
+    grounds, isomer_ok = criteria_cut()
+    if '--probe-isomers' in sys.argv[1:]:
+        probe_isomers(grounds)
+    cut = grounds | v1_targets()
+    if ISOMERS.exists():
+        cut |= {t for t in (s.strip() for s in ISOMERS.read_text().splitlines())
+                if t and (t.rstrip('m') in grounds or t.rstrip('m') in isomer_ok)}
     OUT.write_text('\n'.join(sorted(cut)) + '\n')
     print(f'{len(cut)} targets -> {OUT}')
 

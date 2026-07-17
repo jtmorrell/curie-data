@@ -215981,3 +215981,883 @@ url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Ag/Ag111m/tables/"
 sha256 = "6a628ef1267f03727035fa45edf57afde37719c4769c209489fd78acdfe0e9aa"
 n_files = 453
 fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Sn113m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Sn/Sn113m/tables/"
+sha256 = "4b8591b459bae9b5ead185e666062265c7fbdca179192a7531482556bf2b8eda"
+n_files = 402
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "In113m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/In/In113m/tables/"
+sha256 = "9bb70af2a0d2a8940a85dda059fae4acacf54d7217db9172d93ece03f94f29a8"
+n_files = 433
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Te121m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Te/Te121m/tables/"
+sha256 = "839601f8272ed10aa62890be7dbf6a69b02d859fed95ecd5df4f16385afc06d3"
+n_files = 424
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Sn117m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Sn/Sn117m/tables/"
+sha256 = "93a1bfdc573d65d5e3e24c647175a4dace974c4ee6f60d167cb6f3abd42d1a9d"
+n_files = 441
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "In115m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/In/In115m/tables/"
+sha256 = "99eb1e8e835e39632505ebbfe6506a4eb9bed9c57240309381139d48c1178145"
+n_files = 451
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Sn119m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Sn/Sn119m/tables/"
+sha256 = "97b18224c0eae2b7d7c37bb07d5d669fa5f731d69cdf1ad483c0d63c2f964c50"
+n_files = 458
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Sn121m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Sn/Sn121m/tables/"
+sha256 = "8bc0553ffb30027431d3928531e9c4f7c9d98762c4070d63c372f3fe114a5e59"
+n_files = 459
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Te123m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Te/Te123m/tables/"
+sha256 = "9db2fafb448cd9b904da801f9bfbe125921576161cec1b335b40c12ff11fee72"
+n_files = 446
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Sn123m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Sn/Sn123m/tables/"
+sha256 = "411acdbcaa0fe60aedb5a9fe67f8d7b68fa60359faa294377af5ef9b9634aa9f"
+n_files = 464
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Sb122m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Sb/Sb122m/tables/"
+sha256 = "3ea2876254e75ad3c3e52175709de8382ca45777d96a2551f588034de70bff76"
+n_files = 471
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Sn125m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Sn/Sn125m/tables/"
+sha256 = "19afb4f7e50d9a49a971dcf1f92f32f8128ec823cb994d8348e9a181db95dcc9"
+n_files = 459
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Sb124m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Sb/Sb124m/tables/"
+sha256 = "58af3573825e8d052be9961d34cb81bfd945cebbe383353baabe856827494a3d"
+n_files = 476
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Te125m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Te/Te125m/tables/"
+sha256 = "9f9e7240eca1fefd4f57164fac2121d54d63d931e2db1aae0ff9b95516bad364"
+n_files = 449
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Sb126m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Sb/Sb126m/tables/"
+sha256 = "6840b67540ab1facdc02c749f3d0e425a89ca3d63292245689f4103e9f076783"
+n_files = 474
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Xe127m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Xe/Xe127m/tables/"
+sha256 = "c8b9a401a2061722c1cdd536ba09510e072affc3a6dd07371647d4e32962f2f9"
+n_files = 454
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Ba131m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Ba/Ba131m/tables/"
+sha256 = "9feb8b27a944eb5e5100ee5e5e6444a579e4ae9ce5a3cdb8d5635f3c38bdff76"
+n_files = 465
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Xe129m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Xe/Xe129m/tables/"
+sha256 = "d2c320394ced9511e602b00d0047f67824f951bbdaacef8f83bb90db28451a1e"
+n_files = 480
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Ba133m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Ba/Ba133m/tables/"
+sha256 = "0f213df6e37ff81f782b709a598d9c31a5da08076e14d0fce1eeadce4a3617f8"
+n_files = 480
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Xe131m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Xe/Xe131m/tables/"
+sha256 = "18a84193b0d8fe3c5d07106b8a1911108ef0e12e0914c0535c40443cf27697c3"
+n_files = 486
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Xe133m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Xe/Xe133m/tables/"
+sha256 = "d15a84424da7f9103490f4ce7f89412343a364f84d1abd196ad1ca1c71ee57fd"
+n_files = 513
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Ba135m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Ba/Ba135m/tables/"
+sha256 = "8fc31d0231e33d91ca1fc6e4fd89ccbc7e11934acd6a93aac889b9f2053bb37d"
+n_files = 514
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Cs134m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Cs/Cs134m/tables/"
+sha256 = "dc9afbd5724e7c609d0704501e38a2ef40d76a7fbeac0f4865a77742ae8bdb55"
+n_files = 541
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Cs135m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Cs/Cs135m/tables/"
+sha256 = "5886c21e0e52ba61d592d84d00e8dcbf8cd0fa58e8328782746787c3433e8f8e"
+n_files = 526
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Cs136m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Cs/Cs136m/tables/"
+sha256 = "da687dc6cf72943995639193efcbff1e186f4d8d3642a60edb666fdd376ac61b"
+n_files = 536
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Eu150m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Eu/Eu150m/tables/"
+sha256 = "fdd4e875234282011726ede90347a9c13b10d3ca7ea613cb8405a07ea5574dfd"
+n_files = 436
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Eu152m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Eu/Eu152m/tables/"
+sha256 = "e6bf7c0ea922ecada03a3726e67ccf392ee96d9fa593b5634cb6bc05d41c3c45"
+n_files = 436
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Eu154m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Eu/Eu154m/tables/"
+sha256 = "b332b0a3ea43e22279b74ea07cb904134b5015117d0fe4685f31cc613f3e22ae"
+n_files = 438
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Ce139m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Ce/Ce139m/tables/"
+sha256 = "afa5e7b3ae0c51930cc25aa44ce5bd02c3cf2fa9f95eb52e63662b4fe73d2304"
+n_files = 478
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Ba137m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Ba/Ba137m/tables/"
+sha256 = "1017fe9bec0048dbcfb523cc6e7aabf43ee86aad73dead6ec842434534f0d670"
+n_files = 531
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Tb156m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Tb/Tb156m/tables/"
+sha256 = "e3a83e7fd048401ff6abe131e912f4fc999f4082376836665b28685460021036"
+n_files = 437
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Tb158m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Tb/Tb158m/tables/"
+sha256 = "7eaa9fda7b4763fd0fd2929c46bc7815e5b789a45e59c2fa7c699da12aa3a96d"
+n_files = 442
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Er167m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Er/Er167m/tables/"
+sha256 = "74c46b9fb15994092d54d46c0d010e608a32481b2b3c03e50f525008ad16a993"
+n_files = 421
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Ho163m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Ho/Ho163m/tables/"
+sha256 = "9e0502cde1a6a7a814f24a69b45e96df4bb9496e40c38b510883de896b19e4f6"
+n_files = 434
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Lu169m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Lu/Lu169m/tables/"
+sha256 = "a81330a5019cfd0535a58ff052915a9709d87586cb507725e875891f695e50d3"
+n_files = 423
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Yb169m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Yb/Yb169m/tables/"
+sha256 = "e5fc0ad73ea9936640e1fd686047befca3cfaf8913166e827d781274dbaa0306"
+n_files = 429
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Lu171m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Lu/Lu171m/tables/"
+sha256 = "da2a7a6168d22af645641c27c0b382e85fdf986a7578b5be2fd1f73531cd823f"
+n_files = 427
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Lu172m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Lu/Lu172m/tables/"
+sha256 = "9600966b03b74578d68725c6fce2bdc65d5e1eb9c7e5658a5ca357d381622799"
+n_files = 424
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Lu174m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Lu/Lu174m/tables/"
+sha256 = "94b7d29cb32567cb2ca7e74b12be22f3ba09941ac425a2504ef7d1e4ea11bfa1"
+n_files = 419
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Yb176m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Yb/Yb176m/tables/"
+sha256 = "66cbcc360216dad9283695a5f07134b159b5bfc2959026098679ef0bbfae3eed"
+n_files = 414
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Hf177m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Hf/Hf177m/tables/"
+sha256 = "de20143167e58cf76a47a0bc81ef449ab8d75a08e3cf95f9aeaeb276a8e76079"
+n_files = 414
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Lu176m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Lu/Lu176m/tables/"
+sha256 = "0928a57da381d79ea648251ad01881b84aa9ceb152d26f5b3c8a5a28ffab50ac"
+n_files = 425
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Lu177m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Lu/Lu177m/tables/"
+sha256 = "dac4419200c7d36e95ed6f517b51c7a67db11a8431a7629d60c2b3757db7fe25"
+n_files = 418
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Hf178m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Hf/Hf178m/tables/"
+sha256 = "3fbc70a0638d75ec840c88bda9234cbdd394cb083b59c9c617a1fb26efa90a35"
+n_files = 412
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Hf180m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Hf/Hf180m/tables/"
+sha256 = "63954eba9372cb33c39bac43053b72d4c0a5a479f92aa90d9bd4f4b819e8478a"
+n_files = 404
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Hf179m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Hf/Hf179m/tables/"
+sha256 = "a53acaee2444ef4c662ba09be8f1766d652f0cdf943a4baf7156585df5416b31"
+n_files = 411
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Hf182m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Hf/Hf182m/tables/"
+sha256 = "7ac81e95be609e6eb3ba6b7db7c34869964672b74519c3949beba1b65f67c68e"
+n_files = 405
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Ta180m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Ta/Ta180m/tables/"
+sha256 = "88341b723bf1650b1f05a28277344f164806aee1e179db27308999e87a9b8a76"
+n_files = 418
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Re182m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Re/Re182m/tables/"
+sha256 = "cec01942724a8baab608a1866acb7830963a406431741f2f52a57eed44c76988"
+n_files = 422
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "W183m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/W/W183m/tables/"
+sha256 = "ff98f47f8590d8c0798aebc2098e0571d0cd4154c8497011b3471e049f06db1d"
+n_files = 399
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Ta182m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Ta/Ta182m/tables/"
+sha256 = "1c87204d2a01ff92a26af46355d0b412c02887305b1e65a9f5c92cf6199fcd24"
+n_files = 414
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "W185m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/W/W185m/tables/"
+sha256 = "ef03ba48fe079ef9c24ed6ad32c9a739cd1753144e54c38ea7d488a1bce270f1"
+n_files = 404
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Re184m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Re/Re184m/tables/"
+sha256 = "5615bf55b8011fd35fc72103dc1feed264ec751d44d7ff72252d260c44a07c37"
+n_files = 412
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Re186m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Re/Re186m/tables/"
+sha256 = "4a0ef32bd1b504ec5a6741ac8f7590fe988698cf7aa9e7b02a323a50606b73c7"
+n_files = 417
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Os189m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Os/Os189m/tables/"
+sha256 = "da6c04f9f1bb7349f64ecbd9036e920b2a23d6171b421b42d8eb26729414a7ee"
+n_files = 418
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Ir190m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Ir/Ir190m/tables/"
+sha256 = "cc2e51634a492023d8ea0b9a2d22f3abe31a9e547bfec0dc28ad86b6cede66a1"
+n_files = 439
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Os190m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Os/Os190m/tables/"
+sha256 = "227ba4671174e48a9eade70b951783b0067276bd2087d2d67eaafe00239ee4be"
+n_files = 415
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Ir191m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Ir/Ir191m/tables/"
+sha256 = "489f9c618633c546ee699d82d1350b4579f56375d1e3023d022009ea190f83a5"
+n_files = 435
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Os191m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Os/Os191m/tables/"
+sha256 = "b789323994a59b6405c3cf2b79020b181cb72d14eec2dcfa3a27f9995813cda1"
+n_files = 415
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Ir192m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Ir/Ir192m/tables/"
+sha256 = "ef38f06e5930f0c39fd5fb051594994c1bb3adc0598c8d09bcedb96dfdb720cf"
+n_files = 443
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Os192m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Os/Os192m/tables/"
+sha256 = "ffd1d196ce4351d21886e75f4424a2afd0ea0272b438142f4ee9ecb1b781143c"
+n_files = 415
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Ir193m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Ir/Ir193m/tables/"
+sha256 = "e6c05f63da3fbcba9be5094f417a30aad93ec2c6ff2089c6e390aa617b2f16c0"
+n_files = 438
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Pt193m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Pt/Pt193m/tables/"
+sha256 = "eb6de83fe1ad65306921065cfac520cbe4375359dad2505b91e97eb8d0bc0841"
+n_files = 435
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Pt195m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Pt/Pt195m/tables/"
+sha256 = "7bf97fbe35f0fd20b562ed87a7371d1390ee89e2b480b03ba6bf36b83d294a03"
+n_files = 445
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Au195m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Au/Au195m/tables/"
+sha256 = "da598928583b83fbc3323d72f74bc59ddf7bf08b462f662bedbfbc74ebdcd18d"
+n_files = 461
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Au196m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Au/Au196m/tables/"
+sha256 = "8db9b1cd28b69929de59c28c1714ee8ae3ef1553541aea7f7c163e29b9e8903d"
+n_files = 467
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Au197m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Au/Au197m/tables/"
+sha256 = "91fc1b104f52663dcd115d40cce35711c852ecef9c810f76c9888a684f0cf8ec"
+n_files = 465
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Au198m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Au/Au198m/tables/"
+sha256 = "3a7536ec9a531d498baa71d9f125afebbbe2e699e35b6db19969e3c8f4329653"
+n_files = 463
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Hg197m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Hg/Hg197m/tables/"
+sha256 = "b6f42d4433a4ad3b807b2d5365f053948ce6baa754471a8d05aaaebce5f67319"
+n_files = 485
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Hg199m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Hg/Hg199m/tables/"
+sha256 = "74d0e31189bb06b1f32a4fcacc2137ec0f2cd6b02aaddba899a4051afc659684"
+n_files = 476
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Pb202m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Pb/Pb202m/tables/"
+sha256 = "0fe2c76d4ec4486c21b784906e2d98a86512e4be98d942162b119c1bddd73db5"
+n_files = 490
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Pb203m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Pb/Pb203m/tables/"
+sha256 = "c5cea807199bae42676901cd2fbc22194eaed8d5ae69c6fb22f24fe80eca73db"
+n_files = 496
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Pb204m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Pb/Pb204m/tables/"
+sha256 = "cd40cb273081a1ce91edc83e4a2fcb14b59a258101a7b6114c5e0c9f26f16ec8"
+n_files = 493
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Al026m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Al/Al026m/tables/"
+sha256 = "ccbbcffb6d3d8971b977d71e329ce054915eb7fe04f2aa8bb3502f207f799e9c"
+n_files = 143
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Sc046m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Sc/Sc046m/tables/"
+sha256 = "1c0ea3ab93952822dd5f0ff8648e597a1d48ccad567bbd5c3f5bd00133b0f823"
+n_files = 201
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Mn052m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Mn/Mn052m/tables/"
+sha256 = "eca351ae9dd75f1586a321414e445d7b49f66b239f31933abed60d8340fe9ec3"
+n_files = 203
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "U235m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/U/U235m/tables/"
+sha256 = "55814d0fdbaee9f5f03301a10ddd78e0c0b3099885413fc9eb170ae6b53c14f3"
+n_files = 355
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Co060m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Co/Co060m/tables/"
+sha256 = "535f7fbb3e326c563eb98f381101c66470bfbb98eddfaae397205057c4b6094c"
+n_files = 230
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Np236m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Np/Np236m/tables/"
+sha256 = "14668be2e85a6be64e7b94ee7243de1f927bb737194fc3b95929f9b3f98658dd"
+n_files = 338
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Pu244m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Pu/Pu244m/tables/"
+sha256 = "7d3f1f224aff57877cb29961d07d5b6bc825ef71832bca98095afe6f634dfedf"
+n_files = 340
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Bk248m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Bk/Bk248m/tables/"
+sha256 = "af35ea5e337592cd9d1daae8cba035124be6dde61f8aa3c27103c87c4487ca36"
+n_files = 323
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Br077m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Br/Br077m/tables/"
+sha256 = "4f3056da217f838b696c22777b5ef17846572a96b4c4cfb66f9d5c80a29e82e9"
+n_files = 278
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Se077m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Se/Se077m/tables/"
+sha256 = "5bf0b0e4809df60c6a914f4137d722157a678e8196cf6dfe327d63934f8dcdff"
+n_files = 293
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Br079m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Br/Br079m/tables/"
+sha256 = "2095f1d8ce7c969f6e90e227a079970af893889d8f063fd208ca1268797952f1"
+n_files = 296
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Bi210m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Bi/Bi210m/tables/"
+sha256 = "ac6002f62931adaf3ef43d5ccd7ba7c4430707ff92e2c8adf46386b36a6b850e"
+n_files = 504
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Kr079m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Kr/Kr079m/tables/"
+sha256 = "dec27f26cd47573d1788f6cc5795fd541b0cffaf6cee11dedb4125df16f6532b"
+n_files = 280
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Se079m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Se/Se079m/tables/"
+sha256 = "52b97a3dbffac6a6736ce4d161d6067c8dbbd864d625df478e7fb9aa49cdca73"
+n_files = 309
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Kr081m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Kr/Kr081m/tables/"
+sha256 = "453cb4011210667461c0136dde9461f62042f16d9722a6b1de2b59b556eb7b2f"
+n_files = 303
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Sr083m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Sr/Sr083m/tables/"
+sha256 = "804a363db5e1323597058acea92f9fcb0792cb2a6ad473fb67237118b4f3e230"
+n_files = 287
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Br082m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Br/Br082m/tables/"
+sha256 = "4a91ae8a1452410c13dbfd0b2eded42dade381e7828363b325807b5da2b01dff"
+n_files = 330
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Kr083m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Kr/Kr083m/tables/"
+sha256 = "167c39c8fbea28981b93c2c89938b8b7854bbc059173494b616e0046e1cb71e4"
+n_files = 329
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Rb084m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Rb/Rb084m/tables/"
+sha256 = "bdee173318c6300c7ab117ac249de98328378cf065497c69df80694c11b1798e"
+n_files = 329
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Kr085m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Kr/Kr085m/tables/"
+sha256 = "6783115349c8892cffaa08ef30cce35b622900d0bc60dc3e754564d7b1e998b8"
+n_files = 332
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Sr085m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Sr/Sr085m/tables/"
+sha256 = "71268f07b36874e4da7b54c7bd4c7049dc1dc70952c5a046f59c54382da01302"
+n_files = 320
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Y087m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Y/Y087m/tables/"
+sha256 = "1a50ee2882e41ca897fc978ac0388936069d0761d3cbc65411aa65fb45bdabbe"
+n_files = 325
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Sr087m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Sr/Sr087m/tables/"
+sha256 = "877feae652e9075b347b1d4fbb50ac8d002266be6db8154aa360e321e25c5a97"
+n_files = 335
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Rb086m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Rb/Rb086m/tables/"
+sha256 = "3538c742bdec9de716ee236dd282441b725e93f4638fe868e6a433ac8610795d"
+n_files = 347
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Y089m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Y/Y089m/tables/"
+sha256 = "0ecd97d1d66130275b295cbaa21b5ced45e84446046e748c2df67e633645dfc3"
+n_files = 350
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Zr089m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Zr/Zr089m/tables/"
+sha256 = "6698eed1d1c53b88625533025accc88fe4c409e3af88e661c8010b7d6f11c4a8"
+n_files = 328
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Y090m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Y/Y090m/tables/"
+sha256 = "db93f8902f2ce9d7c0ba5a75e6320bac8ca2ae12e7e454651790c2c459d4203e"
+n_files = 356
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Nb091m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Nb/Nb091m/tables/"
+sha256 = "ea97e8b194e648de795007bc57474326c299dc73eedea3c86333923bdfc2bd1e"
+n_files = 340
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Y091m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Y/Y091m/tables/"
+sha256 = "70e3bd9831e383f8993a9732eb55ee7b0be787cfc8f9e79b9e2d62914b9c99b4"
+n_files = 364
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Nb092m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Nb/Nb092m/tables/"
+sha256 = "0a37b46f449d620a408a219d3c57385d02ab9c291e0d00739baf3a11fb15e653"
+n_files = 354
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Mo093m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Mo/Mo093m/tables/"
+sha256 = "cbaeda7b8aa1b5a3770a2c103d08c1a5ae869882ad468226b736e4bb23597a83"
+n_files = 348
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Nb093m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Nb/Nb093m/tables/"
+sha256 = "66b3b4c26d2b44fa240623123c13d4ed9b80ab26c7685e4a9ad848519684ca6a"
+n_files = 365
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Nb094m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Nb/Nb094m/tables/"
+sha256 = "9c5dd4532c3346e9cbabf94e7e72c7b979e592fd0ffd2bf762a4c1894af5b958"
+n_files = 371
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Tc096m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Tc/Tc096m/tables/"
+sha256 = "77ff8a6ab55de0166ec65a32a9d2abeb0bc3e867f8ccf9dbdb4e26edd8a503c4"
+n_files = 365
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Nb095m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Nb/Nb095m/tables/"
+sha256 = "2e075de7adcec762efffbcef71d5bd3846558b87f37964fc51e623c029f34450"
+n_files = 377
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Tc097m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Tc/Tc097m/tables/"
+sha256 = "a4e6d23185c2b2ea44511014f2624b39ede9adfef1e365d9d47046a8c8cf29cf"
+n_files = 374
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Rh099m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Rh/Rh099m/tables/"
+sha256 = "638c672c53ec328411a2d517ff67d5d291b4b8c2f5051a6944ad60530b23891d"
+n_files = 369
+fetched = "2026-07-17"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Tc099m"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Tc/Tc099m/tables/"
+sha256 = "214a6097ee9d101a7bdd19f900a7980b480b45f9d750afe0562839ee66c9deb6"
+n_files = 391
+fetched = "2026-07-17"
