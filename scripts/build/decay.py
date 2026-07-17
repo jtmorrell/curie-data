@@ -28,6 +28,7 @@ half-lives (the previous generation stored a bogus 1e-6 s).
 Usage: python3 decay.py   # writes build/decay.db (chart + radiation)
 """
 import csv
+import math
 import os
 import re
 import sqlite3
@@ -260,16 +261,29 @@ def isomer_feeding(a, symbol, states, target, lc_mode, daughter_states):
 
 # --- chart assembly ---
 
+def hl_close(h1, h2, factor=2.0):
+    return (h1 and h2 and h1 > 0 and h2 > 0
+            and abs(math.log10(h1 / h2)) < math.log10(factor))
+
+
 def _level_energy(l, a, z, nubase, base):
     """Resolve a level's ordering/storage energy [keV]: LiveChart value,
     or — when the absolute energy is unknown (energy_shift set / zero for
-    a non-ground level) — the closest NUBASE excitation estimate."""
+    a non-ground level) — a NUBASE excitation estimate. The estimate is
+    chosen by the level's half-life fingerprint first, energy closeness
+    second: a banded level's raw offset can sit nearer another state's
+    NUBASE entry than its own (203Pb's 122 ns level at 2923+X lies 26 keV
+    from the 0.48 s state's 2949.2), and stealing that entry hands the
+    established state's energy — and downstream its name and radiation
+    rows — to the wrong level."""
     e = l['energy']
     if not l['shift'] and e:
         return e
-    ests = [nubase[(a, z, i)]['exc_kev'] for i in (1, 2, 3, 4)
+    ents = [nubase[(a, z, i)] for i in (1, 2, 3, 4)
             if (a, z, i) in nubase and nubase[(a, z, i)]['exc_kev']]
-    est = min(ests, key=lambda x: abs(x - (e or 0.0))) if ests else None
+    pool = [n for n in ents if hl_close(l['hl_sec'], n['hl_sec'])] or ents
+    est = min(pool, key=lambda n: abs(n['exc_kev'] - (e or 0.0)))['exc_kev'] \
+        if pool else None
     if est is not None:
         report['energy_estimated'].append((base, e, est))
         return est
@@ -334,12 +348,6 @@ def admitted_isomers(a, z, symbol, nubase, v1_isomers):
     # alone misleads); a factor-two half-life agreement matches, with
     # energy closeness as the tiebreak, and a plain energy match as the
     # fallback for ranks whose half-life was revised
-    import math
-
-    def hl_close(h1, h2, factor=2.0):
-        return (h1 and h2 and h1 > 0 and h2 > 0
-                and abs(math.log10(h1 / h2)) < math.log10(factor))
-
     def tol(e):
         return max(30.0, 0.25 * e)
 
@@ -349,30 +357,37 @@ def admitted_isomers(a, z, symbol, nubase, v1_isomers):
     # duplicate must lose to the rank whose energy pins the level), the
     # half-life outranks a loose energy (placeholder energies are
     # arbitrary), and a loose energy catches revised half-lives.
-    matched = {}                          # v1 rank -> candidate energy
+    # Matches are held by LEVEL identity, not energy value — two
+    # candidates can share a resolved energy (the 85Nb band pair), and a
+    # value-keyed match would hand the rank to whichever sorts first and
+    # knock both out of the later passes' free pool.
+    matched = {}                          # v1 rank -> (energy, level)
+
+    def free():
+        used = {id(l) for _, l in matched.values()}
+        return [(e, l) for e, l in cand_list if id(l) not in used]
+
     for rank, e_mev, hl1 in sorted(v1_isomers):
         e1 = e_mev * 1000.0
-        free = [(e, l) for e, l in cand_list if e not in matched.values()]
-        tight = [x for x in free if abs(x[0] - e1) < max(5.0, 0.01 * e1)]
+        tight = [x for x in free() if abs(x[0] - e1) < max(5.0, 0.01 * e1)]
         if tight:
-            matched[rank] = min(tight, key=lambda x: abs(x[0] - e1))[0]
+            matched[rank] = min(tight, key=lambda x: abs(x[0] - e1))
     for rank, e_mev, hl1 in sorted(v1_isomers):
         if rank in matched:
             continue
-        free = [(e, l) for e, l in cand_list if e not in matched.values()]
-        by_hl = [x for x in free if hl_close(hl1, x[1]['hl_sec'])]
+        by_hl = [x for x in free() if hl_close(hl1, x[1]['hl_sec'])]
         if by_hl:
             matched[rank] = min(by_hl,
-                                key=lambda x: abs(x[0] - e_mev * 1000))[0]
+                                key=lambda x: abs(x[0] - e_mev * 1000))
     for rank, e_mev, hl1 in sorted(v1_isomers):
         if rank in matched:
             continue
         e1 = e_mev * 1000.0
-        free = [(e, l) for e, l in cand_list if e not in matched.values()]
-        if free:
-            best = min(free, key=lambda x: abs(x[0] - e1))
+        pool = free()
+        if pool:
+            best = min(pool, key=lambda x: abs(x[0] - e1))
             if abs(best[0] - e1) < tol(e1):
-                matched[rank] = best[0]
+                matched[rank] = best
     # a rank still unmatched: admit its level from below the floor,
     # again by half-life first
     for rank, e_mev, hl1 in sorted(v1_isomers):
@@ -388,7 +403,7 @@ def admitted_isomers(a, z, symbol, nubase, v1_isomers):
             l = min(near, key=lambda l: abs(l['e_res'] - e1))
             cand_list = sorted(cand_list + [(l['e_res'], l)],
                                key=lambda x: (x[0], x[1]['idx']))
-            matched[rank] = l['e_res']
+            matched[rank] = (l['e_res'], l)
             report['floor_override'].append((base, l['e_res'], l['hl_sec']))
         else:
             report['v1_isomer_lost'].append((base, rank, e_mev, hl1))
@@ -397,9 +412,9 @@ def admitted_isomers(a, z, symbol, nubase, v1_isomers):
     # estimated) energies now sort differently — name preservation
     # outranks ascending-energy numbering; inversions are reported and
     # exhibited at the gate, never applied silently
-    seq = [matched[r] for r in sorted(matched)]
+    seq = [matched[r][0] for r in sorted(matched)]
     if seq != sorted(seq):
-        report['order_swap'].append((base, {f'm{r}': matched[r]
+        report['order_swap'].append((base, {f'm{r}': matched[r][0]
                                             for r in sorted(matched)}))
 
     # newcomers below the highest established rank would renumber
@@ -409,12 +424,12 @@ def admitted_isomers(a, z, symbol, nubase, v1_isomers):
     # surviving 13 ms state; there is no m1), so every surviving name
     # keeps meaning the same physical state.
     ceiling = max(seq, default=-1.0)
-    by_energy = {e: r for r, e in matched.items()}
+    rank_of = {id(l): r for r, (e, l) in matched.items()}
     final = []
     for e, l in cand_list:
-        if e in by_energy:                # consumed on use: two candidate
-            final.append((by_energy.pop(e), e, l))  # levels can share an
-        elif e > ceiling:                 # energy (the 85Nb band pair)
+        if id(l) in rank_of:
+            final.append((rank_of.pop(id(l)), e, l))
+        elif e > ceiling:
             final.append((None, e, l))
         else:
             report['newcomer_excluded'].append((base, e, l['hl_sec']))
