@@ -127,13 +127,32 @@ def main():
         write_target(con, curie_tgt, table, cols, data)
         n_products += len(cols)
 
+    # targets the table mirror cannot provide, carried from another
+    # generation's ENDF-6 files (currently: the proton Nb isotopes from
+    # TENDL-2023 — no public host serves TENDL-2025 proton Nb)
+    ingested = []
+    if beam == 'proton':
+        from tendl_rp_endf import endf_targets, extract_products
+        for curie_tgt, table, path in endf_targets(src):
+            products = extract_products(path)
+            cols = sorted(products)
+            grid, data = union_grid_stack([products[c] for c in cols])
+            write_target(con, curie_tgt, table, cols, data)
+            n_products += len(cols)
+            ingested.append(curie_tgt)
+            print(f'  {curie_tgt}: {len(cols)} products from {path.name} '
+                  f'(TENDL-2023 ENDF-6)')
+
+    note = ('; ' + ','.join(ingested) + ' from TENDL-2023 ENDF-6 files '
+            '(no public host serves TENDL-2025 proton Nb)') if ingested else ''
     write_version(con, DB_NAME[beam].replace('.db', ''),
                   'TENDL-2025 residual-production tables '
-                  '(tendl.imperial.ac.uk), curated target set',
-                  'TENDL-2025 (TALYS-2.1, 2025-05-14)')
+                  '(tendl.imperial.ac.uk), curated target set' + note,
+                  'TENDL-2025 (TALYS-2.1, 2025-05-14)' +
+                  ('; Nb: TENDL-2023' if ingested else ''))
     con.commit()
-    print(f'{len(targets)} targets, {n_products} product columns '
-          f'-> {DB_NAME[beam]}')
+    print(f'{len(targets) + len(ingested)} targets, {n_products} product '
+          f'columns -> {DB_NAME[beam]}')
     con.close()
 
 

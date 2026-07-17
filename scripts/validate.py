@@ -489,9 +489,86 @@ def _validate_tendl_rp(con, beam, letter):
         if [tuple(r) for r in got] != [tuple(r) for r in data.tolist()]:
             mismatch.append(tab)
     check('stored tables identical to source re-parse', not mismatch, str(mismatch[:3]))
+
+    if beam == 'proton':
+        _tendl_rp_endf_checks(con, builder, src)
+
     resolvable_products(con, blocking=False)
     ver = q(con, 'SELECT library,generation FROM _version')
     check('_version stamp', ver == [(f'tendl_{letter}_rp', 'v2')], str(ver))
+
+
+def _tendl_rp_endf_checks(con, builder, src):
+    """The proton database carries ENDF-6-ingested targets (the TENDL-2023
+    Nb exception). Two gates: the extractor must reproduce the TENDL-2025
+    Fe056 tables from the same generation's s30 file (proving the
+    extraction physics), and each ingested table must equal a fresh
+    re-extraction (the same identity standard as the mirror targets)."""
+    import numpy as np
+    from tendl_rp_endf import endf_targets, extract_products
+
+    fe_file = builder.ARCHIVE_ROOT / 'tendl-2025' / 'p-Fe056-s30.tendl'
+    fe_tables = builder.ARCHIVE_ROOT / 'tendl-2025' / 'proton_files' / 'Fe' / 'Fe056' / 'tables' / 'residual'
+    if not (fe_file.exists() and fe_tables.is_dir()):
+        check('rp-from-ENDF-6 identity material present (Fe056 s30 + tables)',
+              False, str(fe_file))
+        return
+    ext = extract_products(fe_file)
+    bad = []
+    for name, rows in builder.collect_target(fe_tables).items():
+        if name not in ext:
+            continue  # the tables print extra tiny products the ENDF file curates away
+        e_t = np.array([e for e, _ in rows])
+        x_t = np.array([x for _, x in rows])
+        e_x = np.array([e for e, _ in ext[name]])
+        x_x = np.array([x for _, x in ext[name]])
+        x_i = np.interp(e_t, e_x, x_x, left=0.0, right=0.0)
+        # a point fails only when it deviates by more than 2% relatively
+        # AND by more than 2% of the product's peak absolutely: the s30
+        # file legitimately carries up to ~2%-of-peak less than the tables
+        # just below the exclusive->MT5 handoff (see the tendl_rp_endf
+        # module docstring); a genuine extraction defect (wrong channel,
+        # grid smearing, unit slip) exceeds both bounds at once
+        rel = np.abs(x_i - x_t) / np.maximum(x_t, 1e-30)
+        absd = np.abs(x_i - x_t)
+        fail = (x_t > 1e-3) & (rel > 2e-2) & (absd > 2e-2 * x_t.max())
+        if fail.any():
+            j = int(np.argmax(absd * fail))
+            bad.append((name, f'{e_t[j]} MeV: {x_t[j]:.4g} vs {x_i[j]:.4g}'))
+    check('rp-from-ENDF-6 extraction reproduces the TENDL-2025 Fe056 tables',
+          not bad, str(bad[:3]))
+
+    mismatch = []
+    for curie_tgt, tab, path in endf_targets(src):
+        products = extract_products(path)
+        cols = sorted(products)
+        from common import union_grid_stack
+        grid, data = union_grid_stack([products[c] for c in cols])
+        got = q(con, f'SELECT * FROM {tab} ORDER BY rowid')
+        if [tuple(r) for r in got] != [tuple(r) for r in data.tolist()]:
+            mismatch.append(tab)
+    check('ENDF-6-ingested tables identical to re-extraction', not mismatch,
+          str(mismatch[:3]))
+
+
+def _coverage_diff_rp(con, beam, letter):
+    v1p = V1_DIR / f'tendl_{letter}_rp.db'
+    if not v1p.exists():
+        print(f'  (no v1 tendl_{letter}_rp.db — new library, no diff)')
+        return
+    v1 = sqlite3.connect(v1p)
+    old = {(t, p) for t, p in q(v1, 'SELECT target,product FROM all_reactions')}
+    new = {(t, p) for t, p in q(con, 'SELECT target,product FROM all_reactions')}
+    old_t, new_t = {t for t, _ in old}, {t for t, _ in new}
+    print(f'\n  targets: {len(old_t)} -> {len(new_t)} (+{len(new_t - old_t)}, '
+          f'-{len(old_t - new_t)}); dropped: {sorted(old_t - new_t) or "none"}')
+    both = old_t & new_t
+    lost = [(t, p) for t, p in old if t in both and (t, p) not in new]
+    print(f'  products on common targets: '
+          f'+{len([x for x in new if x[0] in both and x not in old])} added, '
+          f'-{len(lost)} dropped')
+    for t, p in lost[:10]:
+        print(f'    - {t} -> {p}')
 
 
 import functools
