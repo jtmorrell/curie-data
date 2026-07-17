@@ -1011,9 +1011,15 @@ def main():
     print(f'{len(rows)} chart rows ({sum(1 for r in rows if r[3] != "g")} '
           f'isomers, {len(report["closure_rows"])} closure-repair rows)')
     for key in ('ledger_exclusions', 'nubase_only_isomers', 'sf_combined',
-                'feeding_overflow', 'nonclosing_branches'):
-        if report[key]:
+                'feeding_overflow', 'nonclosing_branches',
+                'newcomer_excluded', 'floor_override', 'v1_isomer_lost',
+                'order_swap', 'gs_it_dropped', 'isomer_hl_from_nubase',
+                'isomer_hl_from_dataset', 'over_1000_dropped'):
+        if report.get(key):
             print(f'  {key}: {len(report[key])} — {report[key][:8]}')
+    if report['energy_estimated']:
+        print(f'  band/unknown level energies estimated from NUBASE: '
+              f'{len(report["energy_estimated"])}')
     print(f'  blank sole-mode branches -> 1.0: '
           f'{len(report["blank_branch_sole"])}; blank multi-mode skipped: '
           f'{len(report["blank_branch_multi"])}')
