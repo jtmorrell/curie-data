@@ -1,4 +1,4 @@
-"""Build decay.db v2 — the chart table, from the LiveChart mirror.
+"""Build decay.db v2 — the chart and radiation tables — from the LiveChart mirror.
 
 Row universe: every LiveChart ground state plus every level admitted as an
 isomer (half-life >= the 100 ns floor, or listed as an isomer by
@@ -25,7 +25,7 @@ mass excess [MeV]; branches normalized to sum <= 1; stable = 1 only for
 LiveChart STABLE rows, so the two-beta quasi-stables carry their measured
 half-lives (the previous generation stored a bogus 1e-6 s).
 
-Usage: python3 decay.py            # writes build/decay.db (chart)
+Usage: python3 decay.py   # writes build/decay.db (chart + radiation)
 """
 import csv
 import os
@@ -33,6 +33,7 @@ import re
 import sqlite3
 import sys
 import tomllib
+from collections import Counter
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
@@ -217,13 +218,16 @@ def isomer_feeding(a, symbol, states, target, lc_mode, daughter_states):
     is fed by rows whose level token names the same band."""
     feed = {key: 0.0 for key, _, _ in daughter_states}
 
+    def matched_keys(off, band):
+        return [key for key, raw, b in daughter_states
+                if b == band and abs(off - raw) < 1.0]
+
     def credit(token, amount):
         off, band = level_token(token)
         if off is None:
             return
-        for key, raw, b in daughter_states:
-            if b == band and abs(off - raw) < 1.0:
-                feed[key] += amount
+        for key in matched_keys(off, band):
+            feed[key] += amount
 
     fname, cols = _MODE_FILE[lc_mode]
     if fname:
@@ -247,9 +251,7 @@ def isomer_feeding(a, symbol, states, target, lc_mode, daughter_states):
         # are the highly converted ones, so the (1+cc) weight would
         # amplify the error)
         start, s_band = level_token(r.get('start_level_energy'))
-        if start is not None and any(
-                b == s_band and abs(start - raw) < 1.0
-                for _, raw, b in daughter_states):
+        if start is not None and matched_keys(start, s_band):
             continue
         cc = fnum(r.get('conversion_coeff')) or 0.0
         credit(r.get('end_level_energy'), i * (1.0 + cc))
@@ -271,7 +273,7 @@ def _level_energy(l, a, z, nubase, base):
     if est is not None:
         report['energy_estimated'].append((base, e, est))
         return est
-    report['energy_estimated'].append((base, e, None))
+    report.setdefault('energy_unresolved', []).append((base, e))
     return e or 0.0
 
 
@@ -296,27 +298,33 @@ def admitted_isomers(a, z, symbol, nubase, v1_isomers):
     def ledgered(l):
         return any(abs(l['e_res'] - x) < 0.5 for x in excl)
 
-    cands = {}
-    for l in levels:
-        if ledgered(l):
+    cands = {}                            # keyed by LEVEL INDEX — two
+    for l in levels:                      # levels can share a resolved
+        if ledgered(l):                   # energy (85Nb's Y and Z bands)
             report['ledger_exclusions'].append((base, l['e_res']))
             continue
         if l['hl_sec'] is not None and l['hl_sec'] >= ISOMER_FLOOR_S:
-            cands[l['e_res']] = l
+            if any(abs(o['e_res'] - l['e_res']) < 1e-9
+                   for o in cands.values()):
+                report.setdefault('e_res_collision', []).append(
+                    (base, l['e_res']))
+            cands[l['idx']] = l
     i = 1
     while (a, z, i) in nubase:            # NUBASE census additions
         exc = nubase[(a, z, i)]['exc_kev']
-        if exc is not None and not any(abs(exc - e) < max(2.0, 0.01 * exc)
-                                       for e in cands):
+        if exc is not None and not any(
+                abs(exc - l['e_res']) < max(2.0, 0.01 * exc)
+                for l in cands.values()):
             near = [l for l in levels
                     if abs(l['e_res'] - exc) < max(2.0, 0.01 * exc)
                     and not ledgered(l)]
             if near:
                 l = min(near, key=lambda l: abs(l['e_res'] - exc))
-                cands[l['e_res']] = l
+                cands[l['idx']] = l
                 report['nubase_only_isomers'].append((base, l['e_res']))
         i += 1
-    cand_list = sorted(cands.items())
+    cand_list = sorted(((l['e_res'], l) for l in cands.values()),
+                       key=lambda x: (x[0], x[1]['idx']))
     if not v1_isomers:
         return [(i, e, l) for i, (e, l) in enumerate(cand_list, start=1)]
 
@@ -371,14 +379,15 @@ def admitted_isomers(a, z, symbol, nubase, v1_isomers):
         if rank in matched:
             continue
         e1 = e_mev * 1000.0
-        in_cands = {e for e, _ in cand_list}
+        in_cands = {id(l) for _, l in cand_list}
         pool = [l for l in levels if not ledgered(l)
-                and l['e_res'] not in in_cands]
+                and id(l) not in in_cands]
         near = [l for l in pool if hl_close(hl1, l['hl_sec'])] or \
                [l for l in pool if abs(l['e_res'] - e1) < tol(e1)]
         if near:
             l = min(near, key=lambda l: abs(l['e_res'] - e1))
-            cand_list = sorted(cand_list + [(l['e_res'], l)])
+            cand_list = sorted(cand_list + [(l['e_res'], l)],
+                               key=lambda x: (x[0], x[1]['idx']))
             matched[rank] = l['e_res']
             report['floor_override'].append((base, l['e_res'], l['hl_sec']))
         else:
@@ -403,9 +412,9 @@ def admitted_isomers(a, z, symbol, nubase, v1_isomers):
     by_energy = {e: r for r, e in matched.items()}
     final = []
     for e, l in cand_list:
-        if e in by_energy:
-            final.append((by_energy[e], e, l))
-        elif e > ceiling:
+        if e in by_energy:                # consumed on use: two candidate
+            final.append((by_energy.pop(e), e, l))  # levels can share an
+        elif e > ceiling:                 # energy (the 85Nb band pair)
             final.append((None, e, l))
         else:
             report['newcomer_excluded'].append((base, e, l['hl_sec']))
@@ -456,8 +465,13 @@ def build_triples(a, z, symbol, states, target, modes, isomers_of):
         pct[mode] = pct.get(mode, 0.0) + p
     for mode in list(pct):
         parent = MODE_MAP[mode].get('subset_of')
-        if parent and parent in pct:
-            pct[parent] = max(0.0, pct[parent] - pct[mode])
+        if not parent:
+            continue
+        candidates = [parent] + (['EC', 'B+'] if parent == 'EC+B+' else [])
+        for cand in candidates:
+            if cand in pct:
+                pct[cand] = max(0.0, pct[cand] - pct[mode])
+                break
     total = sum(pct.values())
     if total > 100.5:
         report['nonclosing_branches'].append(
@@ -480,6 +494,8 @@ def build_triples(a, z, symbol, states, target, modes, isomers_of):
         dz, da = spec['dz'], spec['da']
         d_z, d_a = z + dz, a + da
         if not 0 <= d_z < len(ELEMENTS) or d_a < 1:
+            report.setdefault('off_chart_daughter', []).append(
+                (f'{a}{symbol.upper()}', mode))
             continue
         d_sym = ELEMENTS[d_z]
         d_base = f'{d_a}{d_sym.upper()}'
@@ -542,6 +558,34 @@ def _drop_blank(table, base):
     counts[base] = counts.get(base, 0) + 1
 
 
+
+def _accept_intensity(i, table, base, energy=None):
+    """Shared intensity gate: blank/nonpositive rows drop with the blank
+    accounting; rows above 1000 percent are relative-intensity outliers
+    and drop with their own accounting."""
+    if i is None or i <= 0:
+        _drop_blank(table, base)
+        return False
+    if i > 1000.0:
+        report.setdefault('over_1000_dropped', []).append(
+            (base, table, energy, i))
+        return False
+    return True
+
+
+def _gamma_row(base, st, energy, i, unc, note, lab, norms):
+    return (base, st[1], st[0], energy, i, unc, note, lab,
+            _state_norm(norms, base, st, lab))
+
+
+def _state_norm(norms, base, st, lab):
+    """unc_norm join. A zero-offset band isomer would collide with the
+    ground state's (base, 0.0, mode) key — no join for that class."""
+    if st[3] and st[2] == 0.0:
+        return None
+    return norms.get((base, round(st[2], 1), lab))
+
+
 def build_radiation(con, identities, iso_rows, norms):
     """The five radiation tables, keyed (isotope short name, isomer) with
     intensities as served: absolute percent per 100 decays of the parent
@@ -551,10 +595,9 @@ def build_radiation(con, identities, iso_rows, norms):
                 'isomer TEXT, energy REAL, intensity REAL, '
                 'unc_intensity REAL, notes TEXT, decay_mode TEXT, '
                 'unc_norm REAL)')
-    for t in ('electrons',):
-        con.execute(f'CREATE TABLE {t} (isotope TEXT, E_level REAL, '
-                    f'isomer TEXT, energy REAL, intensity REAL, '
-                    f'unc_intensity REAL, notes TEXT, decay_mode TEXT)')
+    con.execute('CREATE TABLE electrons (isotope TEXT, E_level REAL, '
+                'isomer TEXT, energy REAL, intensity REAL, '
+                'unc_intensity REAL, notes TEXT, decay_mode TEXT)')
     con.execute('CREATE TABLE alphas (isotope TEXT, E_level REAL, '
                 'isomer TEXT, energy REAL, intensity REAL, '
                 'unc_intensity REAL, decay_mode TEXT)')
@@ -595,9 +638,15 @@ def build_radiation(con, identities, iso_rows, norms):
                 if st is None or i is None:
                     continue
                 lab = _rad_label(row.get('decay', '').strip())
-                g_rows.append((base, st[1], st[0], 511.0, i,
-                               fnum(row.get('unc_i')), 'Annihil.', lab,
-                               norms.get((base, round(st[2], 1), lab))))
+                # only positron-capable datasets produce annihilation: a
+                # beta-minus line near 511 keV (142Cs) keeps its own
+                # energy as an unplaced gamma instead
+                if lab != 'E':
+                    unplaced.append(row)
+                    continue
+                g_rows.append(_gamma_row(base, st, 511.0, i,
+                                         fnum(row.get('unc_i')),
+                                         'Annihil.', lab, norms))
                 file_511.add((st, lab))
                 continue
             if not placed:
@@ -606,17 +655,11 @@ def build_radiation(con, identities, iso_rows, norms):
             st = find_state(row)
             if st is None:
                 continue
-            if i is None or i <= 0:
-                _drop_blank('gammas', base)
-                continue
-            if i > 1000:
-                report.setdefault('over_1000_dropped', []).append(
-                    (base, 'gammas', e_g, i))
+            if not _accept_intensity(i, 'gammas', base, e_g):
                 continue
             lab = _rad_label(row.get('decay', '').strip())
-            g_rows.append((base, st[1], st[0], e_g, i,
-                           fnum(row.get('unc_i')), '', lab,
-                           norms.get((base, round(st[2], 1), lab))))
+            g_rows.append(_gamma_row(base, st, e_g, i,
+                                     fnum(row.get('unc_i')), '', lab, norms))
 
         # x-rays: exclusively from the x file; KB duplicates KpB1 and the
         # L-subshell lines duplicate the aggregate L row where it exists
@@ -646,22 +689,17 @@ def build_radiation(con, identities, iso_rows, norms):
                         raise SystemExit(f'{base}: unmapped x-ray shell '
                                          f'{sh!r}')
                 i = fnum(row.get('intensity'))
-                if i is None or i <= 0:
-                    _drop_blank('gammas', base)
+                if not _accept_intensity(i, 'gammas', base,
+                                         fnum(row.get('energy'))):
                     continue
-                if i > 1000:
-                    report.setdefault('over_1000_dropped', []).append(
-                        (base, 'gammas', fnum(row.get('energy')), i))
-                    continue
-                g_rows.append((base, st[1], st[0], fnum(row.get('energy')),
-                               i, fnum(row.get('unc_i')), note, lab,
-                               norms.get((base, round(st[2], 1), lab))))
+                g_rows.append(_gamma_row(base, st, fnum(row.get('energy')),
+                                         i, fnum(row.get('unc_i')), note,
+                                         lab, norms))
         # the g file's unplaced rows are the x-ray append plus genuinely
         # UNPLACED gammas (observed lines without a level assignment) —
         # consume the x-file rows from the unplaced multiset; whatever
         # remains is a real gamma and is kept; an x-file row the append
         # never contained is a source inconsistency, reported
-        from collections import Counter
         x_left = Counter((e, i) for e, i in x_all if i is not None)
         for row in unplaced:
             e_g = fnum(row.get('energy'))
@@ -672,19 +710,13 @@ def build_radiation(con, identities, iso_rows, norms):
             st = find_state(row)
             if st is None:
                 continue
-            if i is None or i <= 0:
-                _drop_blank('gammas', base)
+            if not _accept_intensity(i, 'gammas', base, e_g):
                 continue
             report['unplaced_gammas_kept'] = \
                 report.get('unplaced_gammas_kept', 0) + 1
-            if i > 1000:
-                report.setdefault('over_1000_dropped', []).append(
-                    (base, 'gammas', e_g, i))
-                continue
             lab = _rad_label(row.get('decay', '').strip())
-            g_rows.append((base, st[1], st[0], e_g, i,
-                           fnum(row.get('unc_i')), '', lab,
-                           norms.get((base, round(st[2], 1), lab))))
+            g_rows.append(_gamma_row(base, st, e_g, i,
+                                     fnum(row.get('unc_i')), '', lab, norms))
         if +x_left:
             report['xray_append_mismatch'].append(base)
 
@@ -715,12 +747,8 @@ def build_radiation(con, identities, iso_rows, norms):
                 else:
                     raise SystemExit(f'{base}: unmapped electron type {typ!r}')
                 i = fnum(row.get('intensity'))
-                if i is None or i <= 0:
-                    _drop_blank('electrons', base)
-                    continue
-                if i > 1000:
-                    report.setdefault('over_1000_dropped', []).append(
-                        (base, 'electrons', fnum(row.get('energy')), i))
+                if not _accept_intensity(i, 'electrons', base,
+                                         fnum(row.get('energy'))):
                     continue
                 e_rows.append((base, st[1], st[0], fnum(row.get('energy')),
                                i, fnum(row.get('unc_i')), note, lab))
@@ -731,8 +759,8 @@ def build_radiation(con, identities, iso_rows, norms):
             if st is None:
                 continue
             i = fnum(row.get('intensity'))
-            if i is None or i <= 0:
-                _drop_blank('alphas', base)
+            if not _accept_intensity(i, 'alphas', base,
+                                     fnum(row.get('energy'))):
                 continue
             a_rows.append((base, st[1], st[0], fnum(row.get('energy')), i,
                            fnum(row.get('unc_i')),
@@ -748,8 +776,8 @@ def build_radiation(con, identities, iso_rows, norms):
             if st is None:
                 continue
             i = fnum(row.get('intensity_beta'))
-            if i is None or i <= 0:
-                _drop_blank('beta_minus', base)
+            if not _accept_intensity(i, 'beta_minus', base,
+                                     fnum(row.get('mean_energy'))):
                 continue
             bm_rows.append((base, st[1], st[0], fnum(row.get('mean_energy')),
                             i, fnum(row.get('unc_ib')),
@@ -763,10 +791,16 @@ def build_radiation(con, identities, iso_rows, norms):
             i = fnum(row.get('intensity_beta'))
             if i is None:
                 continue                  # EC-only transition
+            if not _accept_intensity(i, 'beta_plus', base,
+                                     fnum(row.get('mean_energy'))):
+                continue
             lab = _rad_label(row.get('decay', '').strip())
+            e_ec = fnum(row.get('energy_ec'))
+            # the bp file serves no max_energy; the endpoint is the
+            # transition Q_EC minus twice the electron mass
+            endpoint = e_ec - 1022.0 if e_ec is not None else None
             bp_rows.append((base, st[1], st[0], fnum(row.get('mean_energy')),
-                            i, fnum(row.get('unc_ib')),
-                            fnum(row.get('max_energy')), lab))
+                            i, fnum(row.get('unc_ib')), endpoint, lab))
             tot, var = bp_tot.get((st, lab), (0.0, 0.0))
             bp_tot[(st, lab)] = (tot + i,
                                  var + (fnum(row.get('unc_ib')) or 0.0) ** 2)
@@ -774,9 +808,9 @@ def build_radiation(con, identities, iso_rows, norms):
             if tot > 0 and (st, lab) not in file_511:
                 report['annihil_synthesized'] = \
                     report.get('annihil_synthesized', 0) + 1
-                g_rows.append((base, st[1], st[0], 511.0, 2.0 * tot,
-                               2.0 * var ** 0.5 or None, 'Annihil.', lab,
-                               norms.get((base, round(st[2], 1), lab))))
+                g_rows.append(_gamma_row(base, st, 511.0, 2.0 * tot,
+                                         2.0 * var ** 0.5 or None,
+                                         'Annihil.', lab, norms))
 
     con.executemany('INSERT INTO gammas VALUES (?,?,?,?,?,?,?,?,?)', g_rows)
     con.executemany('INSERT INTO electrons VALUES (?,?,?,?,?,?,?,?)', e_rows)
@@ -807,6 +841,10 @@ def load_norms(identities, iso_rows):
         base = f'{a}{symbol.upper()}'
         pid = f'{symbol}{a}'
         n_states = 1 + len(iso_rows[(a, z)])
+        # one index beyond our state count: paceENSDF's decay indices
+        # count ITS datasets, which can exceed our admitted states (an
+        # excluded level with its own dataset); a missing index returns
+        # no record and costs nothing
         for idx in range(n_states + 1):
             for kw, lab in (('BM', 'B'), ('ECBP', 'E'), ('A', 'A')):
                 try:
@@ -941,6 +979,8 @@ def main():
             if base == '180TA' and rank == 1:
                 abund = fnum(r['abundance'])
             hl_i = l['hl_sec']
+            if l['operator_hl']:
+                report['operator_half_lives'] += 1
             if hl_i is None:              # census/override levels may lack one
                 hl_i = nubase_iso_hl(nubase, a, z, e_kev)
                 if hl_i is not None:
@@ -980,7 +1020,9 @@ def main():
         except ValueError:
             continue
         if iso != 'g':
-            continue                      # isomer daughters come from the census
+            raise SystemExit(f'closure needs isomer {name} outside the '
+                             f'universe — the split should only name '
+                             f'admitted isomers')
         nb = nubase.get((a, z, 0))
         symbol = ELEMENTS[z]
         me = nb['me_kev'] if nb else None
@@ -1019,7 +1061,9 @@ def main():
             print(f'  {key}: {len(report[key])} — {report[key][:8]}')
     if report['energy_estimated']:
         print(f'  band/unknown level energies estimated from NUBASE: '
-              f'{len(report["energy_estimated"])}')
+              f'{len(report["energy_estimated"])}; no estimate available '
+              f'(raw offset or 0 kept): '
+              f'{len(report.get("energy_unresolved", []))}')
     print(f'  blank sole-mode branches -> 1.0: '
           f'{len(report["blank_branch_sole"])}; blank multi-mode skipped: '
           f'{len(report["blank_branch_multi"])}')

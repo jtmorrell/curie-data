@@ -71,8 +71,8 @@ def check(name, ok, detail=''):
     return ok
 
 
-def q(con, sql):
-    return con.execute(sql).fetchall()
+def q(con, sql, args=()):
+    return con.execute(sql, args).fetchall()
 
 
 # --- iaea_monitors ---
@@ -687,7 +687,7 @@ def validate_decay(con):
     bad_null = []
     for (name,) in q(con, 'SELECT name FROM chart WHERE stable=0 AND '
                           'half_life IS NULL'):
-        n_rad = q_args(
+        n_rad = q(
             con,
             'SELECT (SELECT COUNT(*) FROM gammas WHERE isotope||isomer=?) '
             '+ (SELECT COUNT(*) FROM beta_minus WHERE isotope||isomer=?) '
@@ -717,7 +717,7 @@ def validate_decay(con):
     check('coincidence states exist in chart', not bad, str(bad[:3]))
 
     # value ranges
-    for t in ('gammas', 'electrons', 'alphas'):
+    for t in ('gammas', 'electrons', 'alphas', 'beta_minus', 'beta_plus'):
         bad = q(con, f'SELECT COUNT(*) FROM {t} WHERE intensity <= 0 '
                      f'OR intensity > 1000')
         check(f'{t} intensities in (0, 1000] percent', bad[0][0] == 0,
@@ -740,8 +740,13 @@ def validate_decay(con):
     # spot anchors: certificate lines, half-lives, isomer-routing branches,
     # the preserved-name ledger case, fission yields, coincidence pairs
     def one(sql, args=()):
-        r = q_args(con, sql, args)
+        r = q(con, sql, args)
         return r[0] if r else None
+
+    n_bp, n_bp_null = q(con, 'SELECT COUNT(*), COUNT(*) - '
+                              'COUNT(endpoint_energy) FROM beta_plus')[0]
+    check(f'beta_plus endpoint_energy populated ({n_bp} rows)',
+          n_bp > 0 and n_bp_null < 0.02 * n_bp, f'{n_bp_null} NULL')
 
     anchors = [
         ('137CS 661.657 keV = 85.1(2)%',
@@ -779,6 +784,10 @@ def validate_decay(con):
          "SELECT cumulative_yield FROM NFY WHERE parent='235Ug' AND "
          "daughter='137CSg' AND energy=0.0253",
          lambda v: abs(v[0] - 0.0619) < 0.002),
+        ('22NA beta+ endpoint 545.7 keV',
+         "SELECT endpoint_energy FROM beta_plus WHERE isotope='22NA' AND "
+         "isomer='g' ORDER BY intensity DESC LIMIT 1",
+         lambda v: v[0] is not None and abs(v[0] - 545.7) < 3.0),
         ('60CO coincidence pair 1173&1332 = 99.83(3)',
          "SELECT intensity FROM coincidences WHERE isotope='60CO' AND "
          "isomer='g' AND ABS(energy-1173.228)<0.05 AND "
@@ -791,10 +800,6 @@ def validate_decay(con):
 
     ver = q(con, 'SELECT library, generation FROM _version')
     check('_version stamp', ver == [('decay', 'v2')], str(ver))
-
-
-def q_args(con, sql, args=()):
-    return con.execute(sql, args).fetchall()
 
 
 def coverage_diff_decay(con):

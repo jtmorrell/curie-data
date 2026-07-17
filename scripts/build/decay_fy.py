@@ -19,13 +19,14 @@ construction). A daughter present only in MT459 carries a NULL
 independent yield (flagged); curie's readers select the named columns
 they need, so both old and new curie read these tables.
 
-Daughter names resolve against the chart built by decay.py: the FPS field
-is the EVALUATION's isomer ordinal, mapped by POSITION onto the chart's
-admitted isomers for that nuclide (the chart preserves previous-
-generation names, so its ordinals can have gaps — VIII.1's FPS=1 for
-73Zn is its 13 ms state, which the chart names 73ZNm2). A daughter
-missing from the chart gets a minimal NUBASE2020 row, the same closure
-repair the chart itself uses.
+Daughter names resolve against the chart built by decay.py: the FPS
+field counts a nuclide's states by INCREASING EXCITATION, so it maps by
+energy order onto the chart's admitted isomers — the chart preserves
+previous-generation names, whose ordinals can have gaps (VIII.1's FPS=1
+for 73Zn is its 13 ms state, named 73ZNm2) and can even be energy-
+inverted (120In's m2 sits below m1; position-by-ordinal would swap the
+yields). A daughter missing from the chart gets a minimal NUBASE2020
+row, the same closure repair the chart itself uses.
 
 Usage: python3 decay_fy.py        # appends to build/decay.db
 """
@@ -68,24 +69,36 @@ def parent_name(path):
 
 
 class DaughterMap:
-    """(ZAFP, FPS) -> chart name, by POSITION among the chart's admitted
-    isomers; missing daughters get minimal NUBASE closure rows."""
+    """(ZAFP, FPS) -> chart name, by ENERGY ORDER among the chart's
+    admitted isomers; missing daughters get minimal NUBASE closure
+    rows."""
 
     def __init__(self, con, nubase):
         self.con = con
         self.nubase = nubase
-        self.isomers = {}                 # (A, Z) -> [names by rank order]
+        self.isomers = {}                 # (A, Z) -> [names by ENERGY order]
         self.known = set()
-        for name, a, z, isomer in con.execute(
-                'SELECT name, A, Z, isomer FROM chart'):
+        for name, a, z, isomer, e_lvl in con.execute(
+                'SELECT name, A, Z, isomer, E_level FROM chart'):
             self.known.add(name)
             if isomer != 'g':
                 self.isomers.setdefault((a, z), []).append(
-                    (int(isomer[1:]), name))
+                    (e_lvl or 0.0, int(isomer[1:]), name))
         for k in self.isomers:
-            self.isomers[k] = [n for _, n in sorted(self.isomers[k])]
+            # FPS counts states by increasing excitation; the chart's
+            # preserved names can be energy-INVERTED (120In's m2 sits
+            # below m1), so position mapping must follow energy
+            ordered = sorted(self.isomers[k])
+            if [r for _, r, _ in ordered] != sorted(r for _, r, _ in ordered):
+                fy_report.setdefault('fps_energy_order', []).append(
+                    (k, [n for _, _, n in ordered]))
+            self.isomers[k] = [n for _, _, n in ordered]
 
     def _closure_row(self, a, z, name, state_idx):
+        # FPS ordinals and NUBASE letter indices are independent schemes;
+        # take the NUBASE entry only when the indices agree AND no better
+        # information contradicts it (for the shipped rows NUBASE lacks
+        # the state entirely, so this is the documented approximation)
         nb = self.nubase.get((a, z, state_idx))
         nb_gs = self.nubase.get((a, z, 0))
         me = nb_gs['me_kev'] if nb_gs else None
@@ -94,7 +107,9 @@ class DaughterMap:
             'INSERT INTO chart VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
             (f'{a}{ELEMENTS[z].upper()}', name, exc / 1000.0,
              name[len(f'{a}{ELEMENTS[z].upper()}'):], '', a, z, a - z,
-             ELEMENTS[z], 1 if (nb or nb_gs or {}).get('stable') else 0,
+             ELEMENTS[z],
+             1 if ((nb if state_idx else (nb or nb_gs)) or {}).get('stable')
+             else 0,
              (nb or {}).get('hl_sec'), None, None, None,
              a + me / AMU_KEV if me is not None else float(a),
              (me / 1000.0 + exc / 1000.0) if me is not None else None, None))
@@ -118,14 +133,16 @@ class DaughterMap:
             return name
         # no such admitted isomer: NUBASE-backed closure row
         name = f'{base}m{k}'
+        if name in self.known and name not in ranked:
+            # a preserved-name gap can leave this ordinal name attached to
+            # a DIFFERENT physical state — surface it rather than merge
+            fy_report.setdefault('fps_gap_collision', []).append((base, k))
+            return name
         if name not in self.known:
-            if (a, z, k) in self.nubase:
-                self._closure_row(a, z, name, k)
-                self.isomers.setdefault((a, z), []).append(name)
-            else:
+            if (a, z, k) not in self.nubase:
                 fy_report['fps_unresolved'].append((base, k))
-                self._closure_row(a, z, name, k)   # minimal, hl unknown
-                self.isomers.setdefault((a, z), []).append(name)
+            self._closure_row(a, z, name, k)
+            self.isomers.setdefault((a, z), []).append(name)
         return name
 
 
@@ -146,6 +163,9 @@ def merge_system(path, dmap, with_energy):
                 key = (dmap.resolve(p['ZAFP'], p['FPS']), e)
                 y, uy = float(p['Y'][0]), float(p['Y'][1])
                 rows.setdefault(key, [None, None, None, None])
+                if rows[key][2 * slot] is not None:
+                    fy_report.setdefault('slot_collision', []).append(
+                        (parent, key, mt))
                 rows[key][2 * slot] = y
                 rows[key][2 * slot + 1] = uy
     out = []
@@ -206,6 +226,9 @@ def main():
     if fy_report['fps_unresolved']:
         print(f'  FPS states with no NUBASE backing (minimal rows): '
               f'{sorted(set(fy_report["fps_unresolved"]))[:10]}')
+    for key in ('fps_energy_order', 'fps_gap_collision', 'slot_collision'):
+        if fy_report.get(key):
+            print(f'  {key}: {fy_report[key][:8]}')
     con.close()
 
 
