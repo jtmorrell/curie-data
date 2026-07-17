@@ -36,7 +36,7 @@ import tomllib
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from common import ARCHIVE_ROOT, BUILD_DIR, ELEMENTS
+from common import ARCHIVE_ROOT, BUILD_DIR, ELEMENTS, write_version
 
 LC = ARCHIVE_ROOT / 'livechart'
 NUBASE = ARCHIVE_ROOT / 'ame2020' / 'nubase_4.mas20.txt'
@@ -54,7 +54,10 @@ report = {'blank_branch_sole': [], 'blank_branch_multi': [], 'sf_combined': [],
           'ledger_exclusions': [], 'nubase_only_isomers': [],
           'feeding_overflow': [], 'operator_half_lives': 0,
           'newcomer_excluded': [], 'floor_override': [], 'v1_isomer_lost': [],
-          'energy_estimated': [], 'order_swap': []}
+          'energy_estimated': [], 'order_swap': [],
+          'blank_intensity_dropped': {}, 'orphan_state_rows': {},
+          'xray_append_mismatch': [], 'unmapped_rad_decay': {},
+          'norm_records_joined': 0}
 
 
 def nuclide_dir(a, symbol):
@@ -167,12 +170,32 @@ def level_token(s):
         return None, ''
 
 
-def state_match(row, raw_kev, band):
+def _jp_norm(s):
+    return (s or '').replace('(', '').replace(')', '').replace(' ', '')
+
+
+def match_state(row, states):
+    """Resolve a radiation row to its parent state. `states` entries are
+    (name, E_level [MeV], raw offset [keV], band, jp). The files key rows
+    by p_energy WITHOUT the band letter (234Pa's X-band isomer keys as
+    '73.92'), and two states can share an offset (110Rh keys both its
+    ground state and its zero-offset band isomer as '0') — resolved by
+    the row's J_pi."""
     p, p_band = level_token(row.get('p_energy'))
-    if raw_kev == 0.0 and not band:
-        return p in (None, 0.0) and not p_band
-    return (p is not None and p_band == band
-            and abs(p - raw_kev) < 1.0)
+    if p is None:
+        p, p_band = 0.0, ''
+    hits = [s for s in states if abs(s[2] - p) < 1.0
+            and (s[3] == p_band or not p_band)]
+    if len(hits) > 1:
+        rjp = _jp_norm(row.get('jp'))
+        byjp = [s for s in hits if rjp and _jp_norm(s[4]) == rjp]
+        if byjp:
+            hits = byjp
+        else:
+            exact = [s for s in hits if s[3] == p_band]
+            if exact:
+                hits = exact
+    return hits[0] if hits else None
 
 
 # --- level-flow feeding: daughter-isomer split of one (state, mode) ---
@@ -185,13 +208,13 @@ _MODE_FILE = {'B-': ('decay_rads_bm.csv', ('intensity_beta',)),
               'IT': (None, ())}
 
 
-def isomer_feeding(a, symbol, p_raw_kev, p_band, lc_mode, daughter_states):
-    """Percent of parent-state decays through `lc_mode` that populate each
-    daughter isomer state: direct particle feeding plus gamma flow into the
-    level weighted by (1 + conversion coefficient). All rows come from the
-    parent state's own dataset (p_energy + decay filters). Daughter states
-    are (key, raw offset [keV], band letters) — a state in an unanchored
-    band is fed by rows whose level token names the same band."""
+def isomer_feeding(a, symbol, states, target, lc_mode, daughter_states):
+    """Percent of `target`-state decays through `lc_mode` that populate
+    each daughter isomer state: direct particle feeding plus gamma flow
+    into the level weighted by (1 + conversion coefficient). Rows resolve
+    to their parent state through match_state. Daughter states are
+    (key, raw offset [keV], band letters) — a state in an unanchored band
+    is fed by rows whose level token names the same band."""
     feed = {key: 0.0 for key, _, _ in daughter_states}
 
     def credit(token, amount):
@@ -205,13 +228,13 @@ def isomer_feeding(a, symbol, p_raw_kev, p_band, lc_mode, daughter_states):
     fname, cols = _MODE_FILE[lc_mode]
     if fname:
         for r in rad_rows(a, symbol, fname):
-            if not state_match(r, p_raw_kev, p_band) \
+            if match_state(r, states) is not target \
                     or r.get('decay', '').strip() != lc_mode:
                 continue
             amount = sum(fnum(r.get(c)) or 0.0 for c in cols)
             credit(r.get('daughter_level_energy'), amount)
     for r in rad_rows(a, symbol, 'decay_rads_g.csv'):
-        if not state_match(r, p_raw_kev, p_band) \
+        if match_state(r, states) is not target \
                 or r.get('decay', '').strip() != lc_mode:
             continue
         i = fnum(r.get('intensity'))
@@ -396,11 +419,19 @@ def admitted_isomers(a, z, symbol, nubase, v1_isomers):
     return out
 
 
-def build_triples(a, z, symbol, pstate, modes, isomers_of):
+def states_of(gs_row, iso):
+    """The state list for one nuclide: (name, E_level [MeV], raw offset
+    [keV], band, jp) — ground state first."""
+    return [('g', 0.0, 0.0, '', gs_row['jp'].strip())] + [
+        (f'm{rank}', e_res / 1000.0, l['energy'] or 0.0, l['shift'], l['jp'])
+        for rank, e_res, l in iso]
+
+
+def build_triples(a, z, symbol, states, target, modes, isomers_of):
     """decay_mode string for one state; returns (string, closure_needs).
-    `pstate` = (E_res [keV], raw offset [keV], band letters) of the parent
-    state; isomers_of values are (rank, E_res, raw, band) per state."""
-    p_eres, p_raw, p_band = pstate
+    `target` is the parent state's entry in `states`; isomers_of values
+    are (rank, E_res, raw, band) per state."""
+    p_eres = target[1] * 1000.0
     # net subset percentages from their parent mode
     pct = {}
     for mode, p in modes:
@@ -450,7 +481,7 @@ def build_triples(a, z, symbol, pstate, modes, isomers_of):
                      if q[1] < p_eres - 0.5]
         placed = 0.0
         if quads:
-            feed = isomer_feeding(a, symbol, p_raw, p_band, mode,
+            feed = isomer_feeding(a, symbol, states, target, mode,
                                   [(rank, raw, band)
                                    for rank, _, raw, band in quads])
             fsum = sum(feed.values()) / 100.0
@@ -474,6 +505,302 @@ def build_triples(a, z, symbol, pstate, modes, isomers_of):
             needs.append(f'{d_base}g')
     s = ','.join(f'{lab}:{d}:{f:.6g}' for lab, d, f in triples)
     return s or None, needs
+
+
+# --- radiation tables ---
+
+_XR_NOTES = {'KA1': 'XR k_alpha_1', 'KA2': 'XR k_alpha_2',
+             'KpB1': 'XR k_beta_1', 'KpB2': 'XR k_beta_2', 'L': 'XR l'}
+_CE_SHELLS = ('K', 'L', 'M', 'N', 'N+', 'O', 'P')
+
+
+def _rad_label(lc_decay):
+    """LiveChart 'decay' string -> stored decay_mode label."""
+    spec = MODE_MAP.get(lc_decay)
+    if spec:
+        return spec['label']
+    report['unmapped_rad_decay'][lc_decay] = \
+        report['unmapped_rad_decay'].get(lc_decay, 0) + 1
+    return lc_decay
+
+
+def _drop_blank(table, base):
+    counts = report['blank_intensity_dropped'].setdefault(table, {})
+    counts[base] = counts.get(base, 0) + 1
+
+
+def build_radiation(con, identities, iso_rows, norms):
+    """The five radiation tables, keyed (isotope short name, isomer) with
+    intensities as served: absolute percent per 100 decays of the parent
+    state, branching folded in. gammas carry the additive unc_norm column
+    (relative NR*BR normalization uncertainty of the line's dataset)."""
+    con.execute('CREATE TABLE gammas (isotope TEXT, E_level REAL, '
+                'isomer TEXT, energy REAL, intensity REAL, '
+                'unc_intensity REAL, notes TEXT, decay_mode TEXT, '
+                'unc_norm REAL)')
+    for t in ('electrons',):
+        con.execute(f'CREATE TABLE {t} (isotope TEXT, E_level REAL, '
+                    f'isomer TEXT, energy REAL, intensity REAL, '
+                    f'unc_intensity REAL, notes TEXT, decay_mode TEXT)')
+    con.execute('CREATE TABLE alphas (isotope TEXT, E_level REAL, '
+                'isomer TEXT, energy REAL, intensity REAL, '
+                'unc_intensity REAL, decay_mode TEXT)')
+    for t in ('beta_minus', 'beta_plus'):
+        con.execute(f'CREATE TABLE {t} (isotope TEXT, E_level REAL, '
+                    f'isomer TEXT, mean_energy REAL, intensity REAL, '
+                    f'unc_intensity REAL, endpoint_energy REAL, '
+                    f'decay_mode TEXT)')
+    con.execute('CREATE TABLE elements (Z INTEGER, element TEXT)')
+    con.executemany('INSERT INTO elements VALUES (?,?)',
+                    [(z, ELEMENTS[z]) for z in range(1, len(ELEMENTS))])
+
+    g_rows, e_rows, a_rows, bm_rows, bp_rows = [], [], [], [], []
+    for a, z, symbol, r in identities:
+        base = f'{a}{symbol.upper()}'
+        states = states_of(r, iso_rows[(a, z)])
+
+        def find_state(row):
+            st = match_state(row, states)
+            if st is None:
+                report['orphan_state_rows'][base] = \
+                    report['orphan_state_rows'].get(base, 0) + 1
+            return st
+
+        # gammas: the g file's PLACED rows only. Its unplaced rows are the
+        # x-ray append (cross-checked against the x file below) plus the
+        # 511 keV annihilation rows, which are taken from the file as
+        # served (synthesis from the beta-plus total is the fallback).
+        unplaced = []
+        file_511 = set()
+        for row in rad_rows(a, symbol, 'decay_rads_g.csv'):
+            placed = (row.get('start_level_energy', '').strip()
+                      or row.get('end_level_energy', '').strip())
+            e_g = fnum(row.get('energy'))
+            i = fnum(row.get('intensity'))
+            if not placed and e_g is not None and abs(e_g - 511.0) < 0.5:
+                st = find_state(row)
+                if st is None or i is None:
+                    continue
+                lab = _rad_label(row.get('decay', '').strip())
+                g_rows.append((base, st[1], st[0], 511.0, i,
+                               fnum(row.get('unc_i')), 'Annihil.', lab,
+                               norms.get((base, round(st[2], 1), lab))))
+                file_511.add((st, lab))
+                continue
+            if not placed:
+                unplaced.append(row)
+                continue
+            st = find_state(row)
+            if st is None:
+                continue
+            if i is None:
+                _drop_blank('gammas', base)
+                continue
+            lab = _rad_label(row.get('decay', '').strip())
+            g_rows.append((base, st[1], st[0], e_g, i,
+                           fnum(row.get('unc_i')), '', lab,
+                           norms.get((base, round(st[2], 1), lab))))
+
+        # x-rays: exclusively from the x file; KB duplicates KpB1 and the
+        # L-subshell lines duplicate the aggregate L row where it exists
+        by_state_mode = {}
+        x_all = []
+        for row in rad_rows(a, symbol, 'decay_rads_x.csv'):
+            x_all.append((fnum(row.get('energy')), fnum(row.get('intensity'))))
+            st = find_state(row)
+            if st is None:
+                continue
+            key = (st, row.get('decay', '').strip())
+            by_state_mode.setdefault(key, []).append(row)
+        for (st, dmode), rows in by_state_mode.items():
+            shells = {r.get('shell', '').strip() for r in rows}
+            lab = _rad_label(dmode)
+            for row in rows:
+                sh = row.get('shell', '').strip()
+                if sh == 'KB':
+                    continue              # byte-duplicate of KpB1
+                if sh.startswith('L') and len(sh) > 1 and 'L' in shells:
+                    continue              # subshell under an aggregate L
+                note = _XR_NOTES.get(sh)
+                if note is None:
+                    if sh.startswith('L'):
+                        note = 'XR l'     # sub-resolved, no aggregate
+                    else:
+                        raise SystemExit(f'{base}: unmapped x-ray shell '
+                                         f'{sh!r}')
+                i = fnum(row.get('intensity'))
+                if i is None:
+                    _drop_blank('gammas', base)
+                    continue
+                g_rows.append((base, st[1], st[0], fnum(row.get('energy')),
+                               i, fnum(row.get('unc_i')), note, lab,
+                               norms.get((base, round(st[2], 1), lab))))
+        # the g file's unplaced rows are the x-ray append plus genuinely
+        # UNPLACED gammas (observed lines without a level assignment) —
+        # consume the x-file rows from the unplaced multiset; whatever
+        # remains is a real gamma and is kept; an x-file row the append
+        # never contained is a source inconsistency, reported
+        from collections import Counter
+        x_left = Counter((e, i) for e, i in x_all if i is not None)
+        for row in unplaced:
+            e_g = fnum(row.get('energy'))
+            i = fnum(row.get('intensity'))
+            if i is not None and x_left.get((e_g, i), 0) > 0:
+                x_left[(e_g, i)] -= 1
+                continue                  # the x-ray append copy
+            st = find_state(row)
+            if st is None:
+                continue
+            if i is None:
+                _drop_blank('gammas', base)
+                continue
+            report['unplaced_gammas_kept'] = \
+                report.get('unplaced_gammas_kept', 0) + 1
+            lab = _rad_label(row.get('decay', '').strip())
+            g_rows.append((base, st[1], st[0], e_g, i,
+                           fnum(row.get('unc_i')), '', lab,
+                           norms.get((base, round(st[2], 1), lab))))
+        if +x_left:
+            report['xray_append_mismatch'].append(base)
+
+        # electrons: conversion electrons + Auger; the AU K aggregate is
+        # the exact sum of its KLL/KLX/KXY subshells, which then drop
+        e_groups = {}
+        for row in rad_rows(a, symbol, 'decay_rads_e.csv'):
+            st = find_state(row)
+            if st is None:
+                continue
+            e_groups.setdefault((st, row.get('decay', '').strip()),
+                                []).append(row)
+        for (st, dmode), rows in e_groups.items():
+            lab = _rad_label(dmode)
+            au_shells = {r.get('shell', '').strip() for r in rows
+                         if r.get('type', '').strip() == 'AU'}
+            for row in rows:
+                typ = row.get('type', '').strip()
+                sh = row.get('shell', '').strip()
+                if typ == 'CE':
+                    if sh not in _CE_SHELLS:
+                        raise SystemExit(f'{base}: unmapped CE shell {sh!r}')
+                    note = f'CE {"N" if sh == "N+" else sh}'
+                elif typ == 'AU':
+                    if sh in ('KLL', 'KLX', 'KXY') and 'K' in au_shells:
+                        continue
+                    note = f'Auger {sh[0]}'
+                else:
+                    raise SystemExit(f'{base}: unmapped electron type {typ!r}')
+                i = fnum(row.get('intensity'))
+                if i is None:
+                    _drop_blank('electrons', base)
+                    continue
+                e_rows.append((base, st[1], st[0], fnum(row.get('energy')),
+                               i, fnum(row.get('unc_i')), note, lab))
+
+        # alphas
+        for row in rad_rows(a, symbol, 'decay_rads_a.csv'):
+            st = find_state(row)
+            if st is None:
+                continue
+            i = fnum(row.get('intensity'))
+            if i is None:
+                _drop_blank('alphas', base)
+                continue
+            a_rows.append((base, st[1], st[0], fnum(row.get('energy')), i,
+                           fnum(row.get('unc_i')),
+                           _rad_label(row.get('decay', '').strip())))
+
+        # betas: bm rows as beta-minus; bp rows carry the beta-plus
+        # component only (a blank intensity_beta is an EC-only transition,
+        # not a beta_plus row). The 511 keV annihilation line is
+        # synthesized per (state, mode) at twice the total beta-plus
+        # intensity, as the previous generation stored it.
+        for row in rad_rows(a, symbol, 'decay_rads_bm.csv'):
+            st = find_state(row)
+            if st is None:
+                continue
+            i = fnum(row.get('intensity_beta'))
+            if i is None:
+                _drop_blank('beta_minus', base)
+                continue
+            bm_rows.append((base, st[1], st[0], fnum(row.get('mean_energy')),
+                            i, fnum(row.get('unc_ib')),
+                            fnum(row.get('max_energy')),
+                            _rad_label(row.get('decay', '').strip())))
+        bp_tot = {}
+        for row in rad_rows(a, symbol, 'decay_rads_bp.csv'):
+            st = find_state(row)
+            if st is None:
+                continue
+            i = fnum(row.get('intensity_beta'))
+            if i is None:
+                continue                  # EC-only transition
+            lab = _rad_label(row.get('decay', '').strip())
+            bp_rows.append((base, st[1], st[0], fnum(row.get('mean_energy')),
+                            i, fnum(row.get('unc_ib')),
+                            fnum(row.get('max_energy')), lab))
+            tot, var = bp_tot.get((st, lab), (0.0, 0.0))
+            bp_tot[(st, lab)] = (tot + i,
+                                 var + (fnum(row.get('unc_ib')) or 0.0) ** 2)
+        for (st, lab), (tot, var) in bp_tot.items():
+            if tot > 0 and (st, lab) not in file_511:
+                report['annihil_synthesized'] = \
+                    report.get('annihil_synthesized', 0) + 1
+                g_rows.append((base, st[1], st[0], 511.0, 2.0 * tot,
+                               2.0 * var ** 0.5 or None, 'Annihil.', lab,
+                               norms.get((base, round(st[2], 1), lab))))
+
+    con.executemany('INSERT INTO gammas VALUES (?,?,?,?,?,?,?,?,?)', g_rows)
+    con.executemany('INSERT INTO electrons VALUES (?,?,?,?,?,?,?,?)', e_rows)
+    con.executemany('INSERT INTO alphas VALUES (?,?,?,?,?,?,?)', a_rows)
+    con.executemany('INSERT INTO beta_minus VALUES (?,?,?,?,?,?,?,?)', bm_rows)
+    con.executemany('INSERT INTO beta_plus VALUES (?,?,?,?,?,?,?,?)', bp_rows)
+    con.commit()
+    print(f'radiation: {len(g_rows)} gammas ({sum(1 for r in g_rows if r[8] is not None)} '
+          f'with unc_norm), {len(e_rows)} electrons, {len(a_rows)} alphas, '
+          f'{len(bm_rows)} beta-, {len(bp_rows)} beta+')
+
+
+def load_norms(identities, iso_rows):
+    """{(base, state_E_kev rounded, label): relative NR*BR uncertainty}
+    from the ENSDF normalization records via paceENSDF."""
+    try:
+        import paceENSDF
+    except ImportError:
+        print('  (paceENSDF unavailable — unc_norm ships NULL)')
+        return {}
+    import contextlib
+    import io
+    e = paceENSDF.ENSDF()
+    with contextlib.redirect_stdout(io.StringIO()):
+        data = e.load_ensdf()
+    norms = {}
+    for a, z, symbol, r in identities:
+        base = f'{a}{symbol.upper()}'
+        pid = f'{symbol}{a}'
+        n_states = 1 + len(iso_rows[(a, z)])
+        for idx in range(n_states + 1):
+            for kw, lab in (('BM', 'B'), ('ECBP', 'E'), ('A', 'A')):
+                try:
+                    with contextlib.redirect_stdout(io.StringIO()):
+                        rec = e.norm_record(data, pid, idx, mode=kw)
+                except Exception:
+                    rec = None
+                if not rec:
+                    continue
+                for key, vals in rec.items():
+                    try:                  # band-level parents ('0.0+X') skip
+                        e_kev = float(key[4])
+                    except (TypeError, ValueError):
+                        continue
+                    nr, u_nr, ok_nr = vals[0]
+                    br, u_br, ok_br = vals[2]
+                    if not ok_nr or nr <= 0:
+                        continue
+                    rel = ((u_nr / nr) ** 2 +
+                           ((u_br / br) ** 2 if br > 0 else 0.0)) ** 0.5
+                    norms[(base, round(e_kev, 1), lab)] = rel
+                    report['norm_records_joined'] += 1
+    return norms
 
 
 def load_v1_isomers():
@@ -556,17 +883,17 @@ def main():
                 report['no_half_life'].append(base)
         modes = [(r[f'decay_{i}'].strip(), fnum(r[f'decay_{i}_%']))
                  for i in (1, 2, 3) if r[f'decay_{i}'].strip()]
+        states = states_of(r, iso_rows[(a, z)])
         dm, needs = (None, []) if stable else build_triples(
-            a, z, symbol, (0.0, 0.0, ''), modes, isomers_of)
+            a, z, symbol, states, states[0], modes, isomers_of)
         all_needs.update(needs)
         rows.append((base, base + 'g', 0.0, 'g', r['jp'].strip(), a, z,
                      a - z, symbol, stable, hl, unc_hl,
                      fnum(r['abundance']), fnum(r['unc_a']), amu,
                      me_kev / 1000.0 if me_kev is not None else None, dm))
-        for rank, e_kev, l in iso_rows[(a, z)]:
+        for i, (rank, e_kev, l) in enumerate(iso_rows[(a, z)]):
             dm_i, needs_i = build_triples(
-                a, z, symbol, (e_kev, l['energy'] or 0.0, l['shift']),
-                l['modes'], isomers_of)
+                a, z, symbol, states, states[1 + i], l['modes'], isomers_of)
             all_needs.update(needs_i)
             abund = None
             if base == '180TA' and rank == 1:
@@ -609,6 +936,16 @@ def main():
                     rows)
     con.commit()
 
+    norms = load_norms(identities, iso_rows)
+    build_radiation(con, identities, iso_rows, norms)
+    write_version(con, 'decay',
+                  'ENSDF via IAEA LiveChart API mirror (chart + radiation), '
+                  'NUBASE2020/AME2020 closure and estimates, ENSDF N-records '
+                  'via paceENSDF (unc_norm)',
+                  'LiveChart mirror 2026-07-16, per-row ENSDF cut-offs '
+                  'recorded in the source archive')
+    con.commit()
+
     print(f'{len(rows)} chart rows ({sum(1 for r in rows if r[3] != "g")} '
           f'isomers, {len(report["closure_rows"])} closure-repair rows)')
     for key in ('ledger_exclusions', 'nubase_only_isomers', 'sf_combined',
@@ -623,6 +960,26 @@ def main():
     if report['no_half_life']:
         print(f'  UNSTABLE ROWS WITH NO HALF-LIFE (gate decision): '
               f'{len(report["no_half_life"])} — {report["no_half_life"][:12]}')
+    for table, counts in sorted(report['blank_intensity_dropped'].items()):
+        print(f'  blank-intensity rows dropped from {table}: '
+              f'{sum(counts.values())} across {len(counts)} nuclides')
+    if report['orphan_state_rows']:
+        print(f'  rows keyed to non-admitted parent states (dropped): '
+              f'{sum(report["orphan_state_rows"].values())} across '
+              f'{len(report["orphan_state_rows"])} nuclides — '
+              f'{sorted(report["orphan_state_rows"], key=report["orphan_state_rows"].get)[-6:]}')
+    if report['xray_append_mismatch']:
+        print(f'  g-file x-ray append != x file: '
+              f'{len(report["xray_append_mismatch"])} nuclides — '
+              f'{report["xray_append_mismatch"][:8]}')
+    if report['unmapped_rad_decay']:
+        print(f'  radiation rows with unmapped decay strings (label kept '
+              f'verbatim): {report["unmapped_rad_decay"]}')
+    print(f'  unplaced gammas kept: {report.get("unplaced_gammas_kept", 0)}; '
+          f'511 keV rows synthesized (no file row): '
+          f'{report.get("annihil_synthesized", 0)}')
+    print(f'  ENSDF normalization records joined: '
+          f'{report["norm_records_joined"]}')
     con.close()
 
 
