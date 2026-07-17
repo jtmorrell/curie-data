@@ -75,7 +75,7 @@ def collect_target(tdir):
             name = f'{a}{ELEMENTS[z].upper()}{state}'
             products[name] = dedupe_grid(rows, str(p))
             tok = header.get('nuclide', '')
-            if tok and state.startswith('m') and not tok.endswith(('m', 'n')):
+            if tok and state.startswith('m') and not tok.endswith(('m', 'n', 'o')):  # TALYS isomer letters run m, n, o, ...
                 print(f'  note: {p.name} stored as {name} but header '
                       f'token is {tok!r}')
     return products

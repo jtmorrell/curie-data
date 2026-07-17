@@ -367,11 +367,12 @@ def coverage_diff_endf(con):
 
 # --- tendl (exclusive + residual-production) ---
 
-def _wide_table_checks(con, idx, index_cols):
+def _wide_table_checks(con, idx, index_cols, allow_negative=()):
     """Shared structural and value checks for the wide-table libraries
     (endf and the five tendl databases): index/table label joins, strictly
     increasing non-empty grids, and a full value sweep — no NULL and no
-    negative entry in the energy column or any channel column."""
+    negative entry in the energy column or any channel column, except
+    columns named in `allow_negative` (documented source artifacts)."""
     cols = [c[1] for c in q(con, 'PRAGMA table_info(all_reactions)')]
     check('all_reactions column order (label last)', cols == index_cols, str(cols))
     key = ','.join(index_cols[:-1])
@@ -399,7 +400,7 @@ def _wide_table_checks(con, idx, index_cols):
             expr = ', '.join(f'MIN("{c}"), COUNT(*)-COUNT("{c}")' for c in chunk)
             row = q(con, f'SELECT {expr} FROM {tab}')[0]
             for c, mn, n_null in zip(chunk, row[0::2], row[1::2]):
-                if mn is None or mn < 0 or n_null:
+                if mn is None or n_null or (mn < 0 and c not in allow_negative):
                     bad_val.append((tab, c, (mn, n_null)))
     check('index labels == table columns (bidirectional)', not bad_join, str(bad_join[:3]))
     check('grids strictly increasing and non-empty', not bad_sort, str(bad_sort[:3]))
@@ -410,7 +411,15 @@ def _wide_table_checks(con, idx, index_cols):
 
 def validate_tendl(con):
     idx = q(con, 'SELECT target,outgoing,product,label FROM all_reactions')
-    targets = _wide_table_checks(con, idx, ['target', 'outgoing', 'product', 'label'])
+    # _el_ may go negative in isolated rows at the bottom of the resonance
+    # region: the ~500-point TALYS grid interpolates through resonance dips
+    # and the source prints the artifact (3 targets in TENDL-2025; the
+    # previous generation shipped one as well). Stored source-faithfully —
+    # the resonance region is documented as non-resolving and 'best' serves
+    # it from irdff/endf.
+    targets = _wide_table_checks(con, idx,
+                                 ['target', 'outgoing', 'product', 'label'],
+                                 allow_negative=('_el_',))
     check('target count (curated cut incl. isomeric targets, neutron)',
           700 < len(targets) < 850, str(len(targets)))
 
