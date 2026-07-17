@@ -432,7 +432,14 @@ def build_triples(a, z, symbol, states, target, modes, isomers_of):
     `target` is the parent state's entry in `states`; isomers_of values
     are (rank, E_res, raw, band) per state."""
     p_eres = target[1] * 1000.0
-    # net subset percentages from their parent mode
+    # net subset percentages from their parent mode. An IT entry on a
+    # GROUND state is a bookkeeping artifact of historically swapped
+    # state assignments (60Mn) — dropped, with the remaining modes
+    # renormalized to carry the full decay.
+    gs_it = [p for m, p in modes if m == 'IT'] if target[0] == 'g' else []
+    if gs_it:
+        report.setdefault('gs_it_dropped', []).append(f'{a}{symbol.upper()}')
+        modes = [(m, p) for m, p in modes if m != 'IT']
     pct = {}
     for mode, p in modes:
         if mode not in MODE_MAP:
@@ -455,7 +462,9 @@ def build_triples(a, z, symbol, states, target, modes, isomers_of):
     if total > 100.5:
         report['nonclosing_branches'].append(
             (f'{a}{symbol.upper()}', round(total, 2)))
-    scale = 1.0 / max(total, 100.0)       # normalize to sum <= 1
+    # normalize to sum <= 1; when a ground-state IT artifact was dropped,
+    # the surviving modes carry the whole decay
+    scale = 1.0 / total if (gs_it and total > 0) else 1.0 / max(total, 100.0)
 
     triples, needs = [], []
     for mode, p in pct.items():
@@ -489,9 +498,10 @@ def build_triples(a, z, symbol, states, target, modes, isomers_of):
                 report['feeding_overflow'].append(
                     (f'{a}{symbol.upper()}', mode, round(fsum, 4),
                      round(frac, 4)))
-                norm = frac / fsum
-            else:
-                norm = 1.0
+            # the split can never exceed the mode total (round-off and
+            # relative-intensity datasets would otherwise push a branch
+            # over 1)
+            norm = min(1.0, frac / fsum) if fsum > 0 else 1.0
             for rank, _, _, _ in quads:
                 if feed.get(rank, 0.0) > 0.0:
                     f_frac = feed[rank] / 100.0 * norm
@@ -503,6 +513,9 @@ def build_triples(a, z, symbol, states, target, modes, isomers_of):
         if gs_frac > 1e-12:
             triples.append((spec['label'], f'{d_base}g', gs_frac))
             needs.append(f'{d_base}g')
+    s_tot = sum(f for _, _, f in triples)
+    if s_tot > 1.0:                       # round-off from the split
+        triples = [(lab, d, f / s_tot) for lab, d, f in triples]
     s = ','.join(f'{lab}:{d}:{f:.6g}' for lab, d, f in triples)
     return s or None, needs
 
@@ -593,8 +606,12 @@ def build_radiation(con, identities, iso_rows, norms):
             st = find_state(row)
             if st is None:
                 continue
-            if i is None:
+            if i is None or i <= 0:
                 _drop_blank('gammas', base)
+                continue
+            if i > 1000:
+                report.setdefault('over_1000_dropped', []).append(
+                    (base, 'gammas', e_g, i))
                 continue
             lab = _rad_label(row.get('decay', '').strip())
             g_rows.append((base, st[1], st[0], e_g, i,
@@ -629,8 +646,12 @@ def build_radiation(con, identities, iso_rows, norms):
                         raise SystemExit(f'{base}: unmapped x-ray shell '
                                          f'{sh!r}')
                 i = fnum(row.get('intensity'))
-                if i is None:
+                if i is None or i <= 0:
                     _drop_blank('gammas', base)
+                    continue
+                if i > 1000:
+                    report.setdefault('over_1000_dropped', []).append(
+                        (base, 'gammas', fnum(row.get('energy')), i))
                     continue
                 g_rows.append((base, st[1], st[0], fnum(row.get('energy')),
                                i, fnum(row.get('unc_i')), note, lab,
@@ -651,11 +672,15 @@ def build_radiation(con, identities, iso_rows, norms):
             st = find_state(row)
             if st is None:
                 continue
-            if i is None:
+            if i is None or i <= 0:
                 _drop_blank('gammas', base)
                 continue
             report['unplaced_gammas_kept'] = \
                 report.get('unplaced_gammas_kept', 0) + 1
+            if i > 1000:
+                report.setdefault('over_1000_dropped', []).append(
+                    (base, 'gammas', e_g, i))
+                continue
             lab = _rad_label(row.get('decay', '').strip())
             g_rows.append((base, st[1], st[0], e_g, i,
                            fnum(row.get('unc_i')), '', lab,
@@ -690,8 +715,12 @@ def build_radiation(con, identities, iso_rows, norms):
                 else:
                     raise SystemExit(f'{base}: unmapped electron type {typ!r}')
                 i = fnum(row.get('intensity'))
-                if i is None:
+                if i is None or i <= 0:
                     _drop_blank('electrons', base)
+                    continue
+                if i > 1000:
+                    report.setdefault('over_1000_dropped', []).append(
+                        (base, 'electrons', fnum(row.get('energy')), i))
                     continue
                 e_rows.append((base, st[1], st[0], fnum(row.get('energy')),
                                i, fnum(row.get('unc_i')), note, lab))
@@ -702,7 +731,7 @@ def build_radiation(con, identities, iso_rows, norms):
             if st is None:
                 continue
             i = fnum(row.get('intensity'))
-            if i is None:
+            if i is None or i <= 0:
                 _drop_blank('alphas', base)
                 continue
             a_rows.append((base, st[1], st[0], fnum(row.get('energy')), i,
@@ -719,7 +748,7 @@ def build_radiation(con, identities, iso_rows, norms):
             if st is None:
                 continue
             i = fnum(row.get('intensity_beta'))
-            if i is None:
+            if i is None or i <= 0:
                 _drop_blank('beta_minus', base)
                 continue
             bm_rows.append((base, st[1], st[0], fnum(row.get('mean_energy')),
@@ -803,6 +832,19 @@ def load_norms(identities, iso_rows):
     return norms
 
 
+def nubase_iso_hl(nubase, a, z, e_kev):
+    """NUBASE half-life for the isomer nearest `e_kev`, used when the
+    LiveChart level carries none."""
+    i = 1
+    while (a, z, i) in nubase:
+        nb = nubase[(a, z, i)]
+        if (nb['exc_kev'] is not None and nb['hl_sec'] is not None
+                and abs(nb['exc_kev'] - e_kev) < max(5.0, 0.02 * e_kev)):
+            return nb['hl_sec']
+        i += 1
+    return None
+
+
 def load_v1_isomers():
     """{(A, Z): [(rank, E_level_MeV, half_life_s)]} from the previous
     generation — the half-life is the pairing fingerprint."""
@@ -870,7 +912,7 @@ def main():
         me_kev = fnum(r['massexcess'])
         amu = fnum(r['atomic_mass'])
         amu = amu / 1e6 if amu is not None else (
-            a + me_kev / AMU_KEV if me_kev is not None else None)
+            a + me_kev / AMU_KEV if me_kev is not None else float(a))
         stable = 1 if r['half_life'].strip() == 'STABLE' else 0
         hl, unc_hl = fnum(r['half_life_sec']), fnum(r['unc_hls'])
         if r['operator_hl'].strip():
@@ -898,8 +940,28 @@ def main():
             abund = None
             if base == '180TA' and rank == 1:
                 abund = fnum(r['abundance'])
+            hl_i = l['hl_sec']
+            if hl_i is None:              # census/override levels may lack one
+                hl_i = nubase_iso_hl(nubase, a, z, e_kev)
+                if hl_i is not None:
+                    report.setdefault('isomer_hl_from_nubase', []).append(
+                        f'{base}m{rank}')
+            if hl_i is None:              # the state's own dataset rows
+                for fname in ('decay_rads_g.csv', 'decay_rads_a.csv',
+                              'decay_rads_bm.csv', 'decay_rads_bp.csv'):
+                    for row in rad_rows(a, symbol, fname):
+                        if match_state(row, states) is states[1 + i]:
+                            hl_i = fnum(row.get('half_life_sec'))
+                            if hl_i is not None:
+                                break
+                    if hl_i is not None:
+                        report.setdefault('isomer_hl_from_dataset',
+                                          []).append(f'{base}m{rank}')
+                        break
+            if hl_i is None:
+                report['no_half_life'].append(f'{base}m{rank}')
             rows.append((base, f'{base}m{rank}', e_kev / 1000.0, f'm{rank}',
-                         l['jp'], a, z, a - z, symbol, 0, l['hl_sec'],
+                         l['jp'], a, z, a - z, symbol, 0, hl_i,
                          l['unc_hl_sec'], abund, None, amu,
                          (me_kev / 1000.0 + e_kev / 1000.0)
                          if me_kev is not None else None, dm_i))
@@ -925,7 +987,7 @@ def main():
         rows.append((f'{a}{el}', name, 0.0, 'g', '', a, z, a - z, symbol,
                      1 if (nb and nb['stable']) else 0,
                      nb['hl_sec'] if nb else None, None, None, None,
-                     a + me / AMU_KEV if me is not None else None,
+                     a + me / AMU_KEV if me is not None else float(a),
                      me / 1000.0 if me is not None else None, None))
         universe.add(name)
         report['closure_rows'].append(name)

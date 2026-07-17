@@ -590,8 +590,288 @@ def _coverage_diff_rp(con, beam, letter):
         print(f'    - {t} -> {p}')
 
 
+# --- decay ---
+
+DECAY_SCHEMA = {
+    'chart': ['isotope', 'name', 'E_level', 'isomer', 'J_pi', 'A', 'Z', 'N',
+              'element', 'stable', 'half_life', 'unc_half_life', 'abundance',
+              'unc_abundance', 'amu', 'Delta', 'decay_mode'],
+    'gammas': ['isotope', 'E_level', 'isomer', 'energy', 'intensity',
+               'unc_intensity', 'notes', 'decay_mode', 'unc_norm'],
+    'electrons': ['isotope', 'E_level', 'isomer', 'energy', 'intensity',
+                  'unc_intensity', 'notes', 'decay_mode'],
+    'alphas': ['isotope', 'E_level', 'isomer', 'energy', 'intensity',
+               'unc_intensity', 'decay_mode'],
+    'beta_minus': ['isotope', 'E_level', 'isomer', 'mean_energy',
+                   'intensity', 'unc_intensity', 'endpoint_energy',
+                   'decay_mode'],
+    'beta_plus': ['isotope', 'E_level', 'isomer', 'mean_energy', 'intensity',
+                  'unc_intensity', 'endpoint_energy', 'decay_mode'],
+    'NFY': ['parent', 'daughter', 'energy', 'yield', 'unc_yield',
+            'cumulative_yield', 'unc_cumulative_yield'],
+    'SFY': ['parent', 'daughter', 'yield', 'unc_yield', 'cumulative_yield',
+            'unc_cumulative_yield'],
+    'coincidences': ['isotope', 'isomer', 'energy', 'coinc_energy',
+                     'coinc_type', 'intensity', 'unc_intensity'],
+    'elements': ['Z', 'element'],
+}
+
+
+def validate_decay(con):
+    for t, cols in DECAY_SCHEMA.items():
+        have = [c[1] for c in q(con, f'PRAGMA table_info({t})')]
+        check(f'{t} columns', have == cols, str(have))
+
+    names = {r[0] for r in q(con, 'SELECT name FROM chart')}
+    dup = q(con, 'SELECT name, COUNT(*) c FROM chart GROUP BY name HAVING c>1')
+    check('chart names unique', not dup, str(dup[:3]))
+
+    # decay_mode triples: well-formed, daughters closed, branches <= 1
+    bad_triple, missing_daughter, bad_sum = [], [], []
+    graph = {}
+    for name, dm in q(con, 'SELECT name, decay_mode FROM chart '
+                           'WHERE decay_mode IS NOT NULL'):
+        tot = 0.0
+        for entry in dm.split(','):
+            parts = entry.split(':')
+            if len(parts) != 3:
+                bad_triple.append((name, entry))
+                continue
+            try:
+                br = float(parts[2])
+            except ValueError:
+                bad_triple.append((name, entry))
+                continue
+            if not 0.0 < br <= 1.0:
+                bad_triple.append((name, entry))
+            tot += br
+            if parts[1] != 'SFY':
+                graph.setdefault(name, []).append(parts[1])
+                if parts[1] not in names:
+                    missing_daughter.append((name, parts[1]))
+        if tot > 1.0 + 1e-5:
+            bad_sum.append((name, round(tot, 6)))
+    check('decay_mode triples well-formed', not bad_triple, str(bad_triple[:3]))
+    check('every decay daughter exists in chart (closure — the DecayChain '
+          'guarantee)', not missing_daughter, str(missing_daughter[:5]))
+    check('branch fractions sum <= 1 per state', not bad_sum, str(bad_sum[:3]))
+
+    # chains terminate: the daughter graph has no cycles
+    WHITE, GRAY, BLACK = 0, 1, 2
+    color = dict.fromkeys(graph, WHITE)
+    cycle = []
+
+    def dfs(u, stack):
+        color[u] = GRAY
+        for v in graph.get(u, []):
+            if color.get(v, BLACK) == GRAY:
+                cycle.append(stack + [v])
+                continue
+            if color.get(v, BLACK) == WHITE:
+                dfs(v, stack + [v])
+        color[u] = BLACK
+    sys.setrecursionlimit(100000)
+    for u in graph:
+        if color[u] == WHITE:
+            dfs(u, [u])
+    check('every decay chain terminates (no cycles)', not cycle,
+          str(cycle[:1]))
+
+    # invariants: a NULL-half-life unstable row must not carry radiation
+    # that curie's decay-RATE machinery could silently zero — gammas and
+    # betas drive activities and count fits; curie instantiates such rows
+    # as stable with a warning. Alpha or electron lines alone are allowed
+    # (pure spectroscopy lookups: 215Fr's high-spin states are observed
+    # through their alpha lines with no measured half-life anywhere), as
+    # is a decay_mode string, which the forced-stable read never consults.
+    bad_null = []
+    for (name,) in q(con, 'SELECT name FROM chart WHERE stable=0 AND '
+                          'half_life IS NULL'):
+        n_rad = q_args(
+            con,
+            'SELECT (SELECT COUNT(*) FROM gammas WHERE isotope||isomer=?) '
+            '+ (SELECT COUNT(*) FROM beta_minus WHERE isotope||isomer=?) '
+            '+ (SELECT COUNT(*) FROM beta_plus WHERE isotope||isomer=?)',
+            (name,) * 3)[0][0]
+        if n_rad:
+            bad_null.append(name)
+    n_null = q(con, 'SELECT COUNT(*) FROM chart WHERE stable=0 AND '
+                    'half_life IS NULL')[0][0]
+    check(f'unstable NULL-half-life rows ({n_null}) carry no gamma or '
+          f'beta rows', not bad_null, str(bad_null[:5]))
+    n_amu = q(con, 'SELECT COUNT(*) FROM chart WHERE amu IS NULL')[0][0]
+    check('no NULL amu', n_amu == 0, f'{n_amu} rows')
+
+    # cross-table state consistency: every radiation/coincidence state
+    # exists in chart with the same E_level
+    for t in ('gammas', 'electrons', 'alphas', 'beta_minus', 'beta_plus'):
+        bad = q(con, f'SELECT DISTINCT r.isotope, r.isomer FROM {t} r '
+                     f'LEFT JOIN chart c ON c.isotope = r.isotope AND '
+                     f'c.isomer = r.isomer AND c.E_level = r.E_level '
+                     f'WHERE c.name IS NULL')
+        check(f'{t} states exist in chart with matching E_level', not bad,
+              str(bad[:3]))
+    bad = q(con, 'SELECT DISTINCT co.isotope, co.isomer FROM coincidences co '
+                 'LEFT JOIN chart c ON c.isotope = co.isotope AND '
+                 'c.isomer = co.isomer WHERE c.name IS NULL')
+    check('coincidence states exist in chart', not bad, str(bad[:3]))
+
+    # value ranges
+    for t in ('gammas', 'electrons', 'alphas'):
+        bad = q(con, f'SELECT COUNT(*) FROM {t} WHERE intensity <= 0 '
+                     f'OR intensity > 1000')
+        check(f'{t} intensities in (0, 1000] percent', bad[0][0] == 0,
+              f'{bad[0][0]} rows')
+    grid = [r[0] for r in q(con, 'SELECT DISTINCT energy FROM NFY ORDER BY energy')]
+    check('NFY grid byte-exact canonical', grid == [0.0253, 5e5, 2e6, 14e6],
+          str(grid))
+    bad = q(con, 'SELECT COUNT(*) FROM NFY WHERE ("yield" IS NOT NULL AND '
+                 '("yield" < 0 OR "yield" > 1)) OR (cumulative_yield IS NOT '
+                 'NULL AND (cumulative_yield < 0 OR cumulative_yield > 2))')
+    check('NFY yields in range', bad[0][0] == 0, f'{bad[0][0]} rows')
+    fy_names = {r[0] for r in q(con, 'SELECT DISTINCT daughter FROM NFY '
+                                     'UNION SELECT daughter FROM SFY '
+                                     'UNION SELECT parent FROM NFY '
+                                     'UNION SELECT parent FROM SFY')}
+    fy_missing = sorted(fy_names - names)
+    check('FY parents and daughters exist in chart', not fy_missing,
+          str(fy_missing[:5]))
+
+    # spot anchors: certificate lines, half-lives, isomer-routing branches,
+    # the preserved-name ledger case, fission yields, coincidence pairs
+    def one(sql, args=()):
+        r = q_args(con, sql, args)
+        return r[0] if r else None
+
+    anchors = [
+        ('137CS 661.657 keV = 85.1(2)%',
+         "SELECT intensity FROM gammas WHERE isotope='137CS' AND isomer='g' "
+         "AND ABS(energy-661.657)<0.05", lambda v: abs(v[0] - 85.1) < 0.3),
+        ('60CO 1332.492 keV = 99.9826%',
+         "SELECT intensity FROM gammas WHERE isotope='60CO' AND isomer='g' "
+         "AND ABS(energy-1332.492)<0.05", lambda v: abs(v[0] - 99.9826) < 0.01),
+        ('152EU 344.279 keV = 26.59%',
+         "SELECT intensity FROM gammas WHERE isotope='152EU' AND isomer='g' "
+         "AND ABS(energy-344.279)<0.05", lambda v: abs(v[0] - 26.59) < 0.2),
+        ('152EU 1408.013 keV = 20.87%',
+         "SELECT intensity FROM gammas WHERE isotope='152EU' AND isomer='g' "
+         "AND ABS(energy-1408.013)<0.05", lambda v: abs(v[0] - 20.87) < 0.2),
+        ('60CO half-life 5.2711 y',
+         "SELECT half_life FROM chart WHERE name='60COg'",
+         lambda v: abs(v[0] - 166344192) < 2e4),
+        ('137CS half-life 30.08 y',
+         "SELECT half_life FROM chart WHERE name='137CSg'",
+         lambda v: abs(v[0] / 3.156e7 - 30.08) < 0.1),
+        ('110AGm1 is the 249.83 d state at 117.59 keV (preserved name)',
+         "SELECT half_life, E_level FROM chart WHERE name='110AGm1'",
+         lambda v: abs(v[0] / 86400 - 249.83) < 0.5
+         and abs(v[1] - 0.11759) < 1e-4),
+        ('152EUm2 is the 96 min IT state at 147.86 keV (preserved name)',
+         "SELECT half_life, E_level FROM chart WHERE name='152EUm2'",
+         lambda v: abs(v[0] - 5760) < 120 and abs(v[1] - 0.14786) < 1e-4),
+        ('99MO routes 87-88% to 99TCm1',
+         "SELECT decay_mode FROM chart WHERE name='99MOg'",
+         lambda v: 'Bm1:99TCm1:0.87' in v[0]),
+        ('130TE carries its measured two-beta half-life (no 1e-6 s)',
+         "SELECT half_life FROM chart WHERE name='130TEg'",
+         lambda v: v[0] is None or v[0] > 1e20),
+        ('235U thermal NFY 137CS cumulative 6.19%',
+         "SELECT cumulative_yield FROM NFY WHERE parent='235Ug' AND "
+         "daughter='137CSg' AND energy=0.0253",
+         lambda v: abs(v[0] - 0.0619) < 0.002),
+        ('60CO coincidence pair 1173&1332 = 99.83(3)',
+         "SELECT intensity FROM coincidences WHERE isotope='60CO' AND "
+         "isomer='g' AND ABS(energy-1173.228)<0.05 AND "
+         "ABS(coinc_energy-1332.492)<0.05 AND coinc_type='g'",
+         lambda v: abs(v[0] - 99.834) < 0.1),
+    ]
+    for label, sql, ok_fn in anchors:
+        v = one(sql)
+        check(label, v is not None and ok_fn(v), str(v))
+
+    ver = q(con, 'SELECT library, generation FROM _version')
+    check('_version stamp', ver == [('decay', 'v2')], str(ver))
+
+
+def q_args(con, sql, args=()):
+    return con.execute(sql, args).fetchall()
+
+
+def coverage_diff_decay(con):
+    v1p = V1_DIR / 'decay.db'
+    if not v1p.exists():
+        print('  (no v1 file for coverage diff)')
+        return
+    v1 = sqlite3.connect(v1p)
+    old = {r[0] for r in q(v1, 'SELECT name FROM chart')}
+    new = {r[0] for r in q(con, 'SELECT name FROM chart')}
+    old_iso = {n for n in old if not n.endswith('g')}
+    new_iso = {n for n in new if not n.endswith('g')}
+    print(f'\n  chart: {len(old)} -> {len(new)} states '
+          f'(+{len(new - old)}, -{len(old - new)}); isomers '
+          f'{len(old_iso)} -> {len(new_iso)}')
+    print(f'  dropped states: {sorted(old - new)[:20]}'
+          f'{"..." if len(old - new) > 20 else ""}')
+
+    # half-life moves > 5% on common states (excluding operator-limited)
+    moves = []
+    v1_hl = dict(q(v1, 'SELECT name, half_life FROM chart'))
+    for name, hl in q(con, 'SELECT name, half_life FROM chart'):
+        h1 = v1_hl.get(name)
+        if h1 and hl and h1 > 0 and abs(hl / h1 - 1) > 0.05:
+            moves.append((name, h1, hl))
+    print(f'  half-life moves > 5%: {len(moves)}; largest: '
+          f'{sorted(moves, key=lambda m: -abs(m[2] / m[1] - 1))[:5]}')
+
+    # branch moves > 0.05 on common states
+    def triples(row):
+        out = {}
+        if row:
+            for e in row.split(','):
+                p = e.split(':')
+                if len(p) == 3:
+                    try:
+                        out[p[1]] = out.get(p[1], 0.0) + float(p[2])
+                    except ValueError:
+                        pass
+        return out
+    v1_dm = dict(q(v1, 'SELECT name, decay_mode FROM chart'))
+    br_moves = []
+    for name, dm in q(con, 'SELECT name, decay_mode FROM chart'):
+        if name not in v1_dm:
+            continue
+        t1, t2 = triples(v1_dm[name]), triples(dm)
+        for d in set(t1) | set(t2):
+            if abs(t1.get(d, 0.0) - t2.get(d, 0.0)) > 0.05:
+                br_moves.append((name, d, round(t1.get(d, 0.0), 4),
+                                 round(t2.get(d, 0.0), 4)))
+    print(f'  branch moves > 0.05: {len(br_moves)}; sample: {br_moves[:6]}')
+
+    # gamma-line count changes per common state
+    v1_g = dict(q(v1, 'SELECT isotope || isomer, COUNT(*) FROM gammas '
+                      'GROUP BY isotope, isomer'))
+    v2_g = dict(q(con, 'SELECT isotope || isomer, COUNT(*) FROM gammas '
+                       'GROUP BY isotope, isomer'))
+    lost_all = [k for k in v1_g if k in new and k not in v2_g]
+    print(f'  states with v1 gammas but none in v2: {len(lost_all)} — '
+          f'{sorted(lost_all)[:10]}')
+
+    # fission-yield movers (the corrupt-value class)
+    v1_y = {(p, d, e): y for p, d, e, y in
+            q(v1, 'SELECT parent, daughter, energy, "yield" FROM NFY')}
+    big = []
+    for p, d, e, y in q(con, 'SELECT parent, daughter, energy, "yield" '
+                             'FROM NFY'):
+        y1 = v1_y.get((p, d, e))
+        if y1 and y and y1 > 1e-4 and (y1 / y > 5 or y / y1 > 5):
+            big.append((p, d, e, y1, y))
+    print(f'  NFY values moved > 5x (v1 defect class): {len(big)}; sample: '
+          f'{[(p, d, e, f"{y1:.3g}", f"{y2:.3g}") for p, d, e, y1, y2 in big[:6]]}')
+
+
 import functools
 VALIDATORS = {
+    'decay.db': (validate_decay, coverage_diff_decay),
     'iaea_monitors.db': (validate_iaea_monitors, coverage_diff_iaea),
     'IRDFF.db': (validate_irdff, coverage_diff_irdff),
     'endf.db': (validate_endf, coverage_diff_endf),

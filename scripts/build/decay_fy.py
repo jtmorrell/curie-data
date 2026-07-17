@@ -96,7 +96,7 @@ class DaughterMap:
              name[len(f'{a}{ELEMENTS[z].upper()}'):], '', a, z, a - z,
              ELEMENTS[z], 1 if (nb or nb_gs or {}).get('stable') else 0,
              (nb or {}).get('hl_sec'), None, None, None,
-             a + me / AMU_KEV if me is not None else None,
+             a + me / AMU_KEV if me is not None else float(a),
              (me / 1000.0 + exc / 1000.0) if me is not None else None, None))
         self.known.add(name)
         fy_report['closure_rows'].append(name)
