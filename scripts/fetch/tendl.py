@@ -14,7 +14,10 @@ dynamic services. Provenance is recorded as one digest per (beam, target)
 in the shared manifest — the combined SHA256 over the target's sorted
 per-file digests, which are themselves written to a MANIFEST.sha256 in
 the target's archive directory — keeping the committed manifest at one
-entry per target rather than one per file.
+entry per target rather than one per file. On resume, existing files are
+re-hashed against that MANIFEST.sha256 and re-fetched on mismatch, and
+the shared manifest gains a new entry only when a target's digest
+actually changed.
 
 Usage:
     python3 tendl.py <targets-file> [beam ...]     # beams default to all
@@ -23,20 +26,18 @@ import hashlib
 import re
 import sys
 import threading
-import urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from datetime import date
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from core import ARCHIVE_ROOT, MANIFEST, _lock
+from core import ARCHIVE_ROOT, _record, _recorded_sha
 
 BASE = 'https://tendl.imperial.ac.uk/tendl_2025'
-# The Imperial tree is the only public host (the PSI host is gone and the
-# NEA Data Bank copy sits behind a GitLab login that answers every path
-# with a 200 sign-in page — a redirect this fetcher deliberately treats
-# as failure). Imperial's known gaps (its proton sublibrary lacks the Nb
-# isotopes) are reported as not-provided.
+# The Imperial tree is the only public host: the PSI host is gone, and the
+# NEA Data Bank copy sits behind a GitLab login whose file paths redirect
+# (3xx) to a sign-in page — http_get raises on any non-200 status, so
+# nothing from it can enter the archive. Imperial's known gaps (its proton
+# sublibrary lacks the Nb isotopes) are reported as not-provided.
 UA = 'curie-data-pipeline/2.0 (github.com/jtmorrell/curie-data)'
 WORKERS = 12
 BEAMS = ['neutron', 'proton', 'deuteron', 'alpha']
@@ -88,28 +89,37 @@ def http_get(url, timeout=60, _retry=True):
 
 
 def tendl_paths(curie_target):
-    """'152EU' / '110AGm' -> ('Eu', 'Eu152', ...) URL fragments."""
+    """'152EU' / '110AGm' -> (element, A, isomer suffix, padded nuclide token):
+    ('Eu', 152, '', 'Eu152') / ('Ag', 110, 'm', 'Ag110m')."""
     m = re.fullmatch(r'(\d+)([A-Z]{1,2})(m)?', curie_target)
     a, el, iso = m.groups()
     element = _BY_UPPER[el]
-    return element, f'{element}{int(a):03d}{iso or ""}'
+    return element, int(a), iso or '', f'{element}{int(a):03d}{iso or ""}'
+
+
+def index_pages(beam, curie_target):
+    """The target's HTML index-page URLs. Page URLs carry the UNPADDED mass
+    number while file paths use the zero-padded nuclide token — both
+    conventions are TENDL's own (pinned by tests/test_tendl_fetch.py)."""
+    element, a, iso, _ = tendl_paths(curie_target)
+    cap = beam.capitalize()
+    pages = [f'{BASE}/{beam}_html/{element}/{cap}{element}{a}{iso}residual.html']
+    if beam == 'neutron':
+        pages.append(pages[0].replace('residual.html', 'xs.html'))
+    return pages
 
 
 def file_urls(beam, curie_target):
     """Enumerate this target's table files from the HTML index pages.
-    Returns (urls, missing_target_flag)."""
-    element, nuc = tendl_paths(curie_target)
-    cap = beam.capitalize()
-    a_iso = nuc[len(element):]
-    pages = [f'{BASE}/{beam}_html/{element}/{cap}{element}{int(a_iso.rstrip("m")):d}'
-             f'{"m" if a_iso.endswith("m") else ""}residual.html']
-    if beam == 'neutron':
-        pages.append(pages[0].replace('residual.html', 'xs.html'))
+    Returns (urls, missing_flag). A 404'd index page sets the missing flag
+    (the target, or one of its pages, is genuinely absent upstream); any
+    other failure raises, so a transient enumeration error surfaces in the
+    failed tally instead of masquerading as 'not provided'."""
     urls, missing = set(), False
-    for page in pages:
+    for page in index_pages(beam, curie_target):
         try:
             html = http_get(page).decode('utf-8', 'replace')
-        except Exception:
+        except FileNotFoundError:
             missing = True
             continue
         urls |= {'https:' + u if u.startswith('//') else u for u in
@@ -122,28 +132,37 @@ def fetch_target(beam, curie_target):
     urls, missing = file_urls(beam, curie_target)
     if not urls:
         return curie_target, 0, None, 'not provided'
-    element, nuc = tendl_paths(curie_target)
+    element, a, iso, nuc = tendl_paths(curie_target)
     dest_dir = ARCHIVE_ROOT / 'tendl-2025' / f'{beam}_files' / element / nuc / 'tables'
+    listing_file = dest_dir / 'MANIFEST.sha256'
+    recorded = {}
+    if listing_file.exists():
+        for line in listing_file.read_text().splitlines():
+            sha, _, rel = line.partition('  ')
+            recorded[rel] = sha
     shas = {}
     for url in urls:
         rel = url.split('/tables/')[-1]
         dest = dest_dir / rel
         dest.parent.mkdir(parents=True, exist_ok=True)
+        if dest.exists() and dest.stat().st_size > 0:
+            sha = hashlib.sha256(dest.read_bytes()).hexdigest()
+            if recorded.get(rel, sha) != sha:
+                dest.unlink()  # corrupt since recorded: re-fetch below
         if not (dest.exists() and dest.stat().st_size > 0):
             data = http_get(url)
             part = dest.with_name(dest.name + '.part')
             part.write_bytes(data)
             part.replace(dest)
-        shas[rel] = hashlib.sha256(dest.read_bytes()).hexdigest()
+            sha = hashlib.sha256(data).hexdigest()
+        shas[rel] = sha
     listing = ''.join(f'{shas[k]}  {k}\n' for k in sorted(shas))
-    (dest_dir / 'MANIFEST.sha256').write_text(listing)
+    listing_file.write_text(listing)
     digest = hashlib.sha256(listing.encode()).hexdigest()
-    with _lock:
-        with open(MANIFEST, 'a') as f:
-            f.write(f'\n[[file]]\nsource = "tendl-2025/{beam}"\n'
-                    f'name = "{nuc}"\nurl = "{BASE}/{beam}_files/{element}/{nuc}/tables/"\n'
-                    f'sha256 = "{digest}"\nsize = {len(shas)}\n'
-                    f'fetched = "{date.today().isoformat()}"\n')
+    source = f'tendl-2025/{beam}'
+    if _recorded_sha(source, nuc) != digest:  # unchanged targets append nothing
+        _record(source, nuc, f'{BASE}/{beam}_files/{element}/{nuc}/tables/',
+                digest, n_files=len(shas))
     return curie_target, len(shas), digest, 'partial (some index pages missing)' if missing else 'ok'
 
 
@@ -152,13 +171,17 @@ def main():
         sys.exit(__doc__.strip())
     targets = [t.strip() for t in open(sys.argv[1]) if t.strip()]
     beams = sys.argv[2:] or BEAMS
+    unknown = [b for b in beams if b not in BEAMS]
+    if unknown:
+        sys.exit(f'unknown beam(s): {" ".join(unknown)} — choose from: {" ".join(BEAMS)}')
     for beam in beams:
         print(f'=== {beam}: {len(targets)} targets ===', flush=True)
-        done, not_provided, partial, failed = 0, [], [], []
+        done, processed, not_provided, partial, failed = 0, 0, [], [], []
         with ThreadPoolExecutor(WORKERS) as pool:
             futures = {pool.submit(fetch_target, beam, t): t for t in targets}
             for fut in as_completed(futures):
                 t = futures[fut]
+                processed += 1
                 try:
                     tgt, n, digest, note = fut.result()
                 except Exception as e:
@@ -167,11 +190,12 @@ def main():
                     continue
                 if note == 'not provided':
                     not_provided.append(tgt)
-                elif note.startswith('partial'):
+                    continue
+                if note.startswith('partial'):
                     partial.append(tgt)
                 done += 1
-                if done % 25 == 0:
-                    print(f'  ... {done}/{len(targets)}', flush=True)
+                if processed % 25 == 0:
+                    print(f'  ... {processed}/{len(targets)}', flush=True)
         print(f'{beam}: {done} targets mirrored ({len(not_provided)} not provided '
               f'by TENDL, {len(partial)} partial, {len(failed)} failed)', flush=True)
         if not_provided:

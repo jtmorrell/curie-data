@@ -1,6 +1,6 @@
 """Shared fetch layer for the data-source mirror.
 
-All network access in this repository goes through `fetch()`: throttled,
+Network access against dynamic services goes through `fetch()`: throttled,
 with a per-host User-Agent policy and a SHA256 provenance record appended
 to `sources_manifest.toml` at the repository root. Downloads are atomic
 (written to a .part file, recorded, then renamed into place), verified
@@ -8,6 +8,12 @@ against the response's Content-Length, and the resume check re-verifies an
 existing file against its recorded SHA256 — a file that fails verification
 is re-fetched. The manifest is append-only; when a file is re-fetched the
 newest entry for a (source, name) pair is the current one.
+
+The one sanctioned exception is the TENDL mirror (`tendl.py`): a static
+university archive of ~half a million small files, fetched by a bounded
+keep-alive worker pool without the per-request throttle, recording one
+directory digest per (beam, target) through `_record` (its entries carry
+`n_files` instead of a byte `size`).
 
 Builders never touch the network: they read exclusively from the local
 source archive (default `~/Documents/nucleardata/data_sources/v2/`,
@@ -65,14 +71,18 @@ def _recorded_sha(source, name):
     return _recorded.get((source, name))
 
 
-def _record(source, name, url, sha, size):
+def _record(source, name, url, sha, size=None, n_files=None):
+    """Append a manifest entry. `size` is a byte count (single files);
+    directory-digest entries pass `n_files` instead."""
+    count_line = (f'n_files = {n_files}\n' if n_files is not None
+                  else f'size = {size}\n')
     entry = (
         f'\n[[file]]\n'
         f'source = "{source}"\n'
         f'name = "{name}"\n'
         f'url = "{url}"\n'
         f'sha256 = "{sha}"\n'
-        f'size = {size}\n'
+        f'{count_line}'
         f'fetched = "{date.today().isoformat()}"\n'
     )
     with _lock:
