@@ -1,0 +1,12 @@
+# Curated isomer exclusion ledger: levels the half-life floor would admit
+# but whose admission would renumber an isomer name established in the
+# previous generation (names are load-bearing: Isotope('110AGm1') must keep
+# meaning the 249.83 d metrology state). Each entry names the level by its
+# energy; the chart builder skips it during isomer numbering and reports
+# the exclusion at the gate.
+
+[[exclude]]
+nuclide = "110AG"
+level_energy_kev = 1.112
+half_life = "660 ns"
+reason = "NUBASE2020 admits this 660 ns level under the 100 ns floor; numbering it m1 would shift the established 110AGm1 (249.83 d, 117.59 keV) to m2 and silently change Isotope('110AGm1') by ten orders of magnitude."

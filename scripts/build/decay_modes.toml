@@ -1,0 +1,253 @@
+# Decay-mode map: every mode string LiveChart emits -> the stored triple
+# label (previous-generation vocabulary preserved where one exists), the
+# daughter offset (dz, da) from the parent, and the parent mode it is a
+# subset of, if any. Delayed/subset branches (a B-N percentage is the
+# delayed-neutron probability Pn, a subset of the total B- percentage) are
+# NETTED at build time: the parent mode's branch is reduced by the sum of
+# its subsets, matching the previous generation's convention
+# (87BR: BN:86KRg:0.026, B:87KRg:0.974).
+# An unmapped mode fails the build.
+#
+# label: stored triple label (value not read by curie; kept diff-friendly)
+# dz/da: daughter Z/A offsets; absent for sentinel modes
+# sfy:   true -> daughter is the SFY sentinel
+# subset_of: LiveChart mode whose percentage this branch is contained in
+
+["B-"]
+label = "B"
+dz = 1
+da = 0
+
+["EC+B+"]
+label = "E"
+dz = -1
+da = 0
+
+["EC"]
+label = "E"
+dz = -1
+da = 0
+
+["B+"]
+label = "E"
+dz = -1
+da = 0
+
+["A"]
+label = "A"
+dz = -2
+da = -4
+
+["IT"]
+label = "IT"
+dz = 0
+da = 0
+
+["P"]
+label = "P"
+dz = -1
+da = -1
+
+["2P"]
+label = "2P"
+dz = -2
+da = -2
+
+["N"]
+label = "N"
+dz = 0
+da = -1
+
+["2N"]
+label = "2N"
+dz = 0
+da = -2
+
+["2B-"]
+label = "2B"
+dz = 2
+da = 0
+
+["2EC"]
+label = "2E"
+dz = -2
+da = 0
+
+["2B+"]
+label = "2E"
+dz = -2
+da = 0
+
+["B-N"]
+label = "BN"
+dz = 1
+da = -1
+subset_of = "B-"
+
+["B-2N"]
+label = "B2N"
+dz = 1
+da = -2
+subset_of = "B-"
+
+["B-3N"]
+label = "B3N"
+dz = 1
+da = -3
+subset_of = "B-"
+
+["B-4N"]
+label = "B4N"
+dz = 1
+da = -4
+subset_of = "B-"
+
+["B-5N"]
+label = "B5N"
+dz = 1
+da = -5
+subset_of = "B-"
+
+["B-6N"]
+label = "B6N"
+dz = 1
+da = -6
+subset_of = "B-"
+
+["B-7N"]
+label = "B7N"
+dz = 1
+da = -7
+subset_of = "B-"
+
+["B-P"]
+label = "BP"
+dz = 0
+da = -1
+subset_of = "B-"
+
+["B-A"]
+label = "BA"
+dz = -1
+da = -4
+subset_of = "B-"
+
+["ECP"]
+label = "EP"
+dz = -2
+da = -1
+subset_of = "EC+B+"
+
+["EC2P"]
+label = "E2P"
+dz = -3
+da = -2
+subset_of = "EC+B+"
+
+["B+P"]
+label = "EP"
+dz = -2
+da = -1
+subset_of = "EC+B+"
+
+["B+2P"]
+label = "E2P"
+dz = -3
+da = -2
+subset_of = "EC+B+"
+
+["ECA"]
+label = "EA"
+dz = -3
+da = -4
+subset_of = "EC+B+"
+
+["B+A"]
+label = "EA"
+dz = -3
+da = -4
+subset_of = "EC+B+"
+
+["SF"]
+label = "SF"
+sfy = true
+
+["ECSF"]
+label = "ESF"
+sfy = true
+subset_of = "EC+B+"
+
+["B-SF"]
+label = "BSF"
+sfy = true
+subset_of = "B-"
+
+# LiveChart could not separate the three channels for a handful of heavy
+# nuclides; the combined percentage is stored on the SF sentinel and the
+# case is listed in the build report.
+["SF+EC+B+"]
+label = "SF"
+sfy = true
+
+["D"]
+label = "D"
+dz = -1
+da = -2
+
+["3H"]
+label = "T"
+dz = -1
+da = -3
+
+["3HE"]
+label = "3HE"
+dz = -2
+da = -3
+
+["8BE"]
+label = "8BE"
+dz = -4
+da = -8
+
+# cluster emission
+["14C"]
+label = "14C"
+dz = -6
+da = -14
+
+["{+22}Ne"]
+label = "22NE"
+dz = -10
+da = -22
+
+["24NE"]
+label = "24NE"
+dz = -10
+da = -24
+
+["{+24}Ne"]
+label = "24NE"
+dz = -10
+da = -24
+
+["{+25}Ne"]
+label = "25NE"
+dz = -10
+da = -25
+
+# LiveChart writes the bare element for 234U's cluster mode; the emitted
+# cluster is 28Mg (234U -> 28Mg + 206Hg).
+["Mg"]
+label = "28MG"
+dz = -12
+da = -28
+
+["34SI"]
+label = "34SI"
+dz = -14
+da = -34
+
+["{+34}Si"]
+label = "34SI"
+dz = -14
+da = -34
