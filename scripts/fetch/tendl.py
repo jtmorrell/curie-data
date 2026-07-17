@@ -132,7 +132,7 @@ def fetch_target(beam, curie_target):
     urls, missing = file_urls(beam, curie_target)
     if not urls:
         return curie_target, 0, None, 'not provided'
-    element, a, iso, nuc = tendl_paths(curie_target)
+    element, _, _, nuc = tendl_paths(curie_target)
     dest_dir = ARCHIVE_ROOT / 'tendl-2025' / f'{beam}_files' / element / nuc / 'tables'
     listing_file = dest_dir / 'MANIFEST.sha256'
     recorded = {}

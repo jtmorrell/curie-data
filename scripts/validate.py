@@ -513,8 +513,9 @@ def _tendl_rp_endf_checks(con, builder, src):
     Fe056 tables from the same generation's s30 file (proving the
     extraction physics), and each ingested table must equal a fresh
     re-extraction (the same identity standard as the mirror targets)."""
+    import re as _re
     import numpy as np
-    from tendl_rp_endf import endf_targets, extract_products
+    from tendl_rp_endf import assemble_endf, endf_targets, extract_products
 
     fe_file = builder.ARCHIVE_ROOT / 'tendl-2025' / 'p-Fe056-s30.tendl'
     fe_tables = builder.ARCHIVE_ROOT / 'tendl-2025' / 'proton_files' / 'Fe' / 'Fe056' / 'tables' / 'residual'
@@ -523,10 +524,17 @@ def _tendl_rp_endf_checks(con, builder, src):
               False, str(fe_file))
         return
     ext = extract_products(fe_file)
-    bad = []
+    ext_nuclides = {_re.sub(r'(g|m\d+)$', '', k) for k in ext}
+    bad, compared, state_mismatch = [], 0, []
     for name, rows in builder.collect_target(fe_tables).items():
         if name not in ext:
-            continue  # the tables print extra tiny products the ENDF file curates away
+            # legitimate only when the ENDF file curates the whole nuclide
+            # away; a present nuclide with a MISSING state name means the
+            # state ranking diverged — exactly what this gate must catch
+            if _re.sub(r'(g|m\d+)$', '', name) in ext_nuclides:
+                state_mismatch.append(name)
+            continue
+        compared += 1
         e_t = np.array([e for e, _ in rows])
         x_t = np.array([x for _, x in rows])
         e_x = np.array([e for e, _ in ext[name]])
@@ -544,15 +552,17 @@ def _tendl_rp_endf_checks(con, builder, src):
         if fail.any():
             j = int(np.argmax(absd * fail))
             bad.append((name, f'{e_t[j]} MeV: {x_t[j]:.4g} vs {x_i[j]:.4g}'))
-    check('rp-from-ENDF-6 extraction reproduces the TENDL-2025 Fe056 tables',
-          not bad, str(bad[:3]))
+    # the gate must not pass vacuously: an empty extraction or a state-set
+    # divergence is a failure even though the per-point loop saw nothing
+    check(f'rp-from-ENDF-6 extraction reproduces the TENDL-2025 Fe056 tables '
+          f'({compared} products compared)',
+          not bad and not state_mismatch and compared >= 100,
+          str((bad + [('state set', state_mismatch[:5])]) if state_mismatch
+              else bad[:3]) if (bad or state_mismatch) else f'{compared} compared')
 
     mismatch = []
     for curie_tgt, tab, path in endf_targets(src):
-        products = extract_products(path)
-        cols = sorted(products)
-        from common import union_grid_stack
-        grid, data = union_grid_stack([products[c] for c in cols])
+        cols, grid, data = assemble_endf(path)
         got = q(con, f'SELECT * FROM {tab} ORDER BY rowid')
         if [tuple(r) for r in got] != [tuple(r) for r in data.tolist()]:
             mismatch.append(tab)

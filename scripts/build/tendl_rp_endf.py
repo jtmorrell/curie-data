@@ -39,7 +39,7 @@ from pathlib import Path
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).parent))
-from common import ARCHIVE_ROOT, ELEMENTS
+from common import ARCHIVE_ROOT, ELEMENTS, union_grid_stack
 
 # emitted (Z, A) per exclusive MT, incident-proton sublibrary
 EMIT = {4: (0, 1), 11: (1, 4), 16: (0, 2), 17: (0, 3), 22: (2, 5),
@@ -62,9 +62,15 @@ BACKBONE_MEV = np.arange(0.25, 200.001, 0.25)
 
 
 def _eval(tab, e_ev):
-    """Evaluate an endf Tabulated1D at each energy (its own interpolation
-    laws apply within each contribution's source grid)."""
-    return np.array([tab(e) for e in e_ev], float)
+    """Evaluate an endf Tabulated1D at each energy — its own interpolation
+    laws inside the tabulated range, ZERO outside it. (The scalar call
+    constant-extrapolates the endpoint ordinates; the TALYS threshold
+    convention makes those ~0, but nothing downstream should depend on
+    that, and the union/backbone grid reaches below thresholds.)"""
+    e = np.asarray(e_ev, float)
+    v = np.array([tab(x) for x in e], float)
+    v[(e < tab.x[0]) | (e > tab.x[-1])] = 0.0
+    return v
 
 
 def endf_targets(mirror_src):
@@ -81,6 +87,16 @@ def endf_targets(mirror_src):
             continue
         out.append((f'{a}{el.upper()}', f'{el.upper()}_{a}', p))
     return out
+
+
+def assemble_endf(path):
+    """(cols, grid, data) for one ENDF-6 target — the exact content the
+    build writes, shared by the builder's ingest loop and the validator's
+    re-extraction gate (one recipe, no hand-maintained copy)."""
+    products = extract_products(path)
+    cols = sorted(products)
+    grid, data = union_grid_stack([products[c] for c in cols])
+    return cols, grid, data
 
 
 def extract_products(path, e_max_mev=200.0):

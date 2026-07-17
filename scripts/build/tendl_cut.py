@@ -56,10 +56,13 @@ def criteria_cut():
     return grounds, isomer_ok
 
 
-def probe_isomers(grounds):
-    """Enumerate the isomeric targets TENDL provides for these ground
-    states (any beam's isomer index page answers 200) and rewrite the
-    committed enumeration file."""
+def probe_isomers(bare_names):
+    """Enumerate the isomeric targets TENDL provides for these bare
+    nuclide names (any beam's isomer index page answers 200) and rewrite
+    the committed enumeration file. Candidates must span every name the
+    admission check in main() would accept — the grounds AND the nuclides
+    admitted through their isomer (180Ta), or regeneration would silently
+    drop the latter."""
     sys.path.insert(0, str(Path(__file__).parents[1] / 'fetch'))
     from tendl import BEAMS, http_get, index_pages
 
@@ -68,11 +71,11 @@ def probe_isomers(grounds):
             try:
                 http_get(index_pages(beam, iso_target)[0])
                 return True
-            except Exception:
-                continue
-        return False
+            except FileNotFoundError:
+                continue        # 404: this beam genuinely lacks the target
+        return False            # a transient network error propagates instead
 
-    candidates = sorted(g + 'm' for g in grounds)
+    candidates = sorted(n + 'm' for n in bare_names)
     with ThreadPoolExecutor(12) as pool:
         hits = [t for t, ok in zip(candidates, pool.map(provided, candidates)) if ok]
     ISOMERS.write_text('\n'.join(hits) + '\n')
@@ -82,7 +85,7 @@ def probe_isomers(grounds):
 def main():
     grounds, isomer_ok = criteria_cut()
     if '--probe-isomers' in sys.argv[1:]:
-        probe_isomers(grounds)
+        probe_isomers(grounds | isomer_ok)
     cut = grounds | v1_targets()
     if ISOMERS.exists():
         cut |= {t for t in (s.strip() for s in ISOMERS.read_text().splitlines())

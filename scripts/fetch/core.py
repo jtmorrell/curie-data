@@ -63,11 +63,17 @@ _recorded = None  # (source, name) -> sha256, newest entry wins; lazy-loaded
 def _recorded_sha(source, name):
     global _recorded
     if _recorded is None:
-        _recorded = {}
-        if MANIFEST.exists():
-            with open(MANIFEST, 'rb') as f:
-                for entry in tomllib.load(f).get('file', []):
-                    _recorded[(entry['source'], entry['name'])] = entry['sha256']
+        # built under the lock and published only when complete: the TENDL
+        # mirror calls this from a worker pool, and a half-populated cache
+        # would fabricate spurious not-recorded verdicts (duplicate appends)
+        with _lock:
+            if _recorded is None:
+                cache = {}
+                if MANIFEST.exists():
+                    with open(MANIFEST, 'rb') as f:
+                        for entry in tomllib.load(f).get('file', []):
+                            cache[(entry['source'], entry['name'])] = entry['sha256']
+                _recorded = cache
     return _recorded.get((source, name))
 
 

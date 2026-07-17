@@ -132,11 +132,9 @@ def main():
     # TENDL-2023 — no public host serves TENDL-2025 proton Nb)
     ingested = []
     if beam == 'proton':
-        from tendl_rp_endf import endf_targets, extract_products
+        from tendl_rp_endf import assemble_endf, endf_targets
         for curie_tgt, table, path in endf_targets(src):
-            products = extract_products(path)
-            cols = sorted(products)
-            grid, data = union_grid_stack([products[c] for c in cols])
+            cols, grid, data = assemble_endf(path)
             write_target(con, curie_tgt, table, cols, data)
             n_products += len(cols)
             ingested.append(curie_tgt)
