@@ -3,20 +3,29 @@
 Creates one DRAFT release per tag (drafts publish no git tag and are
 invisible to the fetch URLs until published) and uploads that tag's assets:
 the whole files, SHA256SUMS and data_manifest.toml on the generation tag,
-and each shard directory on its own <generation>-<library> tag. The run is
-resumable: an asset already present with the right size is skipped, one
-with the wrong size is replaced, so an interrupted or rate-limited run is
-finished by running again. Verification lists every release's assets and
-compares names against the curie registry; publishing (which creates the
-tags and makes the download URLs live) is a separate explicit step.
+and each shard directory on its own <generation>-<library> tag. The
+generation and every tag name derive from the curie registry (base_url and
+the per-group base_urls), so the uploaded layout can never disagree with
+what curie will fetch. The run is resumable: an asset already present with
+the right size is skipped, one with the wrong size is replaced, and the
+two metadata files (SHA256SUMS, data_manifest.toml) are always replaced —
+their size barely moves when their content changes, so size is no proxy
+for them. API rate-limit exhaustion sleeps until the advertised reset.
+
+`verify` first proves the LOCAL files match the registry checksums
+byte-for-byte (whole files and every shard), then that every release
+holds exactly the planned asset names at the local sizes; since uploads
+are single atomic POSTs, hash-verified-local + name/size-verified-remote
+pins the published set. `publish` (which creates the tags and makes the
+download URLs live) refuses to run on anything but a clean verify.
 
 Everything uses the REST API only (the maintainer token cannot use
 GraphQL); the token comes from GITHUB_TOKEN or `gh auth token`.
 
 Usage:
-    python3 release_upload.py upload [--generation v2]
-    python3 release_upload.py verify [--generation v2]
-    python3 release_upload.py publish [--generation v2]
+    python3 release_upload.py upload
+    python3 release_upload.py verify
+    python3 release_upload.py publish
 """
 import argparse
 import hashlib
@@ -34,14 +43,18 @@ API = 'https://api.github.com'
 UPLOADS = 'https://uploads.github.com'
 ROOT = Path(__file__).resolve().parents[1]
 REGISTRY = ROOT.parent / 'curie' / 'curie' / 'data_registry.json'
+METADATA = ('SHA256SUMS', 'data_manifest.toml')  # size-stable: always replace
+
+_TOKEN = None
 
 
 def _token():
-    tok = os.environ.get('GITHUB_TOKEN')
-    if not tok:
-        tok = subprocess.run(['gh', 'auth', 'token'], capture_output=True,
-                             text=True, check=True).stdout.strip()
-    return tok
+    global _TOKEN
+    if _TOKEN is None:
+        _TOKEN = os.environ.get('GITHUB_TOKEN') or subprocess.run(
+            ['gh', 'auth', 'token'], capture_output=True, text=True,
+            check=True).stdout.strip()
+    return _TOKEN
 
 
 def _request(url, method='GET', data=None, content_type='application/json',
@@ -49,18 +62,21 @@ def _request(url, method='GET', data=None, content_type='application/json',
     attempt, rate_waits = 0, 0
     while True:
         req = urllib.request.Request(url, method=method, data=data, headers={
-            'Authorization': 'Bearer ' + _TOKEN,
+            'Authorization': 'Bearer ' + _token(),
             'Accept': 'application/vnd.github+json',
             'X-GitHub-Api-Version': '2022-11-28',
             'Content-Type': content_type})
         try:
-            with urllib.request.urlopen(req, timeout=300) as resp:
+            with urllib.request.urlopen(req, timeout=600) as resp:
                 body = resp.read()
                 return json.loads(body) if body else None
         except urllib.error.HTTPError as e:
             # 422 on an asset upload means the name already exists (a
-            # concurrent or interrupted upload won the race): caller skips
+            # concurrent or interrupted upload won the race): caller skips.
+            # 404 on an asset DELETE means it is already gone.
             if e.code == 422 and '/assets?' in url:
+                return None
+            if e.code == 404 and method == 'DELETE':
                 return None
             # a full generation is ~2,900 requests against the 5,000/hour
             # limit: on exhaustion, sleep until the advertised reset and
@@ -113,33 +129,43 @@ def _assets(release_id):
         page += 1
 
 
-def _plan(generation):
-    """[(tag, [paths])] for the generation: whole files + per-library shards."""
+def _plan(write_sums=False):
+    """(generation, [(tag, [paths])]) from the registry: whole files +
+    metadata on the generation tag, each shard group on its own tag. Only
+    an upload regenerates SHA256SUMS; verify/publish read what upload
+    wrote."""
     build = ROOT / 'build'
     reg = json.loads(REGISTRY.read_text())
+    generation = reg['base_url'].rstrip('/').rsplit('/', 1)[-1]
     whole = [build / f for f in sorted(reg['files'])]
     missing = [str(p) for p in whole if not p.is_file()]
     if missing:
         sys.exit('whole files missing from build/: {}'.format(missing))
     sums = build / 'SHA256SUMS'
-    sums.write_text(''.join(
-        '{}  {}\n'.format(hashlib.sha256(p.read_bytes()).hexdigest(), p.name)
-        for p in whole))
-    plan = [(generation, whole + [sums, ROOT / 'data_manifest.toml'])]
+    if write_sums:
+        sums.write_text(''.join(
+            '{}  {}\n'.format(hashlib.sha256(p.read_bytes()).hexdigest(), p.name)
+            for p in whole))
+    manifest = ROOT / 'data_manifest.toml'
+    for p in (sums, manifest):
+        if not p.is_file():
+            sys.exit('{} missing (run upload first)'.format(p))
+    plan = [(generation, whole + [sums, manifest])]
     for lib, group in sorted(reg['shards'].items()):
         tag = group['base_url'].rstrip('/').rsplit('/', 1)[-1]
-        shard_dir = ROOT / 'shards-v2' / lib
+        shard_dir = ROOT / 'shards-{}'.format(generation) / lib
         paths = [shard_dir / f for f in sorted(group['files'])]
         missing = [str(p) for p in paths if not p.is_file()]
         if missing:
             sys.exit('{}: shards missing on disk: {}...'.format(tag, missing[:3]))
         plan.append((tag, paths))
-    return plan
+    return generation, plan
 
 
-def upload(generation):
+def upload():
+    generation, plan = _plan(write_sums=True)
     releases = _releases()
-    for tag, paths in _plan(generation):
+    for tag, paths in plan:
         rel = releases.get(tag)
         if rel is None:
             rel = _request(f'{API}/repos/{REPO}/releases', method='POST',
@@ -155,7 +181,7 @@ def upload(generation):
         for p in paths:
             a = have.get(p.name)
             if a is not None:
-                if a['size'] == p.stat().st_size:
+                if a['size'] == p.stat().st_size and p.name not in METADATA:
                     n_skip += 1
                     continue
                 _request(f'{API}/repos/{REPO}/releases/assets/{a["id"]}',
@@ -171,10 +197,29 @@ def upload(generation):
             tag, n_up, n_skip, len(paths)), flush=True)
 
 
-def verify(generation):
+def verify():
+    generation, plan = _plan()
+    reg = json.loads(REGISTRY.read_text())
+    # local disk must equal the registry checksums byte-for-byte: whole
+    # files and every shard (the uploads are atomic single POSTs, so
+    # hash-verified local + name/size-verified remote pins the release)
+    bad_hash = []
+    for f, sha in reg['files'].items():
+        p = ROOT / 'build' / f
+        if hashlib.sha256(p.read_bytes()).hexdigest() != sha:
+            bad_hash.append(f)
+    for lib, group in reg['shards'].items():
+        for f, sha in group['files'].items():
+            p = ROOT / 'shards-{}'.format(generation) / lib / f
+            if hashlib.sha256(p.read_bytes()).hexdigest() != sha:
+                bad_hash.append(f)
+    n_checked = len(reg['files']) + sum(len(g['files']) for g in reg['shards'].values())
+    print('local files vs registry checksums: {} checked, {} mismatched{}'.format(
+        n_checked, len(bad_hash), ' ' + str(bad_hash[:5]) if bad_hash else ''))
+    ok = not bad_hash
+
     releases = _releases()
-    ok = True
-    for tag, paths in _plan(generation):
+    for tag, paths in plan:
         rel = releases.get(tag)
         if rel is None:
             print('{}: MISSING release'.format(tag))
@@ -187,18 +232,21 @@ def verify(generation):
         bad = sorted(n for n in wanted if n in have
                      and have[n]['size'] != wanted[n])
         state = 'draft' if rel['draft'] else 'published'
+        def _fmt(lst):
+            return '{} {}'.format(len(lst), lst[:3]) if lst else '0'
         print('{} ({}): {} assets; absent {}, extra {}, size-mismatched {}'.format(
-            tag, state, len(have), absent[:3] or 0, extra[:3] or 0, bad[:3] or 0))
+            tag, state, len(have), _fmt(absent), _fmt(extra), _fmt(bad)))
         ok = ok and not (absent or extra or bad)
     print('VERIFY: ' + ('OK' if ok else 'INCOMPLETE'))
     return ok
 
 
-def publish(generation):
-    if not verify(generation):
-        sys.exit('refusing to publish an incomplete upload')
+def publish():
+    if not verify():
+        sys.exit('refusing to publish an incomplete or mismatched upload')
+    _, plan = _plan()
     releases = _releases()
-    for tag, _ in _plan(generation):
+    for tag, _ in plan:
         rel = releases[tag]
         if rel['draft']:
             _request(f'{API}/repos/{REPO}/releases/{rel["id"]}', method='PATCH',
@@ -211,7 +259,5 @@ def publish(generation):
 if __name__ == '__main__':
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument('command', choices=['upload', 'verify', 'publish'])
-    ap.add_argument('--generation', default='v2')
     args = ap.parse_args()
-    _TOKEN = _token()
-    {'upload': upload, 'verify': verify, 'publish': publish}[args.command](args.generation)
+    {'upload': upload, 'verify': verify, 'publish': publish}[args.command]()
