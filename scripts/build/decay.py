@@ -601,7 +601,7 @@ def _state_norm(norms, base, st, lab):
     return norms.get((base, round(st[2], 1), lab))
 
 
-def build_radiation(con, identities, iso_rows, norms):
+def build_radiation(con, identities, iso_rows, norms, pace_g):
     """The five radiation tables, keyed (isotope short name, isomer) with
     intensities as served: absolute percent per 100 decays of the parent
     state, branching folded in. gammas carry the additive unc_norm column
@@ -643,7 +643,45 @@ def build_radiation(con, identities, iso_rows, norms):
         # served (synthesis from the beta-plus total is the fallback).
         unplaced = []
         file_511 = set()
-        for row in rad_rows(a, symbol, 'decay_rads_g.csv'):
+        g_file = rad_rows(a, symbol, 'decay_rads_g.csv')
+
+        # a dataset whose placed rows ALL lack intensities is served that
+        # way when LiveChart does not apply the dataset's normalization —
+        # rebuild such datasets from the ENSDF side instead (the source's
+        # relative intensities times its normalization record, the same
+        # quantity LiveChart serves elsewhere). Per-row blanks inside an
+        # otherwise-normalized dataset stay dropped: there the source
+        # itself gives no intensity.
+        has_i = {}
+        for row in g_file:
+            if not (row.get('start_level_energy', '').strip()
+                    or row.get('end_level_energy', '').strip()):
+                continue
+            st = match_state(row, states)
+            spec = MODE_MAP.get(row.get('decay', '').strip())
+            if st is None or spec is None:
+                continue
+            key = (st, spec['label'])
+            has_i[key] = has_i.get(key, False) \
+                or fnum(row.get('intensity')) is not None
+        recovered = set()
+        for (st, lab), has in has_i.items():
+            if has or (st[3] and st[2] == 0.0):  # zero-offset band isomer:
+                continue                         # key collides with g's
+            rec = pace_g.get((base, round(st[2], 1), lab))
+            if rec is None:
+                continue
+            mult, rel, gl = rec
+            for e_g, _, ri, dri in gl:
+                if not _accept_intensity(ri * mult, 'gammas', base, e_g):
+                    continue
+                g_rows.append((base, st[1], st[0], e_g, ri * mult,
+                               dri * mult if dri else None, '', lab, rel))
+            recovered.add((st, lab))
+            report.setdefault('blank_dataset_recovered', []).append(
+                (base, st[0], lab, len(gl)))
+
+        for row in g_file:
             placed = (row.get('start_level_energy', '').strip()
                       or row.get('end_level_energy', '').strip())
             e_g = fnum(row.get('energy'))
@@ -670,9 +708,11 @@ def build_radiation(con, identities, iso_rows, norms):
             st = find_state(row)
             if st is None:
                 continue
+            lab = _rad_label(row.get('decay', '').strip())
+            if (st, lab) in recovered:
+                continue
             if not _accept_intensity(i, 'gammas', base, e_g):
                 continue
-            lab = _rad_label(row.get('decay', '').strip())
             g_rows.append(_gamma_row(base, st, e_g, i,
                                      fnum(row.get('unc_i')), '', lab, norms))
 
@@ -838,14 +878,76 @@ def build_radiation(con, identities, iso_rows, norms):
           f'{len(bm_rows)} beta-, {len(bp_rows)} beta+')
 
 
+_PACE_LABEL = {'electronCaptureBetaPlusDecay': 'E', 'betaMinusDecay': 'B',
+               'alphaDecay': 'A'}
+
+
+def _pace_multiplier(ds):
+    """(multiplier, relative unc) converting a dataset's relative gamma
+    intensities to percent per 100 parent-state decays: NR*BR from the
+    dataset's N record, (None, None) when it has none. recordExistsNR is
+    load-bearing: absent records are served as a defaulted NR of 1.0
+    (the production-normalization block is the same default-padded echo
+    — its multiplier is always NR*BR and its exists flag is never set —
+    so it is not consulted), and treating a default as a normalization
+    would ship a dataset's RELATIVE intensities as absolute."""
+    for block in ds.get('decaySchemeNormalization') or []:
+        for n in block.get('normalizationRecord') or []:
+            nr = n.get('multiplerPhotonIntensity')
+            if n.get('recordExistsNR') and nr:
+                br = n.get('multiplerBranchingRatio') \
+                    if n.get('recordExistsBR') else 1.0
+                if not br:
+                    continue
+                u_nr = n.get('dMultiplerPhotonIntensity') or 0.0
+                u_br = n.get('dMultiplerBranchingRatio') or 0.0
+                rel = ((u_nr / nr) ** 2 + (u_br / br) ** 2) ** 0.5
+                return nr * br, (rel or None)
+    return None, None
+
+
+def _pace_recovery(data):
+    """{(base, parent_E_kev rounded, label): (multiplier, rel unc,
+    [(E, dE, RI, dRI) ascending])} for every ENSDF dataset with a usable
+    normalization and relative-intensity gamma records — the source for
+    datasets whose LiveChart rows serve no intensities."""
+    out = {}
+    for ds in data:
+        m = re.fullmatch(r'([A-Za-z]+)(\d+)', str(ds.get('parentID', '')))
+        lab = _PACE_LABEL.get(ds.get('decayMode'))
+        if not m or lab is None:
+            continue
+        try:                              # band-level parents ('0.0+X') skip
+            ple = float(ds['levelEnergyParentDecay'])
+        except (KeyError, TypeError, ValueError):
+            continue
+        mult, rel = _pace_multiplier(ds)
+        if mult is None:
+            continue
+        gl = sorted(((g['gammaEnergy'], g.get('dGammaEnergy'),
+                      g['gammaIntensity'], g.get('dGammaIntensity'))
+                     for lvl in ds.get('levelScheme') or []
+                     for g in lvl.get('gammaDecay') or []
+                     if isinstance(g.get('gammaEnergy'), (int, float))
+                     and isinstance(g.get('gammaIntensity'), (int, float))
+                     and g['gammaEnergy'] and g['gammaIntensity']),
+                    key=lambda t: t[0])
+        if gl:
+            base = f'{m.group(2)}{m.group(1).upper()}'
+            out[(base, round(ple, 1), lab)] = (mult, rel, gl)
+    return out
+
+
 def load_norms(identities, iso_rows):
     """{(base, state_E_kev rounded, label): relative NR*BR uncertainty}
-    from the ENSDF normalization records via paceENSDF."""
+    from the ENSDF normalization records via paceENSDF, plus the
+    _pace_recovery lookup built from the same load."""
     try:
         import paceENSDF
     except ImportError:
-        print('  (paceENSDF unavailable — unc_norm ships NULL)')
-        return {}
+        print('  (paceENSDF unavailable — unc_norm ships NULL, no '
+              'blank-intensity recovery)')
+        return {}, {}
     import contextlib
     import io
     e = paceENSDF.ENSDF()
@@ -882,7 +984,7 @@ def load_norms(identities, iso_rows):
                            ((u_br / br) ** 2 if br > 0 else 0.0)) ** 0.5
                     norms[(base, round(e_kev, 1), lab)] = rel
                     report['norm_records_joined'] += 1
-    return norms
+    return norms, _pace_recovery(data)
 
 
 def nubase_iso_hl(nubase, a, z, e_kev):
@@ -1055,8 +1157,8 @@ def main():
                     rows)
     con.commit()
 
-    norms = load_norms(identities, iso_rows)
-    build_radiation(con, identities, iso_rows, norms)
+    norms, pace_g = load_norms(identities, iso_rows)
+    build_radiation(con, identities, iso_rows, norms, pace_g)
     write_version(con, 'decay',
                   'ENSDF via IAEA LiveChart API mirror (chart + radiation), '
                   'NUBASE2020/AME2020 closure and estimates, ENSDF N-records '
@@ -1090,6 +1192,12 @@ def main():
     for table, counts in sorted(report['blank_intensity_dropped'].items()):
         print(f'  blank-intensity rows dropped from {table}: '
               f'{sum(counts.values())} across {len(counts)} nuclides')
+    if report.get('blank_dataset_recovered'):
+        rec = report['blank_dataset_recovered']
+        print(f'  all-blank gamma datasets rebuilt from ENSDF '
+              f'normalization: {len(rec)} datasets, '
+              f'{sum(n for *_, n in rec)} rows — '
+              f'{[(b, s, l) for b, s, l, _ in rec[:8]]}')
     if report['orphan_state_rows']:
         print(f'  rows keyed to non-admitted parent states (dropped): '
               f'{sum(report["orphan_state_rows"].values())} across '

@@ -793,6 +793,16 @@ def validate_decay(con):
          "isomer='g' AND ABS(energy-1173.228)<0.05 AND "
          "ABS(coinc_energy-1332.492)<0.05 AND coinc_type='g'",
          lambda v: abs(v[0] - 99.834) < 0.1),
+        # datasets LiveChart serves without intensities, rebuilt from the
+        # ENSDF relative intensities times the normalization record
+        ('132LA 464.55 keV = 76(4)% (rebuilt from ENSDF normalization)',
+         "SELECT intensity FROM gammas WHERE isotope='132LA' AND "
+         "isomer='g' AND ABS(energy-464.55)<0.05",
+         lambda v: abs(v[0] - 76.0) < 0.5),
+        ('108IN 632.9 keV = 100% (rebuilt from ENSDF normalization)',
+         "SELECT intensity FROM gammas WHERE isotope='108IN' AND "
+         "isomer='g' AND ABS(energy-632.9)<0.6",
+         lambda v: abs(v[0] - 100.0) < 2.0),
     ]
     for label, sql, ok_fn in anchors:
         v = one(sql)
