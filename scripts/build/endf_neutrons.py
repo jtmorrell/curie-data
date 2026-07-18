@@ -212,7 +212,11 @@ def main():
     all_unmapped, no_damage, failures = {}, [], []
     n_done = 0
     with tarfile.open(TARBALL) as t:
-        members = [m for m in t.getmembers() if m.name.endswith('.endf')]
+        # the free-neutron evaluation (n-000_n_001) is excluded: Z=0 has no
+        # element symbol, so the derived table name would collide with
+        # nitrogen (N_1), and curie never addresses the neutron as a target
+        members = [m for m in t.getmembers() if m.name.endswith('.endf')
+                   and not Path(m.name).name.startswith('n-000_')]
         print(f'{len(members)} materials; tolerance {tol}')
         for m in sorted(members, key=lambda m: m.name):
             fname = Path(m.name).name

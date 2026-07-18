@@ -297,7 +297,8 @@ def validate_endf(con):
           not missing_tab, str(missing_tab[:3]))
     targets = _wide_table_checks(con, idx,
                                  ['target', 'outgoing', 'product', 'label'])
-    check('material count (VIII.1 = 558)', len(targets) == 558, str(len(targets)))
+    check('material count (VIII.1 = 558 minus the excluded free-neutron '
+          'evaluation)', len(targets) == 557, str(len(targets)))
 
     # spot anchors at 0.0253 eV, incl. the computed-absorption column and
     # residual-product identities (the two derived quantities)

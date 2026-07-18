@@ -17,8 +17,8 @@ sha256 = "403453300c4e81237466dfe23165eb1581405825aa337e2a98252fa49f6ef87d"
 source = "ENSDF via IAEA LiveChart mirror (2026-07-16) + NUBASE2020/AME2020 closure and estimates + ENDF/B-VIII.1 MF8 fission yields (MT454 independent + MT459 cumulative) + paceENSDF coincidences and normalization records"
 
 [db."endf.db"]
-size_bytes = 842231808
-sha256 = "85c2f0ad4d9b9c07a20468dc8390b35e2b56e99c5742313a1d9516e31f0c31c5"
+size_bytes = 842215424
+sha256 = "ad3163becb085c36a6eca02e1a14979bb70cf3ce5c19f8ec143e34b670582cff"
 source = "ENDF/B-VIII.1 neutron sublibrary, NJOY2016 RECONR (tolerance 0.005) + HEATR damage"
 
 [db."iaea_monitors.db"]
