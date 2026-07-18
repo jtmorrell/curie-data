@@ -12,7 +12,7 @@ Usage (from a checkout of curie-data, with curie checked out alongside):
                                               [--out shards/<library>]
                                               [--registry ../curie/curie/data_registry.json]
 
-where <library> is one of: endf, tendl, tendl_n_rp, tendl_p_rp, tendl_d_rp.
+where <library> is one of: endf, tendl, tendl_n_rp, tendl_p_rp, tendl_d_rp, tendl_a_rp.
 
 Writes <out>/<library>_<TABLE>.db, one per table, and updates the library's
 shard group in the curie registry (per-shard SHA256s; the group's base_url —
@@ -45,15 +45,19 @@ def shard(library, source, out_dir):
 	# stale shards from a previous run would be uploaded as assets the
 	# registry never references; match the full shard-name shape so that
 	# e.g. 'tendl' cleanup cannot eat 'tendl_n_rp' shards in a shared out dir
-	stale = re.compile(r'^{}_([A-Z][A-Za-z0-9_]*|all_reactions)\.db$'.format(re.escape(library)))
+	stale = re.compile(r'^{}_([A-Z][A-Za-z0-9_]*|all_reactions|_version)\.db$'.format(re.escape(library)))
 	for old in os.listdir(out_dir):
 		if stale.match(old):
 			os.remove(os.path.join(out_dir, old))
 	src = sqlite3.connect(source)
 	# SQLite-internal tables (sqlite_sequence etc.) and schemaless rows are
-	# not shardable content
+	# not shardable content. Underscore tables are metadata: _version ships
+	# as a shard (the assembled local database needs the generation stamp
+	# for the connection-time skew check), build-internal ones (_build_meta)
+	# live in the whole file only.
 	schemas = {n: s for n, s in src.execute("SELECT name, sql FROM sqlite_master WHERE type='table'")
-			   if s and not n.startswith('sqlite_')}
+			   if s and not n.startswith('sqlite_')
+			   and (not n.startswith('_') or n == '_version')}
 	src.close()
 
 	entries = {}
@@ -79,10 +83,14 @@ def shard(library, source, out_dir):
 def main():
 	ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
 	root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-	ap.add_argument('library', choices=['endf', 'tendl', 'tendl_n_rp', 'tendl_p_rp', 'tendl_d_rp'])
+	ap.add_argument('library', choices=['endf', 'tendl', 'tendl_n_rp', 'tendl_p_rp', 'tendl_d_rp', 'tendl_a_rp'])
 	ap.add_argument('--source', default=None)
 	ap.add_argument('--out', default=None)
 	ap.add_argument('--registry', default=os.path.join(root, '..', 'curie', 'curie', 'data_registry.json'))
+	ap.add_argument('--release-prefix', default=None,
+		help="release-tag prefix for this data generation (e.g. 'v2'): points the "
+		     "group's base_url at <prefix>-<library>; omitted, an existing group's "
+		     "base_url is preserved and a new one seeds at v1")
 	args = ap.parse_args()
 	source = args.source or os.path.join(root, '..', 'curie', 'curie', 'data', args.library + '.db')
 	out = args.out or os.path.join(root, 'shards', args.library)
@@ -104,7 +112,13 @@ def main():
 
 	entries = shard(args.library, source, out)
 	group = registry.setdefault('shards', {}).setdefault(args.library, {})
-	if 'base_url' not in group:
+	if args.release_prefix:
+		url = 'https://github.com/jtmorrell/curie-data/releases/download/{}-{}/'.format(
+			args.release_prefix, args.library.replace('_', '-'))
+		if group.get('base_url') != url:
+			group['base_url'] = url
+			print('NOTE: shard group base_url set to {} - create that release tag before shipping.'.format(url))
+	elif 'base_url' not in group:
 		group['base_url'] = 'https://github.com/jtmorrell/curie-data/releases/download/v1-{}/'.format(args.library.replace('_', '-'))
 		print('NOTE: new shard group; base_url set to {} - create that release tag before shipping.'.format(group['base_url']))
 	group['files'] = entries
