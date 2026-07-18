@@ -1109,9 +1109,14 @@ def main():
         dm, needs = (None, []) if stable else build_triples(
             a, z, symbol, states, states[0], modes, isomers_of)
         all_needs.update(needs)
+        abund_g, unc_a_g = fnum(r['abundance']), fnum(r['unc_a'])
+        if abund_g is not None and unc_a_g is None:
+            # mononuclidic elements: LiveChart serves the exact 100%
+            # abundance with no uncertainty field
+            unc_a_g = 0.0
         rows.append((base, base + 'g', 0.0, 'g', r['jp'].strip(), a, z,
                      a - z, symbol, stable, hl, unc_hl,
-                     fnum(r['abundance']), fnum(r['unc_a']), amu,
+                     abund_g, unc_a_g, amu,
                      me_kev / 1000.0 if me_kev is not None else None, dm))
         for i, (rank, e_kev, l) in enumerate(iso_rows[(a, z)]):
             dm_i, needs_i = build_triples(
