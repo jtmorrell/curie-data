@@ -6,6 +6,7 @@ conventions match what curie's readers require (see the curie repository's
 `Library`/`Isotope` classes for the consuming SQL).
 """
 import os
+import re
 import sqlite3
 import subprocess
 from datetime import date
@@ -18,6 +19,18 @@ ARCHIVE_ROOT = Path(os.environ.get(
     Path.home() / 'Documents/nucleardata/data_sources/v2'))
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
+
+
+def curated_targets():
+    """The curated TENDL target set (curie-style names) from tendl_targets.txt."""
+    path = Path(__file__).parent / 'tendl_targets.txt'
+    return {t for t in path.read_text().split() if t}
+
+
+def mirror_target(dirname):
+    """A mirror directory name as a curie-style target: 'Ag108m' -> '108AGm'."""
+    m = re.fullmatch(r'([A-Z][a-z]?)(\d{3})(m?)', dirname)
+    return f'{int(m.group(2))}{m.group(1).upper()}{m.group(3)}'
 BUILD_DIR = REPO_ROOT / 'build'
 
 

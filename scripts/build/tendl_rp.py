@@ -23,8 +23,9 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from common import (ARCHIVE_ROOT, ELEMENTS, dedupe_grid, open_fresh,
-                    parse_yandf, union_grid_stack, write_version)
+from common import (ARCHIVE_ROOT, ELEMENTS, curated_targets, dedupe_grid,
+                    mirror_target, open_fresh, parse_yandf, union_grid_stack,
+                    write_version)
 
 DB_NAME = {'neutron': 'tendl_n_rp.db', 'proton': 'tendl_p_rp.db',
            'deuteron': 'tendl_d_rp.db', 'alpha': 'tendl_a_rp.db'}
@@ -115,9 +116,13 @@ def main():
     con = open_fresh(DB_NAME[beam])
     con.execute('CREATE TABLE all_reactions (target TEXT, product TEXT, '
                 'label TEXT)')
+    # the mirror may hold more than the curated cut (targets fetched under
+    # earlier criteria stay archived); the committed list is the filter
+    cut = curated_targets()
     targets = sorted(t for el in src.iterdir() if el.is_dir()
                      for t in el.iterdir()
-                     if (t / 'tables' / 'residual').is_dir())
+                     if (t / 'tables' / 'residual').is_dir()
+                     and mirror_target(t.name) in cut)
     n_products = 0
     for tdir in targets:
         curie_tgt, table, cols, grid, data = assemble(tdir)

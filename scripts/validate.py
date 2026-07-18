@@ -422,15 +422,18 @@ def validate_tendl(con):
                                  ['target', 'outgoing', 'product', 'label'],
                                  allow_negative=('_el_',))
     check('target count (curated cut incl. isomeric targets, neutron)',
-          700 < len(targets) < 850, str(len(targets)))
+          350 < len(targets) < 450, str(len(targets)))
 
     # source-identity gate: stored content equals a fresh table re-parse
+    # (the mirror may hold targets outside the curated cut — skip those)
     sys.path.insert(0, str(Path(__file__).parent / 'build'))
     import tendl_neutron as builder
     src = builder.ARCHIVE_ROOT / 'tendl-2025' / 'neutron_files'
+    cut = builder.curated_targets()
     mismatch = []
     for tdir in sorted(t for el in src.iterdir() if el.is_dir()
-                       for t in el.iterdir() if (t / 'tables' / 'xs').is_dir()):
+                       for t in el.iterdir() if (t / 'tables' / 'xs').is_dir()
+                       and builder.mirror_target(t.name) in cut):
         tgt, tab, cols, grid, data = builder.assemble(tdir)
         if tab is None:
             continue
@@ -477,7 +480,7 @@ def _validate_tendl_rp(con, beam, letter):
     idx = q(con, 'SELECT target,product,label FROM all_reactions')
     targets = _wide_table_checks(con, idx, ['target', 'product', 'label'])
     check(f'target count (curated cut incl. isomeric targets, {beam})',
-          700 < len(targets) < 850, str(len(targets)))
+          350 < len(targets) < 450, str(len(targets)))
     bad_suffix = sorted({p for _, p, _ in idx
                          if not (p.endswith('g') or 'm' in p[-3:])})
     check('every product carries an explicit state suffix', not bad_suffix,
@@ -488,10 +491,13 @@ def _validate_tendl_rp(con, beam, letter):
     sys.path.insert(0, str(Path(__file__).parent / 'build'))
     import tendl_rp as builder
     src = builder.ARCHIVE_ROOT / 'tendl-2025' / f'{beam}_files'
+    # the mirror may hold targets outside the curated cut — skip those
+    cut = builder.curated_targets()
     mismatch = []
     for tdir in sorted(t for el in src.iterdir() if el.is_dir()
                        for t in el.iterdir()
-                       if (t / 'tables' / 'residual').is_dir()):
+                       if (t / 'tables' / 'residual').is_dir()
+                       and builder.mirror_target(t.name) in cut):
         tgt, tab, cols, grid, data = builder.assemble(tdir)
         if tab is None:
             continue

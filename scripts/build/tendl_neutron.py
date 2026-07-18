@@ -26,8 +26,9 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from common import (ARCHIVE_ROOT, ELEMENTS, dedupe_grid, open_fresh,
-                    parse_yandf, union_grid_stack, write_version)
+from common import (ARCHIVE_ROOT, ELEMENTS, curated_targets, dedupe_grid,
+                    mirror_target, open_fresh, parse_yandf, union_grid_stack,
+                    write_version)
 
 PARTICLE_AZ = {'n': (1, 0), 'p': (1, 1), 'd': (2, 1), 't': (3, 1),
                'h': (3, 2), 'a': (4, 2)}
@@ -94,8 +95,12 @@ def main():
     con = open_fresh('tendl.db')
     con.execute('CREATE TABLE all_reactions (target TEXT, outgoing TEXT, '
                 'product TEXT, label TEXT)')
+    # the mirror may hold more than the curated cut (targets fetched under
+    # earlier criteria stay archived); the committed list is the filter
+    cut = curated_targets()
     targets = sorted(t for el in src.iterdir() if el.is_dir()
-                     for t in el.iterdir() if (t / 'tables' / 'xs').is_dir())
+                     for t in el.iterdir() if (t / 'tables' / 'xs').is_dir()
+                     and mirror_target(t.name) in cut)
     unknown = set()
     for tdir in targets:
         curie_tgt, table, cols, grid, data = assemble(tdir, unknown)

@@ -39,7 +39,7 @@ from pathlib import Path
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).parent))
-from common import ARCHIVE_ROOT, ELEMENTS, union_grid_stack
+from common import ARCHIVE_ROOT, ELEMENTS, curated_targets, union_grid_stack
 
 # emitted (Z, A) per exclusive MT, incident-proton sublibrary
 EMIT = {4: (0, 1), 11: (1, 4), 16: (0, 2), 17: (0, 3), 22: (2, 5),
@@ -75,17 +75,24 @@ def _eval(tab, e_ev):
 
 def endf_targets(mirror_src):
     """(curie_target, table_name, path) for each archived ENDF-6 target
-    not already covered by the table mirror under `mirror_src`."""
+    in the curated cut and not already covered by the table mirror under
+    `mirror_src`."""
     root = ARCHIVE_ROOT / 'tendl-2023' / 'proton_endf'
+    cut = curated_targets()
     out = []
     for p in sorted(root.rglob('p-*.tendl')):
-        m = re.fullmatch(r'p-([A-Z][a-z]?)(\d{3})\.tendl', p.name)
-        el, a = m.group(1), int(m.group(2))
-        if (mirror_src / el / f'{el}{a:03d}' / 'tables' / 'residual').is_dir():
-            print(f'  {p.name}: table mirror now covers {el}{a} — ENDF-6 '
-                  f'ingest skipped')
+        m = re.fullmatch(r'p-([A-Z][a-z]?)(\d{3})(m?)\.tendl', p.name)
+        el, a, iso = m.group(1), int(m.group(2)), m.group(3)
+        curie_tgt = f'{a}{el.upper()}{iso}'
+        if curie_tgt not in cut:
+            print(f'  {p.name}: outside the curated cut — ENDF-6 ingest '
+                  f'skipped')
             continue
-        out.append((f'{a}{el.upper()}', f'{el.upper()}_{a}', p))
+        if (mirror_src / el / f'{el}{a:03d}{iso}' / 'tables' / 'residual').is_dir():
+            print(f'  {p.name}: table mirror now covers {el}{a}{iso} — '
+                  f'ENDF-6 ingest skipped')
+            continue
+        out.append((curie_tgt, f'{el.upper()}_{a}{iso}', p))
     return out
 
 

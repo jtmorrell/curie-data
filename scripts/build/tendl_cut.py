@@ -1,17 +1,18 @@
 """Derive the curated TENDL target list.
 
-Criteria: ground states that are naturally occurring OR have a half-life
-of at least one day, with Z <= 100, unioned with every target the previous
-generation shipped (including its isomeric targets) and with the isomeric
-targets TENDL itself provides wherever the criteria admit the ground state
-or the isomer in its own right (180Ta's naturally occurring state IS the
-isomer, over an 8-hour ground state). The TENDL-provided enumeration is
-committed as tendl_isomer_targets.txt; regenerate it with --probe-isomers,
-which checks each admitted ground state's isomer index page across all
-four beams. Half-lives and abundances come from the decay database.
+Criteria: targets that are naturally occurring OR have a half-life of at
+least one year, with Z <= 100 — applied to ground states and isomeric
+targets alike. An isomeric target is included when TENDL provides it AND
+the nuclide's first isomer passes the criteria in its own right (the
+TENDL 'm' target is the first isomer, the same rank-based mapping the rp
+builders use; 180Ta's naturally occurring state IS the isomer, over an
+8-hour ground state). The TENDL-provided enumeration is committed as
+tendl_isomer_targets.txt; regenerate it with --probe-isomers, which
+checks each candidate nuclide's isomer index page across all four beams.
+Half-lives and abundances come from the decay database.
 
 Writes tendl_targets.txt beside this script; run after a decay-database
-rebuild to refresh the list.
+rebuild or a criteria change to refresh the list.
 
 Usage:
     python3 tendl_cut.py                  # rewrite tendl_targets.txt
@@ -24,35 +25,31 @@ import sys
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-V1_DIR = Path(os.environ.get('CURIE_V1_DIR', Path.home() / '.local/share/curie'))
+DECAY_DB = Path(os.environ.get(
+    'CURIE_DECAY_DB', Path(__file__).parents[2] / 'build' / 'decay.db'))
 OUT = Path(__file__).parent / 'tendl_targets.txt'
 ISOMERS = Path(__file__).parent / 'tendl_isomer_targets.txt'
 
-
-def v1_targets():
-    out = set()
-    for db in ['tendl', 'tendl_n_rp', 'tendl_p_rp', 'tendl_d_rp']:
-        con = sqlite3.connect(V1_DIR / f'{db}.db')
-        for (t,) in con.execute("SELECT name FROM sqlite_master WHERE type='table'"):
-            if t == 'all_reactions':
-                continue
-            el, a = t.split('_')
-            out.add(a.rstrip('m') + el + ('m' if a.endswith('m') else ''))
-    return out
+YEAR = 365.25 * 86400  # seconds
 
 
 def criteria_cut():
-    """-> (admitted ground states, bare names whose isomer itself passes)."""
-    dd = sqlite3.connect(V1_DIR / 'decay.db')
+    """-> (admitted ground states, bare names whose first isomer passes)."""
+    dd = sqlite3.connect(DECAY_DB)
     grounds, isomer_ok = set(), set()
     for name, iso, z, stable, hl, ab in dd.execute(
             'SELECT isotope, isomer, Z, stable, half_life, abundance FROM chart'):
         if z > 100:
             continue
-        admitted = stable or (ab or 0) > 0 or (hl or 0) >= 86400
+        admitted = stable or (ab or 0) > 0 or (hl or 0) >= YEAR
         if not admitted:
             continue
-        (grounds if iso == 'g' else isomer_ok).add(name)
+        if iso == 'g':
+            grounds.add(name)
+        elif iso == 'm1':
+            # the TENDL 'm' target is the first isomer; higher isomers
+            # have no TENDL target of their own
+            isomer_ok.add(name)
     return grounds, isomer_ok
 
 
@@ -86,10 +83,10 @@ def main():
     grounds, isomer_ok = criteria_cut()
     if '--probe-isomers' in sys.argv[1:]:
         probe_isomers(grounds | isomer_ok)
-    cut = grounds | v1_targets()
+    cut = set(grounds)
     if ISOMERS.exists():
         cut |= {t for t in (s.strip() for s in ISOMERS.read_text().splitlines())
-                if t and (t.rstrip('m') in grounds or t.rstrip('m') in isomer_ok)}
+                if t and t.rstrip('m') in isomer_ok}
     OUT.write_text('\n'.join(sorted(cut)) + '\n')
     print(f'{len(cut)} targets -> {OUT}')
 
