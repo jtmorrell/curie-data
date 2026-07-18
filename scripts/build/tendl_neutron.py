@@ -27,7 +27,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 from common import (ARCHIVE_ROOT, ELEMENTS, curated_targets, dedupe_grid,
-                    mirror_target, open_fresh, parse_yandf, union_grid_stack,
+                    mirror_target, open_fresh, parse_mirror_dir, parse_yandf, union_grid_stack,
                     write_version)
 
 PARTICLE_AZ = {'n': (1, 0), 'p': (1, 1), 'd': (2, 1), 't': (3, 1),
@@ -58,11 +58,7 @@ def residual(a, z, digits):
 def assemble(tdir, unknown=None):
     """(curie_target, table_name, cols, grid, data) for one target dir —
     the exact content the build writes, reusable by the validator."""
-    m = re.fullmatch(r'([A-Z][a-z]?)(\d{3})([mno]?)', tdir.name)
-    el, a = m.group(1), int(m.group(2))
-    # TALYS isomer-target letters m, n, o track the curie ordinals
-    k = ord(m.group(3)) - ord('m') + 1 if m.group(3) else 0
-    iso = '' if not k else 'm' if k == 1 else f'm{k}'
+    el, a, iso = parse_mirror_dir(tdir.name)
     curie_tgt = f'{a}{el.upper()}{iso}'
     z = ELEMENTS.index(el)
     cols = []

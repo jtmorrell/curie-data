@@ -44,6 +44,10 @@ UPLOADS = 'https://uploads.github.com'
 ROOT = Path(__file__).resolve().parents[1]
 REGISTRY = ROOT.parent / 'curie' / 'curie' / 'data_registry.json'
 METADATA = ('SHA256SUMS', 'data_manifest.toml')  # size-stable: always replace
+# per-asset SHA256s recorded at upload time: verify compares them against the
+# current local files, catching an in-place content change that kept the byte
+# count (twice observed for decay.db) which the remote size check cannot see
+LEDGER = ROOT / 'build' / 'uploaded_hashes.json'
 
 _TOKEN = None
 
@@ -81,12 +85,16 @@ def _request(url, method='GET', data=None, content_type='application/json',
             # a full generation is ~2,900 requests against the 5,000/hour
             # limit: on exhaustion, sleep until the advertised reset and
             # keep going (rate waits do not consume error retries)
+            retry_after = e.headers.get('Retry-After')
             if (e.code in (403, 429)
-                    and e.headers.get('X-RateLimit-Remaining') == '0'
+                    and (e.headers.get('X-RateLimit-Remaining') == '0' or retry_after)
                     and rate_waits < 4):
                 rate_waits += 1
-                wait = min(max(int(e.headers.get('X-RateLimit-Reset', 0)) -
-                               time.time() + 30, 60), 4000)
+                # secondary (abuse) limits advertise Retry-After instead of
+                # a reset timestamp
+                wait = (min(int(retry_after) + 5, 4000) if retry_after else
+                        min(max(int(e.headers.get('X-RateLimit-Reset', 0)) -
+                                time.time() + 30, 60), 4000))
                 print('rate limit reached; resuming in {:.0f} min'.format(wait / 60),
                       flush=True)
                 time.sleep(wait)
@@ -177,24 +185,32 @@ def upload():
                            }).encode())
             print('created DRAFT release {}'.format(tag), flush=True)
         have = _assets(rel['id'])
+        ledger = json.loads(LEDGER.read_text()) if LEDGER.exists() else {}
+        rec = ledger.setdefault(tag, {})
         n_up, n_skip = 0, 0
         for p in paths:
+            data = p.read_bytes()
+            sha = hashlib.sha256(data).hexdigest()
             a = have.get(p.name)
             if a is not None:
-                if a['size'] == p.stat().st_size and p.name not in METADATA:
+                if (a['size'] == len(data) and p.name not in METADATA
+                        and rec.get(p.name) in (None, sha)):
+                    rec[p.name] = rec.get(p.name, sha)
                     n_skip += 1
                     continue
                 _request(f'{API}/repos/{REPO}/releases/assets/{a["id"]}',
                          method='DELETE')
             _request(f'{UPLOADS}/repos/{REPO}/releases/{rel["id"]}/assets'
-                     f'?name={p.name}', method='POST', data=p.read_bytes(),
+                     f'?name={p.name}', method='POST', data=data,
                      content_type='application/octet-stream')
+            rec[p.name] = sha
             n_up += 1
             if n_up % 25 == 0:
                 print('  {}: {}/{} uploaded'.format(tag, n_up, len(paths)),
                       flush=True)
         print('{}: {} uploaded, {} already present, {} total'.format(
             tag, n_up, n_skip, len(paths)), flush=True)
+        LEDGER.write_text(json.dumps(ledger, indent=1, sort_keys=True))
 
 
 def verify():
@@ -217,6 +233,20 @@ def verify():
     print('local files vs registry checksums: {} checked, {} mismatched{}'.format(
         n_checked, len(bad_hash), ' ' + str(bad_hash[:5]) if bad_hash else ''))
     ok = not bad_hash
+    # an asset whose local content changed since its upload keeps its byte
+    # count more often than not; the remote size check cannot see that
+    if LEDGER.exists():
+        ledger = json.loads(LEDGER.read_text())
+        stale = []
+        for tag, paths in plan:
+            rec = ledger.get(tag, {})
+            for pth in paths:
+                if pth.name in rec and rec[pth.name] != hashlib.sha256(
+                        pth.read_bytes()).hexdigest():
+                    stale.append('{}/{}'.format(tag, pth.name))
+        print('local files changed since their upload: {}{}'.format(
+            len(stale), ' ' + str(stale[:5]) if stale else ''))
+        ok = ok and not stale
 
     releases = _releases()
     for tag, paths in plan:
@@ -237,7 +267,8 @@ def verify():
         print('{} ({}): {} assets; absent {}, extra {}, size-mismatched {}'.format(
             tag, state, len(have), _fmt(absent), _fmt(extra), _fmt(bad)))
         ok = ok and not (absent or extra or bad)
-    print('VERIFY: ' + ('OK' if ok else 'INCOMPLETE'))
+    print('VERIFY: ' + ('OK' if ok else
+          'INCOMPLETE — fix the mismatches above, re-run upload, then verify'))
     return ok
 
 
@@ -247,7 +278,9 @@ def publish():
     _, plan = _plan()
     releases = _releases()
     for tag, _ in plan:
-        rel = releases[tag]
+        rel = releases.get(tag)
+        if rel is None:
+            sys.exit('release {} vanished between verify and publish'.format(tag))
         if rel['draft']:
             _request(f'{API}/repos/{REPO}/releases/{rel["id"]}', method='PATCH',
                      data=json.dumps({'draft': False}).encode())

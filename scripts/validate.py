@@ -285,8 +285,8 @@ def _endf_table(target):
     import re as _re
     if target.startswith('nat'):
         # natural-element targets: 'natFE' -> FE_000 (elemental A=000);
-        # the generic rule below would strip to 'FE_' and misread the
-        # 'm' of a natSM as an isomer flag
+        # the nuclide pattern below requires a leading mass number, so a
+        # nat name must be handled before it
         return target[3:] + '_000'
     m = _re.fullmatch(r'(\d+)([A-Z]+?)(m\d*)?', target)
     return f'{m.group(2)}_{m.group(1)}{m.group(3) or ""}'
@@ -693,6 +693,18 @@ def validate_decay(con):
     names = {r[0] for r in q(con, 'SELECT name FROM chart')}
     dup = q(con, 'SELECT name, COUNT(*) c FROM chart GROUP BY name HAVING c>1')
     check('chart names unique', not dup, str(dup[:3]))
+
+    # abundance repairs stay repaired: 180Ta's naturally occurring state is
+    # its first isomer (CIAAW 0.01201(32), lost once by a rebuild whose
+    # LiveChart source is blank), and the mononuclidic elements carry an
+    # exact 100% with explicit zero uncertainty (a NULL crashed curie)
+    ta = q(con, "SELECT abundance, unc_abundance FROM chart WHERE name='180TAm1'")
+    check('180TAm1 abundance = CIAAW 0.01201(32)', ta == [(0.01201, 0.00032)], str(ta))
+    ta_sum = q(con, "SELECT SUM(abundance) FROM chart WHERE element='Ta'")[0][0]
+    check('Ta abundances sum to 100', abs(ta_sum - 100.0) < 1E-9, str(ta_sum))
+    null_unc = q(con, 'SELECT COUNT(*) FROM chart WHERE abundance IS NOT NULL '
+                      'AND abundance > 0 AND unc_abundance IS NULL')[0][0]
+    check('no abundance row lacks an uncertainty', null_unc == 0, f'{null_unc} rows')
 
     # decay_mode triples: well-formed, daughters closed, branches <= 1
     bad_triple, missing_daughter, bad_sum = [], [], []

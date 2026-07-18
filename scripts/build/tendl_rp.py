@@ -27,7 +27,7 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).parent))
 from common import (ARCHIVE_ROOT, DECAY_DB, ELEMENTS, curated_targets,
-                    dedupe_grid, mirror_target, open_fresh, parse_yandf,
+                    dedupe_grid, mirror_target, open_fresh, ordinal_suffix, parse_mirror_dir, parse_yandf,
                     union_grid_stack, write_version)
 
 DB_NAME = {'neutron': 'tendl_n_rp.db', 'proton': 'tendl_p_rp.db',
@@ -88,11 +88,7 @@ def collect_target(tdir):
 def assemble(tdir):
     """(curie_target, table_name, cols, grid, data) for one target dir —
     the exact content the build writes, reusable by the validator."""
-    m = re.fullmatch(r'([A-Z][a-z]?)(\d{3})([mno]?)', tdir.name)
-    el, a = m.group(1), int(m.group(2))
-    # TALYS isomer-target letters m, n, o track the curie ordinals
-    k = ord(m.group(3)) - ord('m') + 1 if m.group(3) else 0
-    iso = '' if not k else 'm' if k == 1 else f'm{k}'
+    el, a, iso = parse_mirror_dir(tdir.name)
     curie_tgt = f'{a}{el.upper()}{iso}'
     products = collect_target(tdir / 'tables' / 'residual')
     if not products:
@@ -125,7 +121,7 @@ def nat_constituents():
             'WHERE abundance IS NOT NULL AND abundance > 0'):
         m = re.fullmatch(r'(\d+)([A-Z]+)', iso)
         a, el = m.group(1), m.group(2)
-        suffix = 'm' if isom != 'g' else ''
+        suffix = ordinal_suffix(int(isom[1:]) if isom != 'g' else 0)
         out.setdefault(el, []).append((iso + suffix, f'{el}_{a}{suffix}', ab))
     dd.close()
     return {el: sorted(v) for el, v in out.items()}

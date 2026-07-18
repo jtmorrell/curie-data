@@ -28,7 +28,7 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from common import DECAY_DB
+from common import DECAY_DB, ordinal_suffix
 
 OUT = Path(__file__).parent / 'tendl_targets.txt'
 ISOMERS = Path(__file__).parent / 'tendl_isomer_targets.txt'
@@ -55,7 +55,7 @@ def criteria_cut():
 
 
 def _isomer_name(bare, k):
-    return bare + ('m' if k == 1 else f'm{k}')
+    return bare + ordinal_suffix(k)
 
 
 def probe_isomers(grounds, isomer_ok):

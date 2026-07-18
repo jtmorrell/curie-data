@@ -29,14 +29,31 @@ def curated_targets():
     return {t for t in path.read_text().split() if t}
 
 
+def isomer_ordinal(letter):
+    """TALYS isomer-target letter -> curie ordinal: '' -> 0, 'm' -> 1,
+    'n' -> 2, 'o' -> 3 (the inverse lives in scripts/fetch/tendl.py's
+    tendl_paths, which builds TENDL paths from curie names)."""
+    return ord(letter) - ord('m') + 1 if letter else 0
+
+
+def ordinal_suffix(k):
+    """curie isomer-target suffix for ordinal k: 0 -> '', 1 -> 'm' (the
+    established bare-m first-isomer convention), 2 -> 'm2', ..."""
+    return '' if not k else 'm' if k == 1 else 'm{}'.format(k)
+
+
+def parse_mirror_dir(dirname):
+    """'Hf178n' -> ('Hf', 178, 'm2'): element, mass number, and curie
+    isomer suffix of a TENDL mirror directory name."""
+    m = re.fullmatch(r'([A-Z][a-z]?)(\d{3})([mno]?)', dirname)
+    return m.group(1), int(m.group(2)), ordinal_suffix(isomer_ordinal(m.group(3)))
+
+
 def mirror_target(dirname):
     """A mirror directory name as a curie-style target: 'Ag108m' ->
-    '108AGm', 'Hf178n' -> '178HFm2' (TALYS isomer-target letters m, n, o
-    track the curie ordinals)."""
-    m = re.fullmatch(r'([A-Z][a-z]?)(\d{3})([mno]?)', dirname)
-    k = ord(m.group(3)) - ord('m') + 1 if m.group(3) else 0
-    return (f'{int(m.group(2))}{m.group(1).upper()}' +
-            ('' if not k else 'm' if k == 1 else f'm{k}'))
+    '108AGm', 'Hf178n' -> '178HFm2'."""
+    el, a, iso = parse_mirror_dir(dirname)
+    return f'{a}{el.upper()}{iso}'
 
 
 BUILD_DIR = REPO_ROOT / 'build'
