@@ -1117,9 +1117,15 @@ def main():
             dm_i, needs_i = build_triples(
                 a, z, symbol, states, states[1 + i], l['modes'], isomers_of)
             all_needs.update(needs_i)
-            abund = None
+            abund, unc_abund = None, None
             if base == '180TA' and rank == 1:
-                abund = fnum(r['abundance'])
+                abund, unc_abund = fnum(r['abundance']), fnum(r['unc_a'])
+                if abund is None:
+                    # LiveChart's ground_states row for 180Ta carries no
+                    # abundance at all; fall back to the CIAAW value for
+                    # the naturally occurring isomer (181TA carries the
+                    # complementary 99.98799(32))
+                    abund, unc_abund = 0.01201, 0.00032
             hl_i = l['hl_sec']
             if l['operator_hl']:
                 report['operator_half_lives'] += 1
@@ -1144,7 +1150,7 @@ def main():
                 report['no_half_life'].append(f'{base}m{rank}')
             rows.append((base, f'{base}m{rank}', e_kev / 1000.0, f'm{rank}',
                          l['jp'], a, z, a - z, symbol, 0, hl_i,
-                         l['unc_hl_sec'], abund, None, amu,
+                         l['unc_hl_sec'], abund, unc_abund, amu,
                          (me_kev / 1000.0 + e_kev / 1000.0)
                          if me_kev is not None else None, dm_i))
     # 180TA: the naturally occurring state is the isomer — LiveChart puts

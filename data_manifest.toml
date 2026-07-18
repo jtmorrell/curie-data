@@ -13,7 +13,7 @@ shards = "endf.db and the five tendl DBs are additionally published as per-targe
 
 [db."decay.db"]
 size_bytes = 116826112
-sha256 = "403453300c4e81237466dfe23165eb1581405825aa337e2a98252fa49f6ef87d"
+sha256 = "2175214b71cd786e08f2df4f1c2fdd09fd27b3f330663d918d1d5c300926b7cb"
 source = "ENSDF via IAEA LiveChart mirror (2026-07-16) + NUBASE2020/AME2020 closure and estimates + ENDF/B-VIII.1 MF8 fission yields (MT454 independent + MT459 cumulative) + paceENSDF coincidences and normalization records"
 
 [db."endf.db"]
@@ -32,28 +32,28 @@ sha256 = "1ac958c5a80785aa8a0892fd662448674d537545a84a521e0e84cf73686e7e6b"
 source = "IRDFF-II (2020, rebuilt from IRDFF-II_TAB; data-identical to v1)"
 
 [db."tendl.db"]
-size_bytes = 36397056
-sha256 = "52ac25bcd9b6b1fe359cca28ebae43dc91f30e424e192354e45ea7378f6dff1d"
+size_bytes = 36569088
+sha256 = "c50637ce861a2d136b54a857d8ef39904d6b8b6f375462e56e697dc536b2f374"
 source = "TENDL-2025 (exclusive channels, TALYS tables)"
 
 [db."tendl_n_rp.db"]
-size_bytes = 54845440
-sha256 = "8df55b1162cd08845995c332f61f154ccd01c5863f329e056a360263e5083c8f"
+size_bytes = 55128064
+sha256 = "21d31668c9735aa4ea5bd1cd4c3af7e5fa88fde26706f74761f09d4ced7ef888"
 source = "TENDL-2025 (n residual products)"
 
 [db."tendl_p_rp.db"]
-size_bytes = 39559168
-sha256 = "11454f024c96c1261461226f4bd71f6241ff0b9a69c963874e7785d38d0c4886"
+size_bytes = 39735296
+sha256 = "50cb848c6a9150e7e2b9958152c47ea1227ee4f5571986fc369aec4cc8b560a5"
 source = "TENDL-2025 (p residual products; the five proton Nb targets ingested from TENDL-2023 ENDF-6)"
 
 [db."tendl_d_rp.db"]
-size_bytes = 37048320
-sha256 = "ceba722bda0f7c84143fe6dd0cfc9aa3f6c871bdee8e0fecb3483a581d7043b9"
+size_bytes = 37236736
+sha256 = "f4b8fa9b87b6e8d532fa23d3ca188bfc3496291fabc3a30814e749635aa5220a"
 source = "TENDL-2025 (d residual products)"
 
 [db."tendl_a_rp.db"]
-size_bytes = 31944704
-sha256 = "cf3dc8fb8bc9f73d7567e73eb38595fc36ab8144c9037d8412cab652c5b10208"
+size_bytes = 32096256
+sha256 = "ba06675e4160825f18b1394b8ff675fb713c183cef2211594448f93f2e1c2eaf"
 source = "TENDL-2025 (alpha residual products; new in v2)"
 
 [db."ziegler.db"]
