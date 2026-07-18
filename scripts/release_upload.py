@@ -46,7 +46,8 @@ def _token():
 
 def _request(url, method='GET', data=None, content_type='application/json',
              retries=4):
-    for attempt in range(retries + 1):
+    attempt, rate_waits = 0, 0
+    while True:
         req = urllib.request.Request(url, method=method, data=data, headers={
             'Authorization': 'Bearer ' + _TOKEN,
             'Accept': 'application/vnd.github+json',
@@ -61,16 +62,30 @@ def _request(url, method='GET', data=None, content_type='application/json',
             # concurrent or interrupted upload won the race): caller skips
             if e.code == 422 and '/assets?' in url:
                 return None
+            # a full generation is ~2,900 requests against the 5,000/hour
+            # limit: on exhaustion, sleep until the advertised reset and
+            # keep going (rate waits do not consume error retries)
+            if (e.code in (403, 429)
+                    and e.headers.get('X-RateLimit-Remaining') == '0'
+                    and rate_waits < 4):
+                rate_waits += 1
+                wait = min(max(int(e.headers.get('X-RateLimit-Reset', 0)) -
+                               time.time() + 30, 60), 4000)
+                print('rate limit reached; resuming in {:.0f} min'.format(wait / 60),
+                      flush=True)
+                time.sleep(wait)
+                continue
             if e.code in (500, 502, 503, 504) and attempt < retries:
+                attempt += 1
                 time.sleep(2 ** attempt)
                 continue
             sys.exit('{} {} -> HTTP {}: {}'.format(
                 method, url, e.code, e.read().decode(errors='replace')[:300]))
         except (urllib.error.URLError, TimeoutError):
-            if attempt < retries:
-                time.sleep(2 ** attempt)
-                continue
-            raise
+            if attempt >= retries:
+                raise
+            attempt += 1
+            time.sleep(2 ** attempt)
 
 
 def _releases():
