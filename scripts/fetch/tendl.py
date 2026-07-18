@@ -89,12 +89,15 @@ def http_get(url, timeout=60, _retry=True):
 
 
 def tendl_paths(curie_target):
-    """'152EU' / '110AGm' -> (element, A, isomer suffix, padded nuclide token):
-    ('Eu', 152, '', 'Eu152') / ('Ag', 110, 'm', 'Ag110m')."""
-    m = re.fullmatch(r'(\d+)([A-Z]{1,2})(m)?', curie_target)
-    a, el, iso = m.groups()
+    """'152EU' / '110AGm' / '178HFm2' -> (element, A, TENDL isomer letter,
+    padded nuclide token): ('Eu', 152, '', 'Eu152') / ('Ag', 110, 'm',
+    'Ag110m') / ('Hf', 178, 'n', 'Hf178n'). TALYS isomer-target letters
+    run m, n, o, ... in step with the curie ordinals m(=m1), m2, m3."""
+    m = re.fullmatch(r'(\d+)([A-Z]{1,2})(m(\d+)?)?', curie_target)
+    a, el, iso, k = m.groups()
+    letter = chr(ord('m') + int(k or 1) - 1) if iso else ''
     element = _BY_UPPER[el]
-    return element, int(a), iso or '', f'{element}{int(a):03d}{iso or ""}'
+    return element, int(a), letter, f'{element}{int(a):03d}{letter}'
 
 
 def index_pages(beam, curie_target):

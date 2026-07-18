@@ -216901,3 +216901,67 @@ url = "https://tendl.imperial.ac.uk/tendl_2023/proton_file/Nb/Nb093m/lib/endf/p-
 sha256 = "2eb07b93203022b8bf73addfedf7f799eafd100599a1b327c5bae284d4aff755"
 size = 2969703
 fetched = "2026-07-18"
+
+[[file]]
+source = "tendl-2025/neutron"
+name = "Ir192n"
+url = "https://tendl.imperial.ac.uk/tendl_2025/neutron_files/Ir/Ir192n/tables/"
+sha256 = "b3b647d67c6f4f31e407a79d6c239af71ae644cc13693fcb18b198a46b82da99"
+n_files = 591
+fetched = "2026-07-18"
+
+[[file]]
+source = "tendl-2025/neutron"
+name = "Hf178n"
+url = "https://tendl.imperial.ac.uk/tendl_2025/neutron_files/Hf/Hf178n/tables/"
+sha256 = "bbc0fd48d507f6c22dfbd4e8c08bbd612769c1f02bbf6096627c12f88c623d68"
+n_files = 588
+fetched = "2026-07-18"
+
+[[file]]
+source = "tendl-2025/proton"
+name = "Ir192n"
+url = "https://tendl.imperial.ac.uk/tendl_2025/proton_files/Ir/Ir192n/tables/"
+sha256 = "3f666562887d4394fc1e8638dea2333122241d9cc8ccb4c067588fb6d752c26e"
+n_files = 433
+fetched = "2026-07-18"
+
+[[file]]
+source = "tendl-2025/proton"
+name = "Hf178n"
+url = "https://tendl.imperial.ac.uk/tendl_2025/proton_files/Hf/Hf178n/tables/"
+sha256 = "aaec5a095d69d72c39659bbad3000f58ad28b46714b638933dce9b52a8836380"
+n_files = 437
+fetched = "2026-07-18"
+
+[[file]]
+source = "tendl-2025/deuteron"
+name = "Ir192n"
+url = "https://tendl.imperial.ac.uk/tendl_2025/deuteron_files/Ir/Ir192n/tables/"
+sha256 = "390df2cd6d8608f61dd7b7ecbd490778bff7bb5e558efd81bd1a3716e338016d"
+n_files = 443
+fetched = "2026-07-18"
+
+[[file]]
+source = "tendl-2025/deuteron"
+name = "Hf178n"
+url = "https://tendl.imperial.ac.uk/tendl_2025/deuteron_files/Hf/Hf178n/tables/"
+sha256 = "05cddadfeb663c6b8b08cf225d8465b05cc9c8b415207a87317740c507b940e3"
+n_files = 451
+fetched = "2026-07-18"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Hf178n"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Hf/Hf178n/tables/"
+sha256 = "8020a215f69b23019917a8734900bf25793d3d9d7f9fd91658ca34b853c22eb3"
+n_files = 416
+fetched = "2026-07-18"
+
+[[file]]
+source = "tendl-2025/alpha"
+name = "Ir192n"
+url = "https://tendl.imperial.ac.uk/tendl_2025/alpha_files/Ir/Ir192n/tables/"
+sha256 = "75e9251f0855604b2d33af9e33415a846973e77c60509cc30989705992b29f45"
+n_files = 443
+fetched = "2026-07-18"

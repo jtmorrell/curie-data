@@ -288,9 +288,8 @@ def _endf_table(target):
         # the generic rule below would strip to 'FE_' and misread the
         # 'm' of a natSM as an isomer flag
         return target[3:] + '_000'
-    return (''.join(_re.findall('[A-Z]+', target)) + '_' +
-            ''.join(_re.findall('[0-9]+', target)) +
-            ('m' if 'm' in target else ''))
+    m = _re.fullmatch(r'(\d+)([A-Z]+?)(m\d*)?', target)
+    return f'{m.group(2)}_{m.group(1)}{m.group(3) or ""}'
 
 
 def validate_endf(con):
@@ -515,7 +514,7 @@ def _validate_tendl_rp(con, beam, letter):
     # exactly for the fully covered elements, and byte-identical to a
     # fresh recomputation through the builder's shared recipe
     tables = {r[0] for r in q(con, "SELECT name FROM sqlite_master WHERE type='table'")}
-    nat_wrong, nat_bad = [], []
+    nat_wrong, nat_bad, nat_sum = [], [], []
     for el, parts in sorted(builder.nat_constituents().items()):
         complete = all(tab in tables for _, tab, _ in parts)
         if (f'{el}_000' in tables) != complete:
@@ -523,6 +522,9 @@ def _validate_tendl_rp(con, beam, letter):
             continue
         if not complete:
             continue
+        total = sum(ab for *_, ab in parts)
+        if not 99.9 <= total <= 100.1:
+            nat_sum.append((el, total))
         cols, grid, data = builder.assemble_nat(con, parts)
         names = [c[1] for c in q(con, f'PRAGMA table_info({el}_000)')][1:]
         got = q(con, f'SELECT * FROM {el}_000 ORDER BY rowid')
@@ -531,6 +533,8 @@ def _validate_tendl_rp(con, beam, letter):
             nat_bad.append(el)
     check('nat table present iff element fully covered', not nat_wrong,
           str(nat_wrong[:5]))
+    check('nat abundance weights sum to 100 within band', not nat_sum,
+          str(nat_sum[:3]))
     check('nat tables identical to weighted-sum recomputation', not nat_bad,
           str(nat_bad[:3]))
 

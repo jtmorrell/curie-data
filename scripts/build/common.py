@@ -20,6 +20,8 @@ ARCHIVE_ROOT = Path(os.environ.get(
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
+DECAY_DB = Path(os.environ.get('CURIE_DECAY_DB', REPO_ROOT / 'build' / 'decay.db'))
+
 
 def curated_targets():
     """The curated TENDL target set (curie-style names) from tendl_targets.txt."""
@@ -28,12 +30,15 @@ def curated_targets():
 
 
 def mirror_target(dirname):
-    """A mirror directory name as a curie-style target: 'Ag108m' -> '108AGm'."""
-    m = re.fullmatch(r'([A-Z][a-z]?)(\d{3})(m?)', dirname)
-    return f'{int(m.group(2))}{m.group(1).upper()}{m.group(3)}'
+    """A mirror directory name as a curie-style target: 'Ag108m' ->
+    '108AGm', 'Hf178n' -> '178HFm2' (TALYS isomer-target letters m, n, o
+    track the curie ordinals)."""
+    m = re.fullmatch(r'([A-Z][a-z]?)(\d{3})([mno]?)', dirname)
+    k = ord(m.group(3)) - ord('m') + 1 if m.group(3) else 0
+    return (f'{int(m.group(2))}{m.group(1).upper()}' +
+            ('' if not k else 'm' if k == 1 else f'm{k}'))
 
 
-DECAY_DB = Path(os.environ.get('CURIE_DECAY_DB', REPO_ROOT / 'build' / 'decay.db'))
 BUILD_DIR = REPO_ROOT / 'build'
 
 

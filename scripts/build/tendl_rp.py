@@ -88,8 +88,11 @@ def collect_target(tdir):
 def assemble(tdir):
     """(curie_target, table_name, cols, grid, data) for one target dir —
     the exact content the build writes, reusable by the validator."""
-    m = re.fullmatch(r'([A-Z][a-z]?)(\d{3})(m?)', tdir.name)
-    el, a, iso = m.group(1), int(m.group(2)), m.group(3)
+    m = re.fullmatch(r'([A-Z][a-z]?)(\d{3})([mno]?)', tdir.name)
+    el, a = m.group(1), int(m.group(2))
+    # TALYS isomer-target letters m, n, o track the curie ordinals
+    k = ord(m.group(3)) - ord('m') + 1 if m.group(3) else 0
+    iso = '' if not k else 'm' if k == 1 else f'm{k}'
     curie_tgt = f'{a}{el.upper()}{iso}'
     products = collect_target(tdir / 'tables' / 'residual')
     if not products:
