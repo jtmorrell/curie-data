@@ -603,9 +603,12 @@ def _state_norm(norms, base, st, lab):
 
 def build_radiation(con, identities, iso_rows, norms, pace_g):
     """The five radiation tables, keyed (isotope short name, isomer) with
-    intensities as served: absolute percent per 100 decays of the parent
-    state, branching folded in. gammas carry the additive unc_norm column
-    (relative NR*BR normalization uncertainty of the line's dataset)."""
+    intensities as served — or, for gamma datasets LiveChart serves with
+    every intensity blank, rebuilt as the ENSDF relative intensities
+    times the dataset's own NR*BR normalization (`pace_g`) — in either
+    case absolute percent per 100 decays of the parent state, branching
+    folded in. gammas carry the additive unc_norm column (relative NR*BR
+    normalization uncertainty of the line's dataset)."""
     con.execute('CREATE TABLE gammas (isotope TEXT, E_level REAL, '
                 'isomer TEXT, energy REAL, intensity REAL, '
                 'unc_intensity REAL, notes TEXT, decay_mode TEXT, '
@@ -666,20 +669,38 @@ def build_radiation(con, identities, iso_rows, norms, pace_g):
                 or fnum(row.get('intensity')) is not None
         recovered = set()
         for (st, lab), has in has_i.items():
-            if has or (st[3] and st[2] == 0.0):  # zero-offset band isomer:
-                continue                         # key collides with g's
+            if has:
+                continue
+            # the recovery key carries only the parent offset, so it
+            # cannot tell same-offset states apart. A band state's own
+            # ENSDF dataset keys its parent WITH the band letter and
+            # never enters the float-keyed lookup — an entry found there
+            # belongs to a non-band sibling (152Pm's (8) isomer shares
+            # the 150 keV offset with the served 4- state, whose spectrum
+            # it must not inherit) — and a same-offset NON-band sibling
+            # is equally ambiguous. Such states stay dropped as served.
+            # A band sibling does not block a non-band state: its dataset
+            # is letter-keyed and cannot be the entry found here.
+            if st[3] or any(o is not st and not o[3]
+                            and abs(o[2] - st[2]) < 1.0 for o in states):
+                if pace_g.get((base, round(st[2], 1), lab)):
+                    report.setdefault('recovery_ambiguous_parent',
+                                      []).append((base, st[0], lab))
+                continue
             rec = pace_g.get((base, round(st[2], 1), lab))
             if rec is None:
                 continue
             mult, rel, gl = rec
+            n_ins = 0
             for e_g, _, ri, dri in gl:
                 if not _accept_intensity(ri * mult, 'gammas', base, e_g):
                     continue
                 g_rows.append((base, st[1], st[0], e_g, ri * mult,
                                dri * mult if dri else None, '', lab, rel))
+                n_ins += 1
             recovered.add((st, lab))
             report.setdefault('blank_dataset_recovered', []).append(
-                (base, st[0], lab, len(gl)))
+                (base, st[0], lab, n_ins))
 
         for row in g_file:
             placed = (row.get('start_level_energy', '').strip()
@@ -708,11 +729,12 @@ def build_radiation(con, identities, iso_rows, norms, pace_g):
             st = find_state(row)
             if st is None:
                 continue
-            lab = _rad_label(row.get('decay', '').strip())
-            if (st, lab) in recovered:
+            spec = MODE_MAP.get(row.get('decay', '').strip())
+            if spec and (st, spec['label']) in recovered:
                 continue
             if not _accept_intensity(i, 'gammas', base, e_g):
                 continue
+            lab = _rad_label(row.get('decay', '').strip())
             g_rows.append(_gamma_row(base, st, e_g, i,
                                      fnum(row.get('unc_i')), '', lab, norms))
 
@@ -934,7 +956,10 @@ def _pace_recovery(data):
                     key=lambda t: t[0])
         if gl:
             base = f'{m.group(2)}{m.group(1).upper()}'
-            out[(base, round(ple, 1), lab)] = (mult, rel, gl)
+            key = (base, round(ple, 1), lab)
+            # two float-keyed datasets colliding on one key cannot be
+            # told apart — poison the key so neither is used
+            out[key] = None if key in out else (mult, rel, gl)
     return out
 
 
@@ -1198,6 +1223,10 @@ def main():
               f'normalization: {len(rec)} datasets, '
               f'{sum(n for *_, n in rec)} rows — '
               f'{[(b, s, l) for b, s, l, _ in rec[:8]]}')
+    if report.get('recovery_ambiguous_parent'):
+        print(f'  all-blank datasets NOT rebuilt (same-offset sibling '
+              f'state makes the parent ambiguous): '
+              f'{report["recovery_ambiguous_parent"]}')
     if report['orphan_state_rows']:
         print(f'  rows keyed to non-admitted parent states (dropped): '
               f'{sum(report["orphan_state_rows"].values())} across '
