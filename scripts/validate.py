@@ -283,6 +283,11 @@ def coverage_diff_irdff(con):
 
 def _endf_table(target):
     import re as _re
+    if target.startswith('nat'):
+        # natural-element targets: 'natFE' -> FE_000 (elemental A=000);
+        # the generic rule below would strip to 'FE_' and misread the
+        # 'm' of a natSM as an isomer flag
+        return target[3:] + '_000'
     return (''.join(_re.findall('[A-Z]+', target)) + '_' +
             ''.join(_re.findall('[0-9]+', target)) +
             ('m' if 'm' in target else ''))
@@ -479,8 +484,8 @@ def coverage_diff_tendl(con):
 def _validate_tendl_rp(con, beam, letter):
     idx = q(con, 'SELECT target,product,label FROM all_reactions')
     targets = _wide_table_checks(con, idx, ['target', 'product', 'label'])
-    check(f'target count (curated cut incl. isomeric targets, {beam})',
-          350 < len(targets) < 450, str(len(targets)))
+    check(f'target count (curated cut + natural-element targets, {beam})',
+          400 < len(targets) < 560, str(len(targets)))
     bad_suffix = sorted({p for _, p, _ in idx
                          if not (p.endswith('g') or 'm' in p[-3:])})
     check('every product carries an explicit state suffix', not bad_suffix,
@@ -506,12 +511,64 @@ def _validate_tendl_rp(con, beam, letter):
             mismatch.append(tab)
     check('stored tables identical to source re-parse', not mismatch, str(mismatch[:3]))
 
+    # natural-element tables (abundance-weighted isotopic sums): present
+    # exactly for the fully covered elements, and byte-identical to a
+    # fresh recomputation through the builder's shared recipe
+    tables = {r[0] for r in q(con, "SELECT name FROM sqlite_master WHERE type='table'")}
+    nat_wrong, nat_bad = [], []
+    for el, parts in sorted(builder.nat_constituents().items()):
+        complete = all(tab in tables for _, tab, _ in parts)
+        if (f'{el}_000' in tables) != complete:
+            nat_wrong.append(el)
+            continue
+        if not complete:
+            continue
+        cols, grid, data = builder.assemble_nat(con, parts)
+        names = [c[1] for c in q(con, f'PRAGMA table_info({el}_000)')][1:]
+        got = q(con, f'SELECT * FROM {el}_000 ORDER BY rowid')
+        if names != [f'_{c}' for c in cols] or \
+                [tuple(r) for r in got] != [tuple(r) for r in data.tolist()]:
+            nat_bad.append(el)
+    check('nat table present iff element fully covered', not nat_wrong,
+          str(nat_wrong[:5]))
+    check('nat tables identical to weighted-sum recomputation', not nat_bad,
+          str(nat_bad[:3]))
+
     if beam == 'proton':
         _tendl_rp_endf_checks(con, builder, src)
+        _nat_monitor_plausibility(con)
 
     resolvable_products(con, blocking=False)
     ver = q(con, 'SELECT library,generation FROM _version')
     check('_version stamp', ver == [(f'tendl_{letter}_rp', 'v2')], str(ver))
+
+
+def _nat_monitor_plausibility(con):
+    """natTi(p,x)48V against the IAEA monitor evaluation — a plausibility
+    band, not a truth anchor: TENDL is TALYS systematics while the IAEA
+    monitors are fit to data, so only peak position (3 MeV) and magnitude
+    (factor of 2) are gated; the ratio is reported for the record."""
+    import numpy as np
+    iaea_path = Path(__file__).resolve().parents[1] / 'build' / 'iaea_monitors.db'
+    if not iaea_path.exists():
+        check('nat-vs-monitor plausibility (iaea_monitors.db present)',
+              False, str(iaea_path))
+        return
+    icon = sqlite3.connect(iaea_path)
+    ref = np.array(icon.execute(
+        "SELECT energy, cross_section FROM proton WHERE target='natTI' "
+        "AND product='48V' ORDER BY energy").fetchall())
+    icon.close()
+    got = np.array(q(con, 'SELECT energy, "_48Vg" FROM TI_000 ORDER BY rowid'))
+    ri, gi = ref[:, 1].argmax(), got[:, 1].argmax()
+    de = abs(got[gi, 0] - ref[ri, 0])
+    ratio = got[gi, 1] / ref[ri, 1]
+    print(f'  natTI(p,x)48V vs IAEA monitor: peak {got[gi, 1]:.0f} mb @ '
+          f'{got[gi, 0]:.1f} MeV vs {ref[ri, 1]:.0f} mb @ {ref[ri, 0]:.1f} '
+          f'MeV (ratio {ratio:.2f})')
+    check('natTI(p,x)48V within the monitor plausibility band '
+          '(peak +-3 MeV, factor 2)', de <= 3.0 and 0.5 <= ratio <= 2.0,
+          f'dE={de:.1f} MeV, ratio={ratio:.2f}')
 
 
 def _tendl_rp_endf_checks(con, builder, src):

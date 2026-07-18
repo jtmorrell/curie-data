@@ -37,23 +37,23 @@ sha256 = "52ac25bcd9b6b1fe359cca28ebae43dc91f30e424e192354e45ea7378f6dff1d"
 source = "TENDL-2025 (exclusive channels, TALYS tables)"
 
 [db."tendl_n_rp.db"]
-size_bytes = 43237376
-sha256 = "06673fd4ce3ef647558f84b69c040ae6b55ff413e5399ea152211e5772880da6"
+size_bytes = 54845440
+sha256 = "8df55b1162cd08845995c332f61f154ccd01c5863f329e056a360263e5083c8f"
 source = "TENDL-2025 (n residual products)"
 
 [db."tendl_p_rp.db"]
-size_bytes = 32137216
-sha256 = "3de018506e4effc8ded60d14c9bea0a08731919986fa6fd8abd4c55955b96084"
+size_bytes = 39559168
+sha256 = "11454f024c96c1261461226f4bd71f6241ff0b9a69c963874e7785d38d0c4886"
 source = "TENDL-2025 (p residual products; the five proton Nb targets ingested from TENDL-2023 ENDF-6)"
 
 [db."tendl_d_rp.db"]
-size_bytes = 29872128
-sha256 = "ac3a228c0c38b715235e9d8418b6de83dec3c546607400270cd63fde24df9b3b"
+size_bytes = 37048320
+sha256 = "ceba722bda0f7c84143fe6dd0cfc9aa3f6c871bdee8e0fecb3483a581d7043b9"
 source = "TENDL-2025 (d residual products)"
 
 [db."tendl_a_rp.db"]
-size_bytes = 25837568
-sha256 = "794f15d7f381c428f674edefd4fadde3c99350125884ef25977a3e9b32a7969b"
+size_bytes = 31944704
+sha256 = "cf3dc8fb8bc9f73d7567e73eb38595fc36ab8144c9037d8412cab652c5b10208"
 source = "TENDL-2025 (alpha residual products; new in v2)"
 
 [db."ziegler.db"]

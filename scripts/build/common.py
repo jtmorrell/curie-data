@@ -31,6 +31,9 @@ def mirror_target(dirname):
     """A mirror directory name as a curie-style target: 'Ag108m' -> '108AGm'."""
     m = re.fullmatch(r'([A-Z][a-z]?)(\d{3})(m?)', dirname)
     return f'{int(m.group(2))}{m.group(1).upper()}{m.group(3)}'
+
+
+DECAY_DB = Path(os.environ.get('CURIE_DECAY_DB', REPO_ROOT / 'build' / 'decay.db'))
 BUILD_DIR = REPO_ROOT / 'build'
 
 

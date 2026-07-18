@@ -19,13 +19,16 @@ established names surfaces through the product-resolution check.
 Usage: python3 tendl_rp.py <beam>       # neutron|proton|deuteron|alpha
 """
 import re
+import sqlite3
 import sys
 from pathlib import Path
 
+import numpy as np
+
 sys.path.insert(0, str(Path(__file__).parent))
-from common import (ARCHIVE_ROOT, ELEMENTS, curated_targets, dedupe_grid,
-                    mirror_target, open_fresh, parse_yandf, union_grid_stack,
-                    write_version)
+from common import (ARCHIVE_ROOT, DECAY_DB, ELEMENTS, curated_targets,
+                    dedupe_grid, mirror_target, open_fresh, parse_yandf,
+                    union_grid_stack, write_version)
 
 DB_NAME = {'neutron': 'tendl_n_rp.db', 'proton': 'tendl_p_rp.db',
            'deuteron': 'tendl_d_rp.db', 'alpha': 'tendl_a_rp.db'}
@@ -107,6 +110,74 @@ def write_target(con, curie_tgt, table, cols, data):
     con.commit()
 
 
+def nat_constituents():
+    """{EL: [(curie_target, table, abundance_percent), ...]} for every
+    element with naturally occurring isotopes, from the decay chart. An
+    abundance recorded on an isomer row names the first-isomer target
+    (TENDL's 'm'), matching the target-naming convention."""
+    dd = sqlite3.connect(DECAY_DB)
+    out = {}
+    for iso, isom, ab in dd.execute(
+            'SELECT isotope, isomer, abundance FROM chart '
+            'WHERE abundance IS NOT NULL AND abundance > 0'):
+        m = re.fullmatch(r'(\d+)([A-Z]+)', iso)
+        a, el = m.group(1), m.group(2)
+        suffix = 'm' if isom != 'g' else ''
+        out.setdefault(el, []).append((iso + suffix, f'{el}_{a}{suffix}', ab))
+    dd.close()
+    return {el: sorted(v) for el, v in out.items()}
+
+
+def assemble_nat(con, parts):
+    """(cols, grid, data) for one natural-element table: the abundance-
+    weighted sum of the stored isotopic tables `parts` [(curie_target,
+    table, abundance_percent)], per product on the union grid, each table
+    zero outside its tabulated (threshold-truncated) range — the exact
+    content the build writes, shared with the validator's identity gate."""
+    grids, columns = {}, {}
+    for _, tab, _ in parts:
+        arr = np.asarray(con.execute(
+            f'SELECT * FROM {tab} ORDER BY rowid').fetchall(), float)
+        names = [c[1] for c in con.execute(f'PRAGMA table_info({tab})')]
+        grids[tab] = arr[:, 0]
+        columns[tab] = (names[1:], arr[:, 1:])
+    grid = np.unique(np.concatenate(list(grids.values())))
+    products = {}
+    for _, tab, ab in parts:
+        names, data = columns[tab]
+        for j, name in enumerate(names):
+            prod = name[1:]  # column '_48Vg' -> product '48Vg'
+            acc = products.setdefault(prod, np.zeros_like(grid))
+            acc += (ab / 100.0) * np.interp(grid, grids[tab], data[:, j],
+                                            left=0.0, right=0.0)
+    cols = sorted(products)
+    data = np.column_stack([grid] + [products[c] for c in cols])
+    return cols, grid, data
+
+
+def synthesize_nat(con):
+    """Write one EL_000 natural-element table per fully covered element
+    (every abundance>0 isotope present as a table; absent elements are the
+    TENDL light-element gap). Absolute abundance weights, not renormalized;
+    a per-element sum outside [99.9, 100.1] aborts the build. Returns
+    (written elements, skipped {element: missing tables})."""
+    tables = {r[0] for r in con.execute(
+        "SELECT name FROM sqlite_master WHERE type='table'")}
+    written, skipped = [], {}
+    for el, parts in sorted(nat_constituents().items()):
+        missing = [tab for _, tab, _ in parts if tab not in tables]
+        if missing:
+            skipped[el] = missing
+            continue
+        total = sum(ab for *_, ab in parts)
+        if not 99.9 <= total <= 100.1:
+            sys.exit(f'nat{el}: abundances sum to {total} — chart defect?')
+        cols, grid, data = assemble_nat(con, parts)
+        write_target(con, f'nat{el}', f'{el}_000', cols, data)
+        written.append(el)
+    return written, skipped
+
+
 def main():
     if len(sys.argv) != 2 or sys.argv[1] not in DB_NAME:
         sys.exit(__doc__.strip())
@@ -146,6 +217,11 @@ def main():
             print(f'  {curie_tgt}: {len(cols)} products from {path.name} '
                   f'(TENDL-2023 ENDF-6)')
 
+    nat, nat_skipped = synthesize_nat(con)
+    print(f'{len(nat)} natural-element tables synthesized' +
+          (f'; no nat table (isotopics unavailable): '
+           f'{" ".join(sorted(nat_skipped))}' if nat_skipped else ''))
+
     note = ('; ' + ','.join(ingested) + ' from TENDL-2023 ENDF-6 files '
             '(no public host serves TENDL-2025 proton Nb)') if ingested else ''
     write_version(con, DB_NAME[beam].replace('.db', ''),
@@ -154,8 +230,8 @@ def main():
                   'TENDL-2025 (TALYS-2.1, 2025-05-14)' +
                   ('; Nb: TENDL-2023' if ingested else ''))
     con.commit()
-    print(f'{len(targets) + len(ingested)} targets, {n_products} product '
-          f'columns -> {DB_NAME[beam]}')
+    print(f'{len(targets) + len(ingested)} isotopic + {len(nat)} natural '
+          f'targets, {n_products} product columns -> {DB_NAME[beam]}')
     con.close()
 
 
