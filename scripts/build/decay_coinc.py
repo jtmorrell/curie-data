@@ -38,12 +38,84 @@ from common import BUILD_DIR
 
 THRESHOLD_PCT = 1e-4
 SNAP_KEV = 0.5
+# A level slower than ~1 us breaks the prompt coincidence: its gamma no longer
+# arrives together with the partner photon, so a pair whose cascade transits
+# such a level is not truly coincident and must not feed TCS corrections.
+ISOMER_HALFLIFE_CUT_S = 1e-6
 MODE_LABEL = {'betaMinusDecay': 'B', 'electronCaptureBetaPlusDecay': 'E',
               'alphaDecay': 'A'}
 
 co_report = {'datasets_matched': 0, 'datasets_unmatched': [],
              'snap_missed': 0, 'threshold_dropped': 0,
-             'over_singles': 0}
+             'over_singles': 0, 'isomer_cut': 0, 'isomer_cut_unknown_hl': 0}
+
+
+def build_singles_index(singles):
+    """{(levelIndexInitial, levelIndexFinal): decaySingles record} for the
+    isomer/half-life lookup. GX datasets carry no decaySingles of their own,
+    so both pair types resolve half-lives through the GG dataset that shares
+    the daughter level scheme."""
+    idx = {}
+    for r in singles:
+        try:
+            key = (int(r['levelIndexInitial']), int(r['levelIndexFinal']))
+        except (KeyError, TypeError, ValueError):
+            continue
+        idx.setdefault(key, r)
+    return idx
+
+
+def isomer_index_by_dataset(data):
+    """{(parentID, daughterID, decayMode, decayIndex): singles-index} built
+    from every GG dataset. The GX datasets lack decaySingles, so their pairs
+    look up isomer half-lives through the GG entry with the same key."""
+    out = {}
+    for d in data:
+        if d.get('datasetID') != 'GG':
+            continue
+        key = (d.get('parentID'), d.get('daughterID'),
+               d.get('decayMode'), d.get('decayIndex'))
+        out[key] = build_singles_index(d.get('decaySingles', []))
+    return out
+
+
+def _delaying_isomer(rec):
+    """(is_delaying, unknown_halflife) for one decaySingles transition. The
+    transition delays its gamma when it leaves a level flagged isomeric whose
+    half-life exceeds the cut; an isomeric level with no numeric half-life is
+    taken as delaying (conservative)."""
+    if not rec or not rec.get('levelIsomer'):
+        return False, False
+    hl = rec.get('levelHalfLifeConverted')
+    if hl is None:
+        return True, True
+    try:
+        return float(hl) > ISOMER_HALFLIFE_CUT_S, False
+    except (TypeError, ValueError):
+        return True, True
+
+
+def cascade_transitions(seq):
+    """Consecutive (initial, final) level-index pairs of an
+    indexedTransitionSequence."""
+    return list(zip(seq, seq[1:]))
+
+
+def transits_delaying_isomer(transitions, singles_index):
+    """(cut, unknown) for a cascade given as a sequence of (initial, final)
+    level-index pairs: cut is True when any transition leaves a long-lived
+    isomer; unknown flags a cut driven by an isomer with no numeric half-life."""
+    unknown = False
+    for ei, ef in transitions:
+        try:
+            rec = singles_index.get((int(ei), int(ef)))
+        except (TypeError, ValueError):
+            continue
+        delaying, unk = _delaying_isomer(rec)
+        unknown = unknown or unk
+        if delaying:
+            return True, unknown
+    return False, unknown
 
 
 def chart_states(con):
@@ -108,6 +180,7 @@ def main():
     e = paceENSDF.ENSDF()
     with contextlib.redirect_stdout(io.StringIO()):
         data = e.load_pace()
+    iso_idx = isomer_index_by_dataset(data)
 
     rows = {}                             # (iso, isomer, e1, e2, typ) ->
     mirror = {}                           #   [intensity, var]; mirrors held
@@ -147,9 +220,32 @@ def main():
             continue
         isomer, iso, _ = near[0]
         co_report['datasets_matched'] += 1
+        singles_index = iso_idx.get(
+            (d.get('parentID'), d.get('daughterID'),
+             d['decayMode'], d['decayIndex']), {})
 
         if d['datasetID'] == 'GG':
             for c in d.get('decayCoincidences', []):
+                # drop the pair if its cascade transits a long-lived isomer;
+                # the full indexed cascade catches mid-cascade isomers the
+                # gate level's own half-life field misses
+                seqs = c.get('coincidenceCascadeSequences') or []
+                if seqs:
+                    transitions = cascade_transitions(
+                        seqs[0].get('indexedTransitionSequence') or [])
+                else:
+                    transitions = [
+                        (c['gammaGateLevelIndexInitial'],
+                         c['gammaGateLevelIndexFinal']),
+                        (c['gammaCoincidenceLevelIndexInitial'],
+                         c['gammaCoincidenceLevelIndexFinal'])]
+                cut, unknown = transits_delaying_isomer(transitions,
+                                                        singles_index)
+                if cut:
+                    co_report['isomer_cut'] += 1
+                    if unknown:
+                        co_report['isomer_cut_unknown_hl'] += 1
+                    continue
                 p = c['absoluteCoincidenceIntensity']
                 up = c['dAbsoluteCoincidenceIntensity']
                 e1, i1 = snap(gidx, iso, isomer, lab, c['gammaEnergyGate'])
@@ -163,6 +259,17 @@ def main():
                 add(iso, isomer, e2, e1, 'g', p, up, mirrored=True)
         else:                             # GX
             for c in d.get('gammaXrayCoincidences', []):
+                # the x-ray is prompt with the decay; drop the pair if the
+                # gamma leg leaves a long-lived isomer level (single-hop by
+                # structure — GX records carry no deeper cascade)
+                cut, unknown = transits_delaying_isomer(
+                    [(c['levelIndexInitial'], c['levelIndexFinal'])],
+                    singles_index)
+                if cut:
+                    co_report['isomer_cut'] += 1
+                    if unknown:
+                        co_report['isomer_cut_unknown_hl'] += 1
+                    continue
                 p = c['absoluteCoincidenceIntensityGammaXray']
                 up = c['dAbsoluteCoincidenceIntensityGammaXray']
                 e1, _ = snap(gidx, iso, isomer, lab, c['gammaEnergy'])
@@ -217,6 +324,10 @@ def main():
           f'skipped: {len(co_report.get("datasets_band_parent", []))}')
     print(f'  pair energies with no gammas row to snap to: '
           f'{co_report["snap_missed"]}')
+    print(f'  pairs cut for transiting a >{ISOMER_HALFLIFE_CUT_S:g} s isomer: '
+          f'{co_report["isomer_cut"]} '
+          f'(of which unknown-half-life isomer levels: '
+          f'{co_report["isomer_cut_unknown_hl"]})')
     print(f'  below-threshold directional rows dropped: '
           f'{co_report["threshold_dropped"]}; rows with no source '
           f'intensity: {co_report.get("missing_intensity", 0)}; '
