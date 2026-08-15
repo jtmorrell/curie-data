@@ -873,6 +873,29 @@ def validate_decay(con):
          "isomer='g' AND ABS(energy-1173.228)<0.05 AND "
          "ABS(coinc_energy-1332.492)<0.05 AND coinc_type='g'",
          lambda v: abs(v[0] - 99.834) < 0.1),
+        ('109CD carries no coincidence pair crossing the 39.79 s 109mAg '
+         'isomeric delay (88.0336 keV vs prompt K x-rays)',
+         "SELECT COUNT(*) FROM coincidences WHERE isotope='109CD' AND "
+         "isomer='g' AND ((ABS(energy-88.0336)<0.01 AND "
+         "(ABS(coinc_energy-22.163)<0.01 OR ABS(coinc_energy-21.99)<0.01 OR "
+         "ABS(coinc_energy-25.03)<0.01 OR ABS(coinc_energy-25.454)<0.01)) OR "
+         "(ABS(coinc_energy-88.0336)<0.01 AND (ABS(energy-22.163)<0.01 OR "
+         "ABS(energy-21.99)<0.01 OR ABS(energy-25.03)<0.01 OR "
+         "ABS(energy-25.454)<0.01)))",
+         lambda v: v[0] == 0),
+        ('113SN carries no coincidence pair crossing the 5968.6 s 113mIn '
+         'isomeric delay (391.699 keV vs prompt K x-rays or the '
+         '255.134/638.03 keV cascade gammas)',
+         "SELECT COUNT(*) FROM coincidences WHERE isotope='113SN' AND "
+         "isomer='g' AND ((ABS(energy-391.699)<0.01 AND "
+         "(ABS(coinc_energy-24.001)<0.01 OR ABS(coinc_energy-24.209)<0.01 OR "
+         "ABS(coinc_energy-27.367)<0.01 OR ABS(coinc_energy-27.858)<0.01 OR "
+         "ABS(coinc_energy-255.134)<0.01 OR ABS(coinc_energy-638.03)<0.01)) "
+         "OR (ABS(coinc_energy-391.699)<0.01 AND (ABS(energy-24.001)<0.01 OR "
+         "ABS(energy-24.209)<0.01 OR ABS(energy-27.367)<0.01 OR "
+         "ABS(energy-27.858)<0.01 OR ABS(energy-255.134)<0.01 OR "
+         "ABS(energy-638.03)<0.01)))",
+         lambda v: v[0] == 0),
         # datasets LiveChart serves without intensities, rebuilt from the
         # ENSDF relative intensities times the normalization record
         ('132LA 464.55 keV = 76(4)% (rebuilt from ENSDF normalization)',
