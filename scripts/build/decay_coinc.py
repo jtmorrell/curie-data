@@ -40,7 +40,10 @@ THRESHOLD_PCT = 1e-4
 SNAP_KEV = 0.5
 # A level slower than ~1 us breaks the prompt coincidence: its gamma no longer
 # arrives together with the partner photon, so a pair whose cascade transits
-# such a level is not truly coincident and must not feed TCS corrections.
+# such a level is not truly coincident and must not feed TCS corrections. The
+# 1 us value is a detector-class assumption (HPGe-scale resolving times), not a
+# universal physical threshold: for a blocking level near the resolving time
+# the prompt/delayed boundary is detector-dependent.
 ISOMER_HALFLIFE_CUT_S = 1e-6
 MODE_LABEL = {'betaMinusDecay': 'B', 'electronCaptureBetaPlusDecay': 'E',
               'alphaDecay': 'A'}
@@ -116,6 +119,27 @@ def transits_delaying_isomer(transitions, singles_index):
         if delaying:
             return True, unknown
     return False, unknown
+
+
+def cut_all_cascades(sequences, singles_index):
+    """(cut, unknown) for a GG pair with parallel cascade sequences: cut is
+    True only when EVERY sequence transits a delaying isomer. A pair with at
+    least one prompt path is kept -- it is partially coincident, and its single
+    published intensity is not path-resolved, so keeping it over-includes the
+    delayed fraction rather than destroying a genuine prompt coincidence.
+    `unknown` flags a cut in which a blocking sequence relies on an isomer of
+    unknown half-life."""
+    if not sequences:
+        return False, False
+    unknown = False
+    for seq in sequences:
+        transitions = cascade_transitions(
+            seq.get('indexedTransitionSequence') or [])
+        cut, unk = transits_delaying_isomer(transitions, singles_index)
+        if not cut:
+            return False, False
+        unknown = unknown or unk
+    return True, unknown
 
 
 def chart_states(con):
@@ -226,21 +250,26 @@ def main():
 
         if d['datasetID'] == 'GG':
             for c in d.get('decayCoincidences', []):
-                # drop the pair if its cascade transits a long-lived isomer;
-                # the full indexed cascade catches mid-cascade isomers the
-                # gate level's own half-life field misses
+                # cut the pair only if EVERY parallel cascade path transits a
+                # long-lived isomer; a record with at least one prompt path is
+                # kept. Such a mixed pair is partially coincident, so the single
+                # tabulated absoluteCoincidenceIntensity overstates its
+                # coincident fraction -- the source publishes no per-sequence
+                # intensity to split it -- a documented approximation for
+                # downstream summing corrections. The full indexed cascade also
+                # catches mid-cascade isomers the gate level's own half-life
+                # field misses.
                 seqs = c.get('coincidenceCascadeSequences') or []
                 if seqs:
-                    transitions = cascade_transitions(
-                        seqs[0].get('indexedTransitionSequence') or [])
+                    cut, unknown = cut_all_cascades(seqs, singles_index)
                 else:
                     transitions = [
                         (c['gammaGateLevelIndexInitial'],
                          c['gammaGateLevelIndexFinal']),
                         (c['gammaCoincidenceLevelIndexInitial'],
                          c['gammaCoincidenceLevelIndexFinal'])]
-                cut, unknown = transits_delaying_isomer(transitions,
-                                                        singles_index)
+                    cut, unknown = transits_delaying_isomer(transitions,
+                                                            singles_index)
                 if cut:
                     co_report['isomer_cut'] += 1
                     if unknown:

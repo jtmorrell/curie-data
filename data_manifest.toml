@@ -13,7 +13,7 @@ shards = "endf.db and the five tendl DBs are additionally published as per-targe
 
 [db."decay.db"]
 size_bytes = 116826112
-sha256 = "d72518960893592111a89ded348e0f1bbb6c445325130445f9bd73bdf6f5b029"
+sha256 = "aba725655dd30532b843f759348118bd9205fc9f6448a3b5fd5fbe1034d8a9dc"
 source = "ENSDF via IAEA LiveChart mirror (2026-07-16) + NUBASE2020/AME2020 closure and estimates + ENDF/B-VIII.1 MF8 fission yields (MT454 independent + MT459 cumulative) + paceENSDF coincidences and normalization records"
 
 [db."endf.db"]

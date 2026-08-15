@@ -16,7 +16,8 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts' / 'build'))
 from decay_coinc import (ISOMER_HALFLIFE_CUT_S, build_singles_index,
-                         cascade_transitions, transits_delaying_isomer)
+                         cascade_transitions, cut_all_cascades,
+                         transits_delaying_isomer)
 
 
 def _single(i_init, i_final, isomer=False, hl=None):
@@ -70,6 +71,43 @@ def test_gg_cascade_cut(seq, expect_cut, expect_unknown):
 def test_gx_single_hop_cut(gamma_leg, expect_cut, expect_unknown):
     assert transits_delaying_isomer([gamma_leg], INDEX) == (expect_cut,
                                                             expect_unknown)
+
+
+def _seq(*levels):
+    """A coincidenceCascadeSequences entry carrying one indexed cascade."""
+    return {'indexedTransitionSequence': list(levels)}
+
+
+# Mixed multi-sequence records: a GG pair carries several parallel cascade
+# paths connecting the same two gammas. The pair is cut only when EVERY path
+# is delayed; one prompt path keeps the whole pair (partially coincident).
+@pytest.mark.parametrize('sequences,expect_cut,expect_unknown', [
+    # One blocked path ([2, 1, 0] transits the 391.698 keV isomer on 1 -> 0)
+    # and one prompt path ([3, 1]): a prompt route exists -> KEPT.
+    ([_seq(2, 1, 0), _seq(3, 1)], False, False),
+    # Prompt path listed first, blocked path second -> still KEPT; the rule is
+    # order-independent, unlike the former seqs[0]-only decision.
+    ([_seq(3, 1), _seq(2, 1, 0)], False, False),
+    # Every path transits the same long-lived isomer -> CUT.
+    ([_seq(2, 1, 0), _seq(2, 1, 0)], True, False),
+    # Both paths delayed, one via the unknown-half-life isomer (4 -> 0) -> CUT,
+    # flagged unknown.
+    ([_seq(2, 1, 0), _seq(4, 0)], True, True),
+    # A single blocked sequence behaves like the old single-sequence path.
+    ([_seq(2, 1, 0)], True, False),
+])
+def test_mixed_multi_sequence_cut(sequences, expect_cut, expect_unknown):
+    assert cut_all_cascades(sequences, INDEX) == (expect_cut, expect_unknown)
+
+
+def test_mixed_kept_diverges_from_seq0_rule():
+    """The kept mixed record is exactly where the former seqs[0]-only rule
+    over-cut: its first sequence is delayed, so the old rule would drop it,
+    while the all-sequences rule keeps it for the prompt second path."""
+    sequences = [_seq(2, 1, 0), _seq(3, 1)]
+    seq0 = cascade_transitions(sequences[0]['indexedTransitionSequence'])
+    assert transits_delaying_isomer(seq0, INDEX) == (True, False)   # old: cut
+    assert cut_all_cascades(sequences, INDEX) == (False, False)     # new: keep
 
 
 def test_threshold_boundary():
