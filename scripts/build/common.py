@@ -83,9 +83,10 @@ def pipeline_commit():
 def write_version(con, library, source, source_version, generation='v2'):
     """One-row provenance table recording what this file was built from.
 
-    Nothing reads it programmatically yet; it exists so the file itself
-    carries its generation and source (inspectable with any sqlite tool),
-    and so a future curie release can detect generation skew.
+    The file itself carries its generation and source (inspectable with any
+    sqlite tool). curie compares the generation with the stamp its registry
+    expects of the file and warns on a mismatch; for decay.db a mismatch
+    also turns the coincidence-summing correction off.
     """
     con.execute('CREATE TABLE _version (library TEXT, generation TEXT, '
                 'source TEXT, source_version TEXT, build_date TEXT, '

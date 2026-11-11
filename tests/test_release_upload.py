@@ -240,6 +240,38 @@ def test_commands_off_the_revision_tag_exit_before_any_request(
     assert not (tmp / 'build' / 'v2.1').exists()
 
 
+@pytest.mark.parametrize('command', ['upload', 'verify', 'publish'])
+@pytest.mark.parametrize('fnm,rtag', [('decay.db', 'v2'),
+                                      ('decay.db', 'v2-endf'),
+                                      ('endf.db', 'v2.2')])
+def test_a_revision_on_a_published_tag_or_a_sharded_library_is_refused(
+        layout, monkeypatch, command, fnm, rtag):
+    """A revision whose base_url names the generation tag or a shard tag,
+    or that revises a shard-assembled library, is refused before any
+    request, so the guard does not rest on the registry being right."""
+    tmp, reg = layout
+    reg = copy.deepcopy(reg)
+    reg['revisions'][fnm] = {'base_url': 'https://github.com/{}/releases/'
+                             'download/{}/'.format(REPO, rtag)}
+    release_upload.REGISTRY.write_text(json.dumps(reg))
+    (tmp / 'build' / rtag).mkdir(exist_ok=True)      # a leftover SHA256SUMS
+    (tmp / 'build' / rtag / 'SHA256SUMS').write_text('x\n')
+    gh = _gh(monkeypatch)
+    with pytest.raises(SystemExit) as e:
+        getattr(release_upload, command)(rtag)
+    assert 'revision' in str(e.value)
+    assert gh.calls == []
+
+
+def test_a_revision_release_is_described_by_its_own_tag(layout, monkeypatch):
+    gh = _gh(monkeypatch)
+    release_upload.upload('v2.1')
+    body = next(json.loads(d)['body'] for m, u, d in gh.calls
+                if m == 'POST' and u.endswith('/releases'))
+    assert body.startswith('curie nuclear-data release v2.1: decay.db of '
+                           'generation v2, re-published with the stamp v2.1')
+
+
 def test_upload_verify_publish_touch_only_the_revision_release(
         layout, monkeypatch):
     tmp, reg = layout

@@ -217,11 +217,22 @@ def _check_tag(command, tag):
     """Exit before any request unless `command` may run on `tag`. While the
     registry holds revisions, upload, verify and publish run only on a
     revision tag, so no command can write or judge the generation's own
-    releases, whose assets stay as published."""
+    releases, whose assets stay as published. A registry whose revision
+    names the generation tag or a shard tag, or revises a shard-assembled
+    library (whose stamp comes from its shard group), is refused."""
     reg = json.loads(REGISTRY.read_text())
     rtags = _revision_tags(reg)
-    tags = {_tag(reg['base_url'])} | rtags | {
+    published = {_tag(reg['base_url'])} | {
         _tag(g['base_url']) for g in reg['shards'].values()}
+    sharded = sorted(f for f in reg.get('revisions', {})
+                     if f[:-3] in reg['shards'])
+    if rtags & published or sharded:
+        sys.exit('{}: the registry revision of {} is invalid: a revision tag '
+                 'must differ from the generation and shard tags ({}), and a '
+                 'shard-assembled library cannot be revised'.format(
+                     command, ', '.join(sorted(reg['revisions'])),
+                     ', '.join(sorted(rtags & published)) or 'none shared'))
+    tags = published | rtags
     if tag is not None and tag not in tags:
         sys.exit('{}: no tag {} in the registry (one of: {})'.format(
             command, tag, ', '.join(sorted(tags))))
@@ -230,6 +241,21 @@ def _check_tag(command, tag):
                  '--tag naming a revision tag ({}); every other release keeps '
                  'its published assets'.format(command, command,
                                                ', '.join(sorted(rtags))))
+
+
+def _release_body(generation, tag, paths):
+    """The release description: the generation, or for a revision tag the
+    one file re-published within the generation with that tag's stamp."""
+    reg = json.loads(REGISTRY.read_text())
+    revised = sorted(p.name for p in paths if p.name in reg.get('revisions', {}))
+    if tag in _revision_tags(reg):
+        return ('curie nuclear-data release {}: {} of generation {}, '
+                're-published with the stamp {}; the other databases stay on '
+                'the {} release. Fetched by curie via '
+                'curie/data_registry.json.'.format(
+                    tag, ', '.join(revised), generation, tag, generation))
+    return ('curie nuclear-data release, generation {}. Fetched by curie via '
+            'curie/data_registry.json.'.format(generation))
 
 
 def plan(tag=None):
@@ -252,9 +278,7 @@ def upload(tag=None):
             rel = _request(f'{API}/repos/{REPO}/releases', method='POST',
                            data=json.dumps({
                                'tag_name': tag, 'name': tag, 'draft': True,
-                               'body': 'curie nuclear-data release, generation '
-                                       '{}. Fetched by curie via '
-                                       'curie/data_registry.json.'.format(generation),
+                               'body': _release_body(generation, tag, paths),
                            }).encode())
             print('created DRAFT release {}'.format(tag), flush=True)
         have = _assets(rel['id'])
