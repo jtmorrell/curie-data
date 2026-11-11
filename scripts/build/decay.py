@@ -45,6 +45,10 @@ NUBASE = ARCHIVE_ROOT / 'ame2020' / 'nubase_4.mas20.txt'
 V1_DIR = Path(os.environ.get('CURIE_V1_DIR', Path.home() / '.local/share/curie'))
 ISOMER_FLOOR_S = 1e-7          # 100 ns (NUBASE's own convention)
 AMU_KEV = 931494.10242         # keV per u
+# The stamp this build writes to _version.generation. It runs ahead of the
+# other libraries' generation when decay.db alone is re-published under a
+# release tag of its own, whose name is this stamp.
+DECAY_GENERATION = 'v2.1'
 
 with open(Path(__file__).parent / 'decay_modes.toml', 'rb') as _f:
     MODE_MAP = tomllib.load(_f)
@@ -1200,7 +1204,8 @@ def main():
                   'NUBASE2020/AME2020 closure and estimates, ENSDF N-records '
                   'via paceENSDF (unc_norm)',
                   'LiveChart mirror 2026-07-16, per-row ENSDF cut-offs '
-                  'recorded in the source archive')
+                  'recorded in the source archive',
+                  generation=DECAY_GENERATION)
     con.commit()
 
     print(f'{len(rows)} chart rows ({sum(1 for r in rows if r[3] != "g")} '
