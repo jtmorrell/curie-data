@@ -3,6 +3,9 @@
 # scripts/fetch); hashes are of the exact files to publish on the v2 release tags.
 # Sizes in bytes. Feeds the fetch registry and, on the next rebuild, the
 # old-vs-new coverage diff. The v1 manifest is preserved in git history.
+# Revised file: decay.db is re-published on its own release tag v2.1 with the
+# generation stamp v2.1 and no other change (its "tag" key below); the v2 tag
+# keeps the earlier v2-stamped copy. Every other file is that of the v2 tag.
 
 [meta]
 curie_version = "0.3.0"
@@ -13,7 +16,8 @@ shards = "endf.db and the five tendl DBs are additionally published as per-targe
 
 [db."decay.db"]
 size_bytes = 116826112
-sha256 = "aba725655dd30532b843f759348118bd9205fc9f6448a3b5fd5fbe1034d8a9dc"
+sha256 = "50ac2270f4a4ad58275a3cde13cd4a9ccf47e5132a2cd1d07218c26ed926d775"
+tag = "v2.1"
 source = "ENSDF via IAEA LiveChart mirror (2026-07-16) + NUBASE2020/AME2020 closure and estimates + ENDF/B-VIII.1 MF8 fission yields (MT454 independent + MT459 cumulative) + paceENSDF coincidences and normalization records"
 
 [db."endf.db"]

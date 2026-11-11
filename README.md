@@ -12,7 +12,7 @@ downloads), the current data generation's databases are:
 
 | File | Library | Size |
 |---|---|---|
-| [`decay.db`](https://github.com/jtmorrell/curie-data/releases/download/v2/decay.db) | Decay data: half-lives, emission energies and intensities, branching ratios (ENSDF via IAEA LiveChart, NUBASE2020/AME2020) | 117 MB |
+| [`decay.db`](https://github.com/jtmorrell/curie-data/releases/download/v2.1/decay.db) | Decay data: half-lives, emission energies and intensities, branching ratios (ENSDF via IAEA LiveChart, NUBASE2020/AME2020) | 117 MB |
 | [`endf.db`](https://github.com/jtmorrell/curie-data/releases/download/v2/endf.db) | ENDF/B-VIII.1 neutron cross sections | 842 MB |
 | [`tendl.db`](https://github.com/jtmorrell/curie-data/releases/download/v2/tendl.db) | TENDL-2025 neutron cross sections, exclusive channels | 37 MB |
 | [`tendl_n_rp.db`](https://github.com/jtmorrell/curie-data/releases/download/v2/tendl_n_rp.db) | TENDL-2025 neutron residual-product cross sections | 55 MB |
@@ -26,9 +26,12 @@ downloads), the current data generation's databases are:
 Place the files you need in curie's data directory — `%LOCALAPPDATA%\curie` on
 Windows (almost always `C:\Users\<username>\AppData\Local\curie`),
 `~/.local/share/curie` on Linux, `~/Library/Application Support/curie` on
-macOS — and curie uses them as-is. Downloads can be verified against
-[`SHA256SUMS`](https://github.com/jtmorrell/curie-data/releases/download/v2/SHA256SUMS)
-from the same release. The full manual-installation recipe (including
+macOS — and curie uses them as-is. Downloads can be verified against the
+`SHA256SUMS` file of the release each file comes from:
+[`v2.1`](https://github.com/jtmorrell/curie-data/releases/download/v2.1/SHA256SUMS)
+for `decay.db`,
+[`v2`](https://github.com/jtmorrell/curie-data/releases/download/v2/SHA256SUMS)
+for the others. The full manual-installation recipe (including
 installing curie itself without PyPI access) is in the
 [curie installation guide](https://jtmorrell.github.io/curie/quickinstall.html).
 
@@ -48,6 +51,7 @@ assets and the sharded libraries carry hundreds of files each. The current gener
 | Tag | Contents |
 |---|---|
 | `v2` | The 10 whole database files + `SHA256SUMS` + `data_manifest.toml` |
+| `v2.1` | `decay.db` re-published with the stamp `v2.1` + `SHA256SUMS` + `data_manifest.toml` |
 | `v2-endf` | ENDF/B-VIII.1 per-target shards (`endf_<TABLE>.db`, one table each) |
 | `v2-tendl` | TENDL-2025 exclusive-channel shards |
 | `v2-tendl-n-rp` | TENDL-2025 neutron residual-product shards |
@@ -75,6 +79,14 @@ rather than per-target tables, and the others are small.
 - A new data generation is published as a new set of tags (`v3`, `v3-endf`, ...)
   alongside the old ones, and ships to users via a new curie release carrying the
   updated registry.
+- A single file revised within a generation is re-published on a tag
+  `v<generation>.<n>` (`v2.1` for `decay.db`), and the tag name is the
+  generation stamp the file carries. The registry gives that file the tag's
+  base_url; the generation tag keeps its earlier copy for the curie versions
+  pinned to it. An installation that holds the earlier copy gets curie's
+  data-generation warning at first connection until `ci.download('<library>')`
+  replaces the file; for `decay.db`, `calibrate()` also applies no
+  coincidence-summing correction until then.
 - A library whose shard count approaches the per-release asset cap splits by Z-range
   into multiple tags (`v3-tendl-1`, `v3-tendl-2`, ...); the registry's per-group
   base_url makes this transparent to curie.
