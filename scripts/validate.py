@@ -8,6 +8,7 @@ exhibit.
 
 Usage: python3 validate.py build/iaea_monitors.db
 """
+import json
 import os
 import sqlite3
 import sys
@@ -16,6 +17,10 @@ from collections import defaultdict
 from pathlib import Path
 
 V1_DIR = Path(os.environ.get('CURIE_V1_DIR', Path.home() / '.local/share/curie'))
+# the curie registry of the sibling checkout: the decay stamp is checked
+# against the one curie expects
+REGISTRY = (Path(__file__).resolve().parents[2] / 'curie' / 'curie'
+            / 'data_registry.json')
 
 PASS, FAIL = 'pass', 'FAIL'
 _results = []
@@ -911,8 +916,20 @@ def validate_decay(con):
         v = one(sql)
         check(label, v is not None and ok_fn(v), str(v))
 
+    check_decay_stamp(con)
+
+
+def check_decay_stamp(con, registry_path=REGISTRY):
+    """The decay stamp must be the one curie expects of decay.db: the tag of
+    its revision base_url in the curie registry, the top-level tag
+    otherwise."""
+    reg = json.loads(Path(registry_path).read_text())
+    url = reg.get('revisions', {}).get('decay.db', {}).get('base_url',
+                                                           reg['base_url'])
+    expected = url.rstrip('/').rsplit('/', 1)[-1]
     ver = q(con, 'SELECT library, generation FROM _version')
-    check('_version stamp', ver == [('decay', 'v2')], str(ver))
+    return check('_version stamp', ver == [('decay', expected)],
+                 '{} (expected {})'.format(ver, expected))
 
 
 def coverage_diff_decay(con):

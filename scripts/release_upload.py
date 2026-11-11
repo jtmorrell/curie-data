@@ -19,13 +19,22 @@ are single atomic POSTs, hash-verified-local + name/size-verified-remote
 pins the published set. `publish` (which creates the tags and makes the
 download URLs live) refuses to run on anything but a clean verify.
 
+A file re-published within a generation (an entry under the registry's
+`revisions`) belongs to the tag of its revision base_url only, with its own
+SHA256SUMS (kept at build/<tag>/SHA256SUMS) and data_manifest.toml. While
+the registry holds revisions, upload, verify and publish run only with
+`--tag` naming a revision tag, so the generation's releases keep the
+assets they were published with; `plan` prints the assets of each tag
+without any request.
+
 Everything uses the REST API only (the maintainer token cannot use
 GraphQL); the token comes from GITHUB_TOKEN or `gh auth token`.
 
 Usage:
-    python3 release_upload.py upload
-    python3 release_upload.py verify
-    python3 release_upload.py publish
+    python3 release_upload.py plan [--tag TAG]
+    python3 release_upload.py upload [--tag TAG]
+    python3 release_upload.py verify [--tag TAG]
+    python3 release_upload.py publish [--tag TAG]
 """
 import argparse
 import hashlib
@@ -137,41 +146,105 @@ def _assets(release_id):
         page += 1
 
 
-def _plan(write_sums=False):
+def _tag(base_url):
+    return base_url.rstrip('/').rsplit('/', 1)[-1]
+
+
+def _sha256(path):
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def _file_tag(reg, fnm):
+    """The tag a whole file is published on: that of its entry under the
+    registry's revisions, the generation tag otherwise (curie's rule)."""
+    return _tag(reg.get('revisions', {}).get(fnm, {}).get('base_url',
+                                                          reg['base_url']))
+
+
+def _revision_tags(reg):
+    return {_file_tag(reg, f) for f in reg.get('revisions', {})}
+
+
+def _plan(write_sums=False, tag=None, need_meta=True):
     """(generation, [(tag, [paths])]) from the registry: whole files +
-    metadata on the generation tag, each shard group on its own tag. Only
-    an upload regenerates SHA256SUMS; verify/publish read what upload
+    metadata on the generation tag, a revised file + metadata on the tag of
+    its revision base_url (and on no other tag), each shard group on its
+    own tag; `tag` keeps that one tag only. A revision tag's SHA256SUMS
+    lives at build/<tag>/SHA256SUMS; build/SHA256SUMS (the generation
+    tag's) is never rewritten while the registry holds revisions. Only an
+    upload regenerates SHA256SUMS; verify/publish read what upload
     wrote."""
     build = ROOT / 'build'
     reg = json.loads(REGISTRY.read_text())
-    generation = reg['base_url'].rstrip('/').rsplit('/', 1)[-1]
-    whole = [build / f for f in sorted(reg['files'])]
-    missing = [str(p) for p in whole if not p.is_file()]
-    if missing:
-        sys.exit('whole files missing from build/: {}'.format(missing))
-    sums = build / 'SHA256SUMS'
-    if write_sums:
-        sums.write_text(''.join(
-            '{}  {}\n'.format(hashlib.sha256(p.read_bytes()).hexdigest(), p.name)
-            for p in whole))
+    generation = _tag(reg['base_url'])
+    revised = reg.get('revisions', {})
     manifest = ROOT / 'data_manifest.toml'
-    for p in (sums, manifest):
-        if not p.is_file():
-            sys.exit('{} missing (run upload first)'.format(p))
-    plan = [(generation, whole + [sums, manifest])]
+    groups = {generation: (build / 'SHA256SUMS',
+                           sorted(f for f in reg['files'] if f not in revised))}
+    for rtag in sorted(_revision_tags(reg)):
+        groups[rtag] = (build / rtag / 'SHA256SUMS', sorted(
+            f for f in revised if _file_tag(reg, f) == rtag))
+    plan = []
+    for gtag, (sums, names) in groups.items():
+        if tag is not None and gtag != tag:
+            continue
+        whole = [build / f for f in names]
+        missing = [str(p) for p in whole if not p.is_file()]
+        if missing:
+            sys.exit('whole files missing from build/: {}'.format(missing))
+        if write_sums and not (revised and gtag == generation):
+            sums.parent.mkdir(exist_ok=True)
+            sums.write_text(''.join(
+                '{}  {}\n'.format(_sha256(p), p.name) for p in whole))
+        for p in (sums, manifest) if need_meta else ():
+            if not p.is_file():
+                sys.exit('{} missing (run upload first)'.format(p))
+        plan.append((gtag, whole + [sums, manifest]))
     for lib, group in sorted(reg['shards'].items()):
-        tag = group['base_url'].rstrip('/').rsplit('/', 1)[-1]
+        stag = _tag(group['base_url'])
+        if tag is not None and stag != tag:
+            continue
         shard_dir = ROOT / 'shards-{}'.format(generation) / lib
         paths = [shard_dir / f for f in sorted(group['files'])]
         missing = [str(p) for p in paths if not p.is_file()]
         if missing:
-            sys.exit('{}: shards missing on disk: {}...'.format(tag, missing[:3]))
-        plan.append((tag, paths))
+            sys.exit('{}: shards missing on disk: {}...'.format(stag, missing[:3]))
+        plan.append((stag, paths))
     return generation, plan
 
 
-def upload():
-    generation, plan = _plan(write_sums=True)
+def _check_tag(command, tag):
+    """Exit before any request unless `command` may run on `tag`. While the
+    registry holds revisions, upload, verify and publish run only on a
+    revision tag, so no command can write or judge the generation's own
+    releases, whose assets stay as published."""
+    reg = json.loads(REGISTRY.read_text())
+    rtags = _revision_tags(reg)
+    tags = {_tag(reg['base_url'])} | rtags | {
+        _tag(g['base_url']) for g in reg['shards'].values()}
+    if tag is not None and tag not in tags:
+        sys.exit('{}: no tag {} in the registry (one of: {})'.format(
+            command, tag, ', '.join(sorted(tags))))
+    if command != 'plan' and rtags and tag not in rtags:
+        sys.exit('{}: the registry holds revisions, so {} runs only with '
+                 '--tag naming a revision tag ({}); every other release keeps '
+                 'its published assets'.format(command, command,
+                                               ', '.join(sorted(rtags))))
+
+
+def plan(tag=None):
+    """Print each tag and its asset names (no request, no file written)."""
+    _check_tag('plan', tag)
+    _, tags = _plan(tag=tag, need_meta=False)
+    for t, paths in tags:
+        print('{}: {} assets'.format(t, len(paths)))
+        for p in paths:
+            print('  ' + p.name)
+
+
+def upload(tag=None):
+    _check_tag('upload', tag)
+    generation, plan = _plan(write_sums=True, tag=tag)
     releases = _releases()
     for tag, paths in plan:
         rel = releases.get(tag)
@@ -213,23 +286,29 @@ def upload():
         LEDGER.write_text(json.dumps(ledger, indent=1, sort_keys=True))
 
 
-def verify():
-    generation, plan = _plan()
+def verify(tag=None):
+    _check_tag('verify', tag)
+    generation, plan = _plan(tag=tag)
     reg = json.loads(REGISTRY.read_text())
     # local disk must equal the registry checksums byte-for-byte: whole
-    # files and every shard (the uploads are atomic single POSTs, so
-    # hash-verified local + name/size-verified remote pins the release)
-    bad_hash = []
+    # files and every shard of the planned tags (the uploads are atomic
+    # single POSTs, so hash-verified local + name/size-verified remote pins
+    # the release)
+    tags = {t for t, _ in plan}
+    bad_hash, n_checked = [], 0
     for f, sha in reg['files'].items():
-        p = ROOT / 'build' / f
-        if hashlib.sha256(p.read_bytes()).hexdigest() != sha:
+        if _file_tag(reg, f) not in tags:
+            continue
+        n_checked += 1
+        if _sha256(ROOT / 'build' / f) != sha:
             bad_hash.append(f)
     for lib, group in reg['shards'].items():
+        if _tag(group['base_url']) not in tags:
+            continue
         for f, sha in group['files'].items():
-            p = ROOT / 'shards-{}'.format(generation) / lib / f
-            if hashlib.sha256(p.read_bytes()).hexdigest() != sha:
+            n_checked += 1
+            if _sha256(ROOT / 'shards-{}'.format(generation) / lib / f) != sha:
                 bad_hash.append(f)
-    n_checked = len(reg['files']) + sum(len(g['files']) for g in reg['shards'].values())
     print('local files vs registry checksums: {} checked, {} mismatched{}'.format(
         n_checked, len(bad_hash), ' ' + str(bad_hash[:5]) if bad_hash else ''))
     ok = not bad_hash
@@ -241,8 +320,7 @@ def verify():
         for tag, paths in plan:
             rec = ledger.get(tag, {})
             for pth in paths:
-                if pth.name in rec and rec[pth.name] != hashlib.sha256(
-                        pth.read_bytes()).hexdigest():
+                if pth.name in rec and rec[pth.name] != _sha256(pth):
                     stale.append('{}/{}'.format(tag, pth.name))
         print('local files changed since their upload: {}{}'.format(
             len(stale), ' ' + str(stale[:5]) if stale else ''))
@@ -272,10 +350,11 @@ def verify():
     return ok
 
 
-def publish():
-    if not verify():
+def publish(tag=None):
+    _check_tag('publish', tag)
+    if not verify(tag):
         sys.exit('refusing to publish an incomplete or mismatched upload')
-    _, plan = _plan()
+    _, plan = _plan(tag=tag)
     releases = _releases()
     for tag, _ in plan:
         rel = releases.get(tag)
@@ -291,6 +370,10 @@ def publish():
 
 if __name__ == '__main__':
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument('command', choices=['upload', 'verify', 'publish'])
+    ap.add_argument('command', choices=['plan', 'upload', 'verify', 'publish'])
+    ap.add_argument('--tag', help='act on this release tag only (required, '
+                    'and a revision tag, for upload/verify/publish while the '
+                    'registry holds revisions)')
     args = ap.parse_args()
-    {'upload': upload, 'verify': verify, 'publish': publish}[args.command]()
+    {'plan': plan, 'upload': upload, 'verify': verify,
+     'publish': publish}[args.command](args.tag)
